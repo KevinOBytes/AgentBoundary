@@ -8,7 +8,7 @@ interface Props {
 }
 
 export async function getStaticProps(): Promise<{ props: Props }> {
-  const filePath = path.join(process.cwd(), "..", "results", "model_results.json");
+  const filePath = path.join(process.cwd(), "..", "results", "generated", "model_results.json");
   const data: ResultsFile = JSON.parse(fs.readFileSync(filePath, "utf8"));
   return { props: { data } };
 }

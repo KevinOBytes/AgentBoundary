@@ -2,8 +2,8 @@ import fs from "fs";
 import path from "path";
 import Layout from "../components/Layout";
 import { motion, AnimatePresence } from "framer-motion";
-import { Database, Activity, X, Filter, ShieldAlert } from "lucide-react";
-import { useState } from "react";
+import { Database, Activity, X, Filter, ShieldAlert, ChevronRight, ChevronDown } from "lucide-react";
+import React, { useState } from "react";
 
 interface ModelMetrics {
   total: number;
@@ -54,8 +54,9 @@ export async function getStaticProps(): Promise<{ props: Props }> {
 }
 
 export default function DatasetPage({ data }: Props) {
-  const [selectedModel, setSelectedModel] = useState<string>("all");
-  const [selectedAttack, setSelectedAttack] = useState<string>("all");
+  const [selectedModels, setSelectedModels] = useState<string[]>([]);
+  const [selectedAttacks, setSelectedAttacks] = useState<string[]>([]);
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [activeModalModel, setActiveModalModel] = useState<string | null>(null);
 
   if (!data) {
@@ -77,9 +78,52 @@ export default function DatasetPage({ data }: Props) {
   
   const uniqueAttacks = Array.from(new Set(results.map(r => r.attack_id))).sort();
 
+  // Derived providers & categories
+  const providers = Array.from(new Set(models.map(m => m.split('/')[0])));
+  
+  const getAttackCategory = (id: string) => {
+    const parts = id.split('_');
+    if (parts.length > 1 && !isNaN(parseInt(parts[parts.length-1]))) {
+      return parts.slice(0, -1).join('_');
+    }
+    return id;
+  };
+  const attackCategories = Array.from(new Set(uniqueAttacks.map(getAttackCategory)));
+
+  // Toggle helpers
+  const toggleModel = (m: string) => setSelectedModels(prev => prev.includes(m) ? prev.filter(x => x !== m) : [...prev, m]);
+  const toggleAttack = (a: string) => setSelectedAttacks(prev => prev.includes(a) ? prev.filter(x => x !== a) : [...prev, a]);
+  
+  const selectProvider = (p: string) => {
+     const pModels = models.filter(m => m.startsWith(p + '/'));
+     setSelectedModels(prev => Array.from(new Set([...prev, ...pModels])));
+  };
+  const unselectProvider = (p: string) => {
+     const pModels = models.filter(m => m.startsWith(p + '/'));
+     setSelectedModels(prev => prev.filter(m => !pModels.includes(m)));
+  };
+
+  const selectCategory = (cat: string) => {
+    const catAttacks = uniqueAttacks.filter(a => getAttackCategory(a) === cat);
+    setSelectedAttacks(prev => Array.from(new Set([...prev, ...catAttacks])));
+  }
+  const unselectCategory = (cat: string) => {
+    const catAttacks = uniqueAttacks.filter(a => getAttackCategory(a) === cat);
+    setSelectedAttacks(prev => prev.filter(a => !catAttacks.includes(a)));
+  }
+
+  const toggleRow = (key: string) => {
+    setExpandedRows(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  };
+
   const filteredResults = results.filter(res => {
-    const matchModel = selectedModel === "all" || res.model === selectedModel;
-    const matchAttack = selectedAttack === "all" || res.attack_id === selectedAttack;
+    const matchModel = selectedModels.length === 0 || selectedModels.includes(res.model);
+    const matchAttack = selectedAttacks.length === 0 || selectedAttacks.includes(res.attack_id);
     return matchModel && matchAttack;
   }).sort((a, b) => {
     if (a.flags.injection_success && !b.flags.injection_success) return -1;
@@ -167,32 +211,73 @@ export default function DatasetPage({ data }: Props) {
               <Filter size={16} className="mr-2" />
               <span className="text-sm font-semibold uppercase tracking-wider">Filters</span>
             </div>
-            <select 
-              className="bg-black border border-white/10 text-white text-sm rounded-lg focus:ring-accent focus:border-accent block p-2 outline-none"
-              value={selectedModel}
-              onChange={(e) => setSelectedModel(e.target.value)}
-            >
-              <option value="all">All Models</option>
-              {models.map(m => (
-                <option key={m} value={m}>{m.split('/').pop()}</option>
-              ))}
-            </select>
-            <select 
-              className="bg-black border border-white/10 text-white text-sm rounded-lg focus:ring-accent focus:border-accent block p-2 outline-none w-48 truncate"
-              value={selectedAttack}
-              onChange={(e) => setSelectedAttack(e.target.value)}
-            >
-              <option value="all">All Attacks</option>
-              {uniqueAttacks.map(a => (
-                <option key={a} value={a}>{a}</option>
-              ))}
-            </select>
-            {(selectedModel !== 'all' || selectedAttack !== 'all') && (
+            
+            <details className="relative group">
+              <summary className="bg-black border border-white/10 text-white hover:border-white/20 transition-colors text-sm rounded-lg p-2 cursor-pointer list-none flex items-center justify-between min-w-[150px]">
+                {selectedModels.length === 0 ? "All Models" : `${selectedModels.length} Models Selected`}
+                <ChevronDown size={14} className="ml-2 opacity-50" />
+              </summary>
+              <div className="absolute top-full left-0 mt-2 w-64 bg-[#0f0f0f] border border-white/10 rounded-xl p-3 z-50 shadow-2xl space-y-4 max-h-[400px] overflow-auto custom-scrollbar">
+                {providers.map(p => {
+                   const pModels = models.filter(m => m.startsWith(p + '/'));
+                   const allSelected = pModels.every(m => selectedModels.includes(m));
+                   return (
+                     <div key={p}>
+                       <div className="flex items-center justify-between mb-2">
+                         <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">{p}</span>
+                         <button onClick={() => allSelected ? unselectProvider(p) : selectProvider(p)} className="text-[10px] text-accent font-semibold uppercase">
+                           {allSelected ? 'Deselect All' : 'Select All'}
+                         </button>
+                       </div>
+                       {pModels.map(m => (
+                         <label key={m} className="flex items-center gap-2 text-sm text-gray-300 hover:text-white cursor-pointer mb-1.5 ml-1">
+                           <input type="checkbox" checked={selectedModels.includes(m)} onChange={() => toggleModel(m)} className="accent-accent" />
+                           <span className="truncate">{m.split('/').pop()}</span>
+                         </label>
+                       ))}
+                     </div>
+                   )
+                })}
+              </div>
+            </details>
+
+            <details className="relative group">
+              <summary className="bg-black border border-white/10 text-white hover:border-white/20 transition-colors text-sm rounded-lg p-2 cursor-pointer list-none flex items-center justify-between min-w-[150px]">
+                {selectedAttacks.length === 0 ? "All Attacks" : `${selectedAttacks.length} Attacks Selected`}
+                <ChevronDown size={14} className="ml-2 opacity-50" />
+              </summary>
+              <div className="absolute top-full right-0 mt-2 w-max max-w-[800px] min-w-[400px] bg-[#0f0f0f] border border-white/10 rounded-xl p-4 z-50 shadow-2xl max-h-[500px] overflow-auto custom-scrollbar grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4">
+                {attackCategories.map(cat => {
+                   const catAttacks = uniqueAttacks.filter(a => getAttackCategory(a) === cat);
+                   const allSelected = catAttacks.every(a => selectedAttacks.includes(a));
+                   return (
+                     <div key={cat}>
+                       <div className="flex items-center justify-between mb-2 border-b border-white/5 pb-1">
+                         <span className="text-xs font-bold text-gray-400 uppercase tracking-widest truncate max-w-[200px]" title={cat.replace(/_/g, ' ')}>{cat.replace(/_/g, ' ')}</span>
+                         <button onClick={() => allSelected ? unselectCategory(cat) : selectCategory(cat)} className="text-[10px] text-accent font-semibold uppercase ml-2 whitespace-nowrap">
+                           {allSelected ? 'Deselect' : 'Select'}
+                         </button>
+                       </div>
+                       <div className="space-y-1.5 ml-1">
+                         {catAttacks.map(a => (
+                           <label key={a} className="flex flex-wrap items-start gap-2 text-sm text-gray-300 hover:text-white cursor-pointer" title={a}>
+                             <input type="checkbox" checked={selectedAttacks.includes(a)} onChange={() => toggleAttack(a)} className="accent-accent flex-shrink-0 mt-1" />
+                             <span className="text-[11px] font-mono leading-tight break-all flex-1">{a.split('_').pop()}</span>
+                           </label>
+                         ))}
+                       </div>
+                     </div>
+                   )
+                })}
+              </div>
+            </details>
+
+            {(selectedModels.length > 0 || selectedAttacks.length > 0) && (
               <button 
-                onClick={() => { setSelectedModel('all'); setSelectedAttack('all'); }}
-                className="text-xs text-gray-400 hover:text-white transition-colors px-2 py-1 flex items-center gap-1"
+                onClick={() => { setSelectedModels([]); setSelectedAttacks([]); }}
+                className="text-xs text-red-400 hover:text-red-300 transition-colors px-2 py-1 flex items-center gap-1 font-semibold uppercase"
               >
-                <X size={14} /> Clear
+                <X size={14} /> Clear All
               </button>
             )}
           </div>
@@ -203,27 +288,63 @@ export default function DatasetPage({ data }: Props) {
             <table className="w-full text-left text-sm text-gray-400 relative">
               <thead className="bg-[#0a0a0a] text-xs uppercase text-gray-300 sticky top-0 z-10 shadow-md">
                 <tr>
-                  <th className="px-6 py-4 font-medium border-b border-white/5">Model</th>
-                  <th className="px-6 py-4 font-medium border-b border-white/5">Attack ID</th>
-                  <th className="px-6 py-4 font-medium text-center border-b border-white/5">Injected?</th>
+                  <th className="px-6 py-4 font-medium border-b border-white/5 w-1/4">Model</th>
+                  <th className="px-6 py-4 font-medium border-b border-white/5 w-1/4">Attack ID</th>
+                  <th className="px-6 py-4 font-medium text-center border-b border-white/5 w-1/12">Injected?</th>
                   <th className="px-6 py-4 font-medium border-b border-white/5">Sample Output</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
-                {filteredResults.map((res, i) => (
-                  <tr key={i} className="hover:bg-white/5 transition-colors group">
-                    <td className="px-6 py-4 font-mono text-xs whitespace-nowrap">{res.model.split('/').pop()}</td>
-                    <td className="px-6 py-4 font-mono text-accent text-xs whitespace-nowrap">{res.attack_id}</td>
-                    <td className="px-6 py-4 text-center whitespace-nowrap">
-                      <span className={`px-2 py-1 rounded text-xs font-semibold ${res.flags.injection_success ? 'bg-red-500/20 text-red-300 ring-1 ring-red-500/50' : 'bg-green-500/20 text-green-300 ring-1 ring-green-500/30'}`}>
-                        {res.flags.injection_success ? 'YES' : 'NO'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 truncate max-w-lg font-mono text-xs opacity-80 group-hover:opacity-100 transition-opacity" title={res.output}>
-                      {res.output.substring(0, 100)}{res.output.length > 100 ? '...' : ''}
-                    </td>
-                  </tr>
-                ))}
+                {filteredResults.map((res, i) => {
+                  const key = `${res.model}-${res.attack_id}-${i}`;
+                  const isExpanded = expandedRows.has(key);
+                  return (
+                    <React.Fragment key={key}>
+                      <tr onClick={() => toggleRow(key)} className="hover:bg-white/5 transition-colors group cursor-pointer">
+                        <td className="px-6 py-4 font-mono text-xs whitespace-nowrap flex items-center gap-2">
+                          <span className="opacity-50 group-hover:opacity-100 transition-opacity">
+                            {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                          </span>
+                          {res.model.split('/').pop()}
+                        </td>
+                        <td className="px-6 py-4 font-mono text-accent text-xs whitespace-nowrap">{res.attack_id}</td>
+                        <td className="px-6 py-4 text-center whitespace-nowrap">
+                          <span className={`px-2 py-1 rounded text-xs font-semibold ${res.flags.injection_success ? 'bg-red-500/20 text-red-300 ring-1 ring-red-500/50' : 'bg-green-500/20 text-green-300 ring-1 ring-green-500/30'}`}>
+                            {res.flags.injection_success ? 'YES' : 'NO'}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 truncate max-w-sm font-mono text-[11px] opacity-80 group-hover:opacity-100 transition-opacity" title={res.output}>
+                          {res.output.substring(0, 80)}{res.output.length > 80 ? '...' : ''}
+                        </td>
+                      </tr>
+                      {isExpanded && (
+                        <tr className="bg-black/40 shadow-inner">
+                          <td colSpan={4} className="px-8 py-6 border-b border-white/5">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                              <div>
+                                <h4 className="text-[10px] uppercase text-gray-500 mb-2 font-bold tracking-widest flex items-center justify-between">
+                                  <span>Request Body / Prompt</span>
+                                </h4>
+                                <div className="bg-[#0f0f0f] p-4 rounded-xl font-mono text-xs text-blue-300/90 border border-white/5 whitespace-pre-wrap max-h-[300px] overflow-auto custom-scrollbar shadow-inner">
+                                  {res.prompt}
+                                </div>
+                              </div>
+                              <div>
+                                <h4 className="text-[10px] uppercase text-gray-500 mb-2 font-bold tracking-widest flex items-center justify-between">
+                                  <span>Model Output Payload</span>
+                                  {res.flags.injection_success && <span className="text-red-400 bg-red-400/10 px-2 py-0.5 rounded">Vulnerable Output</span>}
+                                </h4>
+                                <div className={`bg-[#0f0f0f] p-4 rounded-xl font-mono text-xs border whitespace-pre-wrap max-h-[300px] overflow-auto custom-scrollbar shadow-inner ${res.flags.injection_success ? 'border-red-500/20 text-red-300/90' : 'border-white/5 text-orange-300/90'}`}>
+                                  {res.output}
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
+                  );
+                })}
                 {filteredResults.length === 0 && (
                   <tr>
                     <td colSpan={4} className="px-6 py-12 text-center text-gray-500">
@@ -282,14 +403,14 @@ export default function DatasetPage({ data }: Props) {
                           <span className="text-xs text-red-400 font-bold uppercase tracking-wide border border-red-500/30 bg-red-500/10 px-2 py-1 rounded">Exploited</span>
                         </div>
                         <div className="mb-4">
-                          <h4 className="text-xs uppercase text-gray-500 mb-2 font-bold tracking-wider">Adversarial Prompt</h4>
-                          <div className="bg-[#0a0a0a] p-4 rounded-lg font-mono text-xs text-blue-300 border border-white/5 whitespace-pre-wrap">
+                          <h4 className="text-[10px] uppercase text-gray-500 mb-2 font-bold tracking-widest">Adversarial Prompt</h4>
+                          <div className="bg-[#0f0f0f] p-4 rounded-xl font-mono text-xs text-blue-300 border border-white/5 whitespace-pre-wrap max-h-64 overflow-auto custom-scrollbar">
                             {res.prompt}
                           </div>
                         </div>
                         <div>
-                          <h4 className="text-xs uppercase text-gray-500 mb-2 font-bold tracking-wider">Model Output</h4>
-                          <div className="bg-[#0a0a0a] p-4 rounded-lg font-mono text-xs text-orange-300 border border-white/5 whitespace-pre-wrap relative">
+                          <h4 className="text-[10px] uppercase text-gray-500 mb-2 font-bold tracking-widest">Model Output</h4>
+                          <div className="bg-[#0f0f0f] p-4 rounded-xl font-mono text-xs text-red-300 border border-red-500/20 whitespace-pre-wrap max-h-64 overflow-auto custom-scrollbar relative">
                             {res.output}
                           </div>
                         </div>

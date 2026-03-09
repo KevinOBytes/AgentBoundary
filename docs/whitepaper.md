@@ -60,14 +60,14 @@ The AgentKillChain harness simulates four distinct agent architectural profiles:
 3.  **Code Agent:** Capable of executing shell commands or Python scripts in a sandboxed environment.
 4.  **Filesystem Agent:** Authorized to read, write, and modify a local directory structure.
 
-Each model (`gpt-4o`, `claude-3.7-sonnet`, `claude-3-haiku`, `gemini-2.5-flash-lite`, `gemini-2.5-flash`, `llama-3.3-70b-instruct`, `mistral-large-2411`) is evaluated against the dataset across these four architectures. Experimental runs consist of deterministic dry-runs (to validate pipeline execution) and randomized live-runs (to account for non-deterministic model generation).
+Each model (`openai/gpt-5`, `anthropic/claude-4.5-sonnet`, `anthropic/claude-4.5-haiku`, `google/gemini-3.0-pro`, `google/gemini-3.1-pro`, `meta-llama/llama-3.3-70b-instruct`, `mistralai/mistral-large-2411`, `cohere/command-r-plus`, `qwen/qwen-2.5-72b-instruct`) is evaluated against the dataset across these four architectures. Experimental runs consist of deterministic dry-runs (to validate pipeline execution) and randomized live-runs (to account for non-deterministic model generation).
 
 ## 5. Experimental Results
 
 > **[PLACEHOLDER: Empirical results will be inserted here upon conclusion of evaluation runs.]**
 
 ### 5.1 Baseline Vulnerability Rates
-*   *Data table demonstrating the injection success rate across `gpt-5`, `claude-3.7`, `gemini-1.5-pro`, and `mistral-large`.*
+*   *Data table demonstrating the injection success rate across the 9 evaluated models.*
 *   *Observation regarding which model families are most susceptible to initial execution vs. latent persistence.*
 
 ### 5.2 Latent Activation Efficacy
