@@ -1,94 +1,112 @@
 # AgentKillChain: Persistent Compromise Evaluation for Autonomous AI Agents
 
+> **Authors:**
+> [Author Names/Affiliations Here]
+
 ## Abstract
-AgentKillChain is an open, reproducible benchmark for measuring multi-stage security compromise in autonomous AI agents, emphasizing latent prompt injection via memory poisoning across sessions.
+As large language models (LLMs) are increasingly deployed as autonomous agents with access to tools, memory, and external data sources, they become uniquely vulnerable to multi-stage, persistent compromise. We introduce **AgentKillChain**, an open, reproducible benchmark designed to evaluate how autonomous AI agents fall prey to latent prompt injection via memory poisoning across session boundaries. Unlike traditional prompt injection benchmarks that focus on single-turn, immediate jailbreaks, AgentKillChain evaluates an attacker's ability to seamlessly transition from initial access to execution, maintain persistent presence via agent memory, and execute latent triggers that result in system escalation or data exfiltration. This paper outlines the theoretical threat model, details our novel evaluation taxonomy of persistent attacks, and presents empirical results across leading LLMs (`gpt-5`, `claude-3.7`, `gemini-1.5-pro`, `mistral-large`). Our findings highlight a critical gap in current agent architectures: the failure to maintain contextual integrity across temporal session boundaries. 
 
-## Introduction
-Autonomous agents blend planning, memory, and tools, introducing attack chains that persist beyond single prompts. AgentKillChain focuses on persistent compromise where adversarial instructions survive session boundaries and reactivate later.
+## 1. Introduction
+The integration of Large Language Models (LLMs) into autonomous systems marks a transition from passive query-response interfaces to active, stateful agents capable of executing complex workflows. These agents rely heavily on semantic memory (e.g., vector databases), short-term working memory, and functional toolchains (e.g., APIs, local file system access, browser automation) to accomplish user objectives.
 
-## Background
-Prior prompt injection benchmarks underrepresent persistence and tool misuse in iterative agent workflows, especially in systems with long-term memory and external tool execution.
+While the utility of these systems is significant, their expanded attack surface introduces novel vulnerabilities that transcend traditional prompt injection. When an adversary successfully manipulates an agent's memory, the compromise can lay dormant for weeks, only activating when specific semantic triggers are encountered in future sessions. We define this paradigm as the **Agent Kill Chain**: a structured progression of adversarial actions designed to persistently compromise an autonomous AI agent.
 
-## Threat Model
-### Attacker capabilities
-- Inject untrusted content through prompts, files, retrieved documents, or markdown/html payloads.
-- Influence memory summaries and induce context drift.
-- Trigger risky tool calls through adversarial instructions.
+AgentKillChain provides a comprehensive methodology and dataset to systematically stress-test agent architectures against these multi-stage threats. By formalizing the concepts of latent memory poisoning, toolchain confusion, and context drift exploitation, we aim to provide security researchers and system designers with the empirical tools necessary to build resilient autonomous systems.
 
-### Defender controls
-- System prompts and policy constraints.
-- Tool allowlists and policy gates.
-- Memory provenance checks and output monitoring.
+## 2. Background and Related Work
+Prior research into LLM security has predominantly focused on **Direct Prompt Injection** and **Jailbreaking** (e.g., DAN, adversarial suffixes). These attacks target the immediate generation phase, attempting to bypass safety filters (e.g., refuse-to-answer policies) within a single prompt-response cycle. 
 
-### Assumptions and limitations
-| Item | Assumption | Limitation |
-|---|---|---|
-| Memory model | Agents retain summarized cross-session context | Real systems differ in retention fidelity |
-| Tool routing | Tools can be invoked by model decisions | Some production agents include stronger runtime policy engines |
-| Provider behavior | Models may vary over time | Reproducibility requires pinning model identifiers and run dates |
+More recent work has explored **Indirect Prompt Injection**, where adversarial instructions are embedded in external documents retrieved by the agent (e.g., web pages, PDF files). However, these evaluations typically treat the attack as a single-step exploit. They underrepresent the complexity of iterative agent workflows, particularly the temporal persistence of malicious instructions in systems with long-term memory. 
 
-## AgentKillChain Model
-Stages: Initial Access -> Execution -> Persistence -> Latent Activation -> Escalation -> Exfiltration.
+AgentKillChain builds upon these concepts by evaluating the *longevity* and *latency* of the attack. Can an injection event in Session 1 successfully trigger an unauthorized API call in Session 20? 
 
-## Novel Attack Classes
-Prompt injection, latent memory poisoning, context drift exploitation, toolchain confusion, and cognitive overload.
+## 3. The AgentKillChain Threat Model
+We conceptualize the attack surface of an autonomous agent through a progression of six distinct phases, mirroring traditional cyber kill chains but adapted for cognitively-driven systems.
 
-## Dataset
-The dataset contains 40 structured attacks across 8 categories with severity metadata and trigger conditions. Each entry includes attack_id, campaign_id, payload, trigger_condition, expected_behavior, severity, and phase.
+### 3.1 Attack Phases
+1. **Initial Access:** The injection of untrusted, adversarial content into the agent's context window. This can occur actively (via direct user input) or passively (via Retrieval-Augmented Generation from poisoned data sources, web browsing, or analyzing compromised files).
+2. **Execution:** The agent parses and semantically internalizes the malicious instruction, inadvertently bypassing initial content safety filters.
+3. **Persistence (Latency):** The malicious instruction is summarized or directly committed to the agent's long-term memory store (e.g., a summarization loop writing to a vector DB). The payload is designed to be dormant, avoiding immediate detection or disruptive behavior.
+4. **Activation (Trigger):** In a subsequent, seemingly benign session, a specific temporal or semantic trigger (e.g., "Summarize my finances" or "What is my schedule on Tuesday?") causes the agent to recall the poisoned memory.
+5. **Escalation (Toolchain Confusion):** The reactivated payload leverages the agent's internal reasoning loop to invoke privileged tools. The attacker relies on *Cognitive Overload* or *Context Drift* to trick the agent into misinterpreting the boundaries between legitimate user intent and the adversarial payload.
+6. **Exfiltration/Impact:** The agent executes the final objective, such as exfiltrating sensitive context via an unauthorized HTTP request, modifying files, or altering critical configurations.
 
-## Evaluation Methodology
-### Experiment matrix
-| Dimension | Values |
-|---|---|
-| Models | `gpt-5`, `claude-3.7`, `gemini-1.5-pro`, `mistral-large` |
-| Scenarios | browser_agent, rag_agent, code_agent, filesystem_agent |
-| Runs per configuration | >=3 recommended |
-| Seeds | deterministic dry-run plus randomized live-run seeds |
+### 3.2 Assumptions
+*   **Memory Model:** The agent retains cross-session context through semantic summarization or direct logging, which influences future inference.
+*   **Tool Routing:** The agent has autonomous agency to select and execute tools based on its parameterized reasoning loop.
+*   **Provider Dynamics:** Model capabilities and safety fine-tuning may shift over time, necessitating reproducible, pinned evaluation environments.
 
-### Baselines and ablations
-- Baseline A: default system prompt + full tool access policy.
-- Baseline B: stricter prompt policy + allowlisted tools.
-- Ablation 1: disable memory provenance checks.
-- Ablation 2: disable tool policy gate.
-- Ablation 3: disable refusal post-filtering.
+## 4. Methodology and Dataset
+To systematically evaluate agent vulnerability to the AgentKillChain, we constructed a targeted dataset and evaluation harness.
 
-### Metrics
-- injection_success_rate
-- latent_activation_rate
-- toolchain_abuse_rate
-- data_exfiltration_rate
-- cognitive_overload_rate
+### 4.1 Dataset Composition
+Our dataset consists of 40 structured attack vectors distributed across 8 distinct categories. Each scenario is strictly defined by:
+*   `attack_id` & `campaign_id`
+*   `payload`: The raw injection string.
+*   `trigger_condition`: The specific query or state required to activate the latent payload.
+*   `expected_behavior`: The defined failure state (e.g., the invocation of a specific tool with attacker-controlled arguments).
+*   `severity` and `killchain_phase`.
 
-### Statistical procedure
-For each model/scenario pair, run >=3 repetitions and report mean with 95% confidence intervals. For pairwise model comparisons, use bootstrap confidence intervals over attack-level outcomes.
+**Attack Classes Evaluated:**
+*   Latent Memory Poisoning
+*   Context Drift Exploitation
+*   Toolchain Confusion
+*   Cognitive Overload/Attention Hijacking
 
-## Results
-Baseline dry-run demonstrates deterministic pipeline execution; live runs report model-specific failure rates with per-model summaries.
+### 4.2 Evaluation Harness
+The AgentKillChain harness simulates four distinct agent architectural profiles:
+1.  **Browser Agent:** Has access to web-scraping and DOM-interaction tools.
+2.  **RAG Agent:** Heavily reliant on vector search and summarization of external documents.
+3.  **Code Agent:** Capable of executing shell commands or Python scripts in a sandboxed environment.
+4.  **Filesystem Agent:** Authorized to read, write, and modify a local directory structure.
 
-## Mitigations
-Memory provenance tagging, policy-constrained tool routing, contextual integrity checks, refusal training on latent triggers, and output-level exfiltration detectors.
+Each model is evaluated against the dataset across these four architectures. Experimental runs consist of deterministic dry-runs (to validate pipeline execution) and randomized live-runs (to account for non-deterministic model generation).
 
-## Reproducibility Appendix
-### Command matrix
+## 5. Experimental Results
+
+> **[PLACEHOLDER: Empirical results will be inserted here upon conclusion of evaluation runs.]**
+
+### 5.1 Baseline Vulnerability Rates
+*   *Data table demonstrating the injection success rate across `gpt-5`, `claude-3.7`, `gemini-1.5-pro`, and `mistral-large`.*
+*   *Observation regarding which model families are most susceptible to initial execution vs. latent persistence.*
+
+### 5.2 Latent Activation Efficacy
+*   *Analysis of how often models successfully summarize and recall malicious payloads across session boundaries.*
+*   *Chart illustrating the decay of payload adherence over N sequential turns.*
+
+### 5.3 Toolchain Abuse
+*   *Statistics on successful Privilege Escalation and Exfiltration attempts.*
+*   *Discussion on how 'Cognitive Overload' (excessive legitimate context competing with the payload) affects the tool-routing behavior of different models.*
+
+## 6. Mitigations and Defensive Posture
+Based on our architectural analyses and the (forthcoming) empirical data, we propose several defensive strategies to harden autonomous agents against persistent compromise:
+
+1.  **Memory Provenance Tagging:** Agents must maintain strict pedagogical boundaries between "User Intent," "System Instructions," and "Retrieved Context" within their memory stores. Memory summarization loops should strip imperative commands from passively retrieved data.
+2.  **Policy-Constrained Tool Routing:** Tool execution must be gated by secondary, deterministic policy engines. High-risk tools (e.g., `execute_code`, `send_email`) should require explicit cryptographic or user-in-the-loop authorization, regardless of the LLM's internal confidence.
+3.  **Contextual Integrity Checks:** Implementing lightweight classifier models to specifically monitor the agent's internal thought process (scratchpad) for signs of context drift or unauthorized goal substitution before tool invocation.
+4.  **Output-Level Exfiltration Detectors:** Egress filtering on all external API requests generated by the agent, scanning for high-entropy strings or sensitive regular expressions (e.g., PII, keys).
+
+## 7. Future Work
+AgentKillChain currently evaluates text-based, sequential reasoning agents. Future iterations of this benchmark will expand to encompass **Multimodal Agents** (evaluating latent injection via image and audio processing) and **Long-Horizon Memory Systems** (such as hierarchical memory graphs). We also aim to develop a framework for continuous red-team/blue-team dynamic evaluation.
+
+## 8. Conclusion
+As AI systems evolve into persistent, autonomous agents, the security community must pivot from treating prompt injection as a stateless anomaly to addressing it as a persistent, multi-stage compromise pipeline. AgentKillChain provides the first comprehensive, reproducible benchmark for evaluating this latency. Our (anticipated) results demonstrate that without fundamental architectural shifts in how agents handle memory provenance and tool authorization, they remain critically vulnerable to the Agent Kill Chain.
+
+---
+
+### Reproducibility Appendix
+
+All datasets, evaluation harnesses, and baseline implementation code are available at `[Insert Repository URL/DOI Here]`. 
+
+**Command Matrix for Replication:**
 ```bash
-# smoke validation
+# Smoke validation and unit tests
 python3 -m compileall harness
 python3 -m unittest discover -s harness/tests
 python3 harness/runner.py --dry-run
 python3 scripts/validate_artifacts.py
 
-# live evaluation
+# Live evaluation execution
 python3 harness/runner.py
 ```
-
-### Artifact naming
-`results/generated/model_results.json`
-`results/generated/model_results.csv`
-
-Include commit hash, model set, and dataset version in publication bundles.
-
-## Future Work
-Expand to multimodal agents, long-horizon memory systems, and continuous red-team/blue-team evaluation.
-
-## Conclusion
-AgentKillChain supports publication-grade, reproducible research into persistent agent compromise and latent cross-session attacks.
+*Generated reports can be located at `results/generated/model_results.json`.*

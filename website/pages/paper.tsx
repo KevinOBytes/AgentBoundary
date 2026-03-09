@@ -1,13 +1,29 @@
+import fs from "fs";
+import path from "path";
 import Layout from "../components/Layout";
+import ReactMarkdown from "react-markdown";
 
-export default function PaperPage() {
+interface PaperPageProps {
+  paperContent: string;
+}
+
+export default function PaperPage({ paperContent }: PaperPageProps) {
   return (
     <Layout>
-      <h1 className="text-3xl font-bold">Paper</h1>
-      <p className="mt-4 text-gray-300">
-        AgentKillChain introduces a persistent-compromise evaluation model centered on latent prompt injection via memory poisoning across sessions.
-      </p>
-      <p className="mt-2 text-gray-400">See docs/whitepaper.md for the complete manuscript draft.</p>
+      <div className="prose prose-invert prose-accent max-w-none">
+        <ReactMarkdown>{paperContent}</ReactMarkdown>
+      </div>
     </Layout>
   );
+}
+
+export async function getStaticProps() {
+  const filePath = path.join(process.cwd(), "..", "docs", "whitepaper.md");
+  const paperContent = fs.readFileSync(filePath, "utf8");
+
+  return {
+    props: {
+      paperContent,
+    },
+  };
 }
