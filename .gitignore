@@ -20,3 +20,4 @@ results/generated/
 
 # OS
 .DS_Store
+website/tsconfig.tsbuildinfo
