@@ -1,0 +1,22 @@
+# Node
+node_modules/
+.next/
+out/
+website/.next/
+website/node_modules/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Env
+.env
+*.env.local
+
+# Results artifacts
+results/generated/
+
+# OS
+.DS_Store
