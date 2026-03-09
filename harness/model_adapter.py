@@ -36,6 +36,8 @@ class OpenRouterAdapter:
                 headers={
                     "Authorization": f"Bearer {self.api_key}",
                     "Content-Type": "application/json",
+                    "HTTP-Referer": "http://localhost:3000",
+                    "X-Title": "AgentKillChain Validation",
                 },
                 method="POST",
             )

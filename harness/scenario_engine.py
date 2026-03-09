@@ -14,6 +14,7 @@ class AttackScenarioResult:
     attack_id: str
     campaign_id: str
     model: str
+    prompt: str
     output: str
     flags: Dict[str, bool]
 
@@ -81,6 +82,7 @@ class ScenarioEngine:
             attack_id=attack["attack_id"],
             campaign_id=campaign_id,
             model=model,
+            prompt=prompt,
             output=output,
             flags=flags,
         )

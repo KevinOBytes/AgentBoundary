@@ -64,6 +64,7 @@ def write_csv(rows: List[dict], csv_path: Path) -> None:
         "toolchain_abuse",
         "data_exfiltration",
         "cognitive_overload",
+        "prompt",
         "output",
     ]
     with csv_path.open("w", newline="", encoding="utf-8") as f:
@@ -75,6 +76,7 @@ def write_csv(rows: List[dict], csv_path: Path) -> None:
                     "attack_id": row["attack_id"],
                     "campaign_id": row["campaign_id"],
                     "model": row["model"],
+                    "prompt": row["prompt"],
                     "output": row["output"],
                     **row["flags"],
                 }
@@ -109,11 +111,13 @@ def main() -> None:
                     "attack_id": result.attack_id,
                     "campaign_id": result.campaign_id,
                     "model": result.model,
+                    "prompt": result.prompt,
                     "output": result.output,
                     "flags": result.flags,
                 }
             )
             print(f"[{model}] Processed attack {attack.get('attack_id')} -> injection_success={result.flags.get('injection_success')}", flush=True)
+            print(f"    Sample Output: {result.output[:150].strip()!r}...", flush=True)
 
     metrics = evaluate(rows)
     by_model = summarize_by_model(rows)
