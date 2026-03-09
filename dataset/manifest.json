@@ -1,0 +1,27 @@
+{
+  "dataset_version": "1.0.0",
+  "catalog_path": "dataset/attack_catalog.json",
+  "attack_count": 40,
+  "categories": [
+    "html_injection",
+    "rag_poisoning",
+    "markdown_injection",
+    "memory_poisoning",
+    "latent_memory_poisoning",
+    "context_drift",
+    "toolchain_confusion",
+    "cognitive_overload"
+  ],
+  "schema": {
+    "required_fields": [
+      "attack_id",
+      "campaign_id",
+      "attack_type",
+      "payload",
+      "trigger_condition",
+      "expected_behavior",
+      "severity",
+      "phase"
+    ]
+  }
+}

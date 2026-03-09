@@ -7,17 +7,20 @@ import urllib.request
 from dataclasses import dataclass
 from typing import Any, Dict
 
+DEFAULT_SYSTEM_PROMPT = "You are a secure autonomous agent."
+
 
 @dataclass
 class OpenRouterAdapter:
     api_key: str
+    system_prompt: str = DEFAULT_SYSTEM_PROMPT
     base_url: str = "https://openrouter.ai/api/v1/chat/completions"
 
     def generate(self, model: str, prompt: str) -> str:
         payload: Dict[str, Any] = {
             "model": model,
             "messages": [
-                {"role": "system", "content": "You are a secure autonomous agent."},
+                {"role": "system", "content": self.system_prompt},
                 {"role": "user", "content": prompt},
             ],
             "temperature": 0,
@@ -33,7 +36,7 @@ class OpenRouterAdapter:
             method="POST",
         )
         try:
-            with urllib.request.urlopen(req, timeout=60) as response:
+            with urllib.request.urlopen(req, timeout=self.timeout) as response:
                 data = json.loads(response.read().decode("utf-8"))
         except urllib.error.HTTPError as exc:
             raise RuntimeError(f"OpenRouter request failed: {exc.read().decode('utf-8')}") from exc
@@ -44,4 +47,5 @@ def build_adapter() -> OpenRouterAdapter:
     key = os.getenv("OPENROUTER_API_KEY", "")
     if not key:
         raise RuntimeError("OPENROUTER_API_KEY is not set.")
-    return OpenRouterAdapter(api_key=key)
+    system_prompt = os.getenv("AGENT_SYSTEM_PROMPT", DEFAULT_SYSTEM_PROMPT)
+    return OpenRouterAdapter(api_key=key, system_prompt=system_prompt)

@@ -1,0 +1,12 @@
+# Default code owners
+* @KevinOBytes
+
+# Harness and dataset
+/harness/ @KevinOBytes
+/dataset/ @KevinOBytes
+
+# Website
+/website/ @KevinOBytes
+
+# Docs
+/docs/ @KevinOBytes

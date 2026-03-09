@@ -8,8 +8,10 @@ Thanks for your interest in improving AgentKillChain.
 2. Keep changes small and security-focused.
 3. Run checks before opening a PR:
    - `python3 -m compileall harness`
+   - `python3 -m unittest discover -s harness/tests`
    - `python3 harness/runner.py --dry-run`
-   - `cd website && npm run lint`
+   - `python3 scripts/validate_artifacts.py`
+   - `cd website && npm run lint && npm run build`
 4. Update `README.md` and relevant docs in `docs/`.
 5. Add or update attack definitions in `dataset/attack_catalog.json` when changing scenarios.
 
@@ -18,6 +20,7 @@ Thanks for your interest in improving AgentKillChain.
 - Never commit secrets.
 - Avoid introducing unsafe default behavior.
 - Prefer explicit configuration and deterministic outputs.
+- Follow `SECURITY.md` for coordinated disclosure.
 
 ## Commit style
 

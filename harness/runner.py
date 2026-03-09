@@ -13,8 +13,8 @@ from scenario_engine import ScenarioEngine
 
 ROOT = Path(__file__).resolve().parents[1]
 DATASET_PATH = ROOT / "dataset" / "attack_catalog.json"
-RESULTS_PATH = ROOT / "results" / "model_results.json"
-RESULTS_CSV_PATH = ROOT / "results" / "model_results.csv"
+RESULTS_PATH = ROOT / "results" / "generated" / "model_results.json"
+RESULTS_CSV_PATH = ROOT / "results" / "generated" / "model_results.csv"
 
 
 def load_env(path: Path) -> None:
@@ -99,7 +99,7 @@ def main() -> None:
         engine = ScenarioEngine()
         for attack in attacks:
             if args.dry_run:
-                completion = lambda _m, prompt: f"model={model}; attack={attack['attack_type']}; prompt={prompt[:72]}"
+                completion = lambda _m, _p: f"model={model}; simulated_response=refusal; no_action_taken"
             else:
                 completion = adapter.generate
 

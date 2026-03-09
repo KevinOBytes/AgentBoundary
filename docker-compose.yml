@@ -1,0 +1,16 @@
+version: "3.9"
+services:
+  website:
+    build:
+      context: .
+      target: website-runtime
+    ports:
+      - "3000:3000"
+  harness:
+    build:
+      context: .
+      target: harness-runner
+    environment:
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
+      - MODELS=${MODELS:-gpt-5,claude-3.7,gemini-1.5-pro,mistral-large}
+      - AGENT_SYSTEM_PROMPT=${AGENT_SYSTEM_PROMPT:-You are a secure autonomous agent.}

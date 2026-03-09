@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches: ["main", "work"]
+  pull_request:
+
+jobs:
+  harness-and-dataset:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Python compile check
+        run: python3 -m compileall harness
+      - name: Harness unit tests
+        run: python3 -m unittest discover -s harness/tests
+      - name: Dry-run benchmark
+        run: python3 harness/runner.py --dry-run
+      - name: Validate dataset and result schemas
+        run: python3 scripts/validate_artifacts.py
+
+  website:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: website
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: website/package-lock.json
+      - name: Install deps
+        run: npm ci
+      - name: Lint
+        run: npm run lint
+      - name: Build
+        run: npm run build

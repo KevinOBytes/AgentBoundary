@@ -1,0 +1,18 @@
+{
+  "result_manifest_version": "1.0.0",
+  "default_outputs": {
+    "json": "results/generated/model_results.json",
+    "csv": "results/generated/model_results.csv"
+  },
+  "required_top_level_keys": [
+    "metadata",
+    "metrics",
+    "metrics_by_model",
+    "results"
+  ],
+  "retention_policy": {
+    "artifact_store": "Cloudflare R2 or GitHub Releases",
+    "recommended_retention_days": 365,
+    "checksum": "sha256"
+  }
+}
