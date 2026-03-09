@@ -15,6 +15,7 @@ class OpenRouterAdapter:
     api_key: str
     system_prompt: str = DEFAULT_SYSTEM_PROMPT
     base_url: str = "https://openrouter.ai/api/v1/chat/completions"
+    timeout: int = 60
 
     def generate(self, model: str, prompt: str) -> str:
         payload: Dict[str, Any] = {

@@ -5,9 +5,16 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        bg: "#05070d",
-        panel: "#0a1020",
-        accent: "#4ade80"
+        bg: "#000000",
+        panel: "#0a0a0a",
+        border: "#262626",
+        accent: {
+          DEFAULT: "#4ade80",
+          glow: "rgba(74, 222, 128, 0.4)",
+        }
+      },
+      fontFamily: {
+        mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', '"Liberation Mono"', '"Courier New"', 'monospace'],
       }
     }
   },
