@@ -11,6 +11,7 @@ export type ResultEntry = {
   campaign_id: string;
   model: string;
   output: string;
+  flags: Record<string, boolean>;
   flags: {
     injection_success: boolean;
     latent_activation: boolean;

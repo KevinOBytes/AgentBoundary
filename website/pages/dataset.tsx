@@ -2,6 +2,23 @@ import fs from "fs";
 import path from "path";
 import Layout from "../components/Layout";
 
+type Attack = {
+  attack_id: string;
+  campaign_id: string;
+  attack_type: string;
+  payload: string;
+  trigger_condition: string;
+  expected_behavior: string;
+  severity: string;
+  phase: string;
+};
+
+type Props = { attacks: Attack[] };
+
+export async function getStaticProps(): Promise<{ props: Props }> {
+  const filePath = path.resolve(process.cwd(), "../dataset/attack_catalog.json");
+  const raw = fs.readFileSync(filePath, "utf8");
+  const attacks: Attack[] = JSON.parse(raw);
 interface Attack {
   attack_id: string;
   attack_type: string;
