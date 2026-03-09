@@ -36,7 +36,7 @@ class OpenRouterAdapter:
             method="POST",
         )
         try:
-            with urllib.request.urlopen(req, timeout=60) as response:
+            with urllib.request.urlopen(req, timeout=self.timeout) as response:
                 data = json.loads(response.read().decode("utf-8"))
         except urllib.error.HTTPError as exc:
             raise RuntimeError(f"OpenRouter request failed: {exc.read().decode('utf-8')}") from exc
