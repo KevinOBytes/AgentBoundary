@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import Layout from "../components/Layout";
 
-type Attack = {
+interface Attack {
   attack_id: string;
   campaign_id: string;
   attack_type: string;
@@ -11,25 +11,13 @@ type Attack = {
   expected_behavior: string;
   severity: string;
   phase: string;
-};
-
-type Props = { attacks: Attack[] };
-
-export async function getStaticProps(): Promise<{ props: Props }> {
-  const filePath = path.resolve(process.cwd(), "../dataset/attack_catalog.json");
-  const raw = fs.readFileSync(filePath, "utf8");
-  const attacks: Attack[] = JSON.parse(raw);
-interface Attack {
-  attack_id: string;
-  attack_type: string;
-  [key: string]: unknown;
 }
 
 interface Props {
   attacks: Attack[];
 }
 
-export async function getStaticProps() {
+export async function getStaticProps(): Promise<{ props: Props }> {
   const filePath = path.join(process.cwd(), "..", "dataset", "attack_catalog.json");
   const attacks: Attack[] = JSON.parse(fs.readFileSync(filePath, "utf8"));
   return { props: { attacks } };

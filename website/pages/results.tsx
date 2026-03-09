@@ -3,29 +3,18 @@ import path from "path";
 import Layout from "../components/Layout";
 import type { ResultsFile, MetricSet } from "../types/results";
 
-type Props = { data: ResultsFile };
+interface Props {
+  data: ResultsFile;
+}
 
 export async function getStaticProps(): Promise<{ props: Props }> {
-  const filePath = path.resolve(process.cwd(), "../results/model_results.json");
-  const raw = fs.readFileSync(filePath, "utf8");
-  const data: ResultsFile = JSON.parse(raw);
+  const filePath = path.join(process.cwd(), "..", "results", "model_results.json");
+  const data: ResultsFile = JSON.parse(fs.readFileSync(filePath, "utf8"));
   return { props: { data } };
 }
 
 export default function ResultsPage({ data }: Props) {
   const metrics: MetricSet = data.metrics;
-interface Props {
-  results: ResultsFile;
-}
-
-export async function getStaticProps() {
-  const filePath = path.join(process.cwd(), "..", "results", "model_results.json");
-  const results: ResultsFile = JSON.parse(fs.readFileSync(filePath, "utf8"));
-  return { props: { results } };
-}
-
-export default function ResultsPage({ results }: Props) {
-  const metrics: MetricSet = results.metrics;
   return (
     <Layout>
       <h1 className="text-3xl font-bold">Results</h1>
