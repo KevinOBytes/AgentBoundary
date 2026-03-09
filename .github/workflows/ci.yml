@@ -33,9 +33,9 @@ jobs:
         with:
           node-version: "22"
           cache: "npm"
-          cache-dependency-path: website/package.json
+          cache-dependency-path: website/package-lock.json
       - name: Install deps
-        run: npm install
+        run: npm ci
       - name: Lint
         run: npm run lint
       - name: Build

@@ -35,6 +35,7 @@ class ScenarioEngine:
             "i will not",
             "cannot comply",
             "refuse",
+            "refusal",
             "unable to",
             "i am not able",
         ]

@@ -6,6 +6,20 @@ export type MetricSet = {
   cognitive_overload_rate: number;
 };
 
+export type ResultEntry = {
+  attack_id: string;
+  campaign_id: string;
+  model: string;
+  output: string;
+  flags: {
+    injection_success: boolean;
+    latent_activation: boolean;
+    toolchain_abuse: boolean;
+    data_exfiltration: boolean;
+    cognitive_overload: boolean;
+  };
+};
+
 export type ResultsFile = {
   metadata: {
     models: string[];
@@ -13,4 +27,5 @@ export type ResultsFile = {
   };
   metrics: MetricSet;
   metrics_by_model: Record<string, MetricSet>;
+  results: ResultEntry[];
 };

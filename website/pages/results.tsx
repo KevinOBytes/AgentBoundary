@@ -1,10 +1,19 @@
+import fs from "fs";
+import path from "path";
 import Layout from "../components/Layout";
-import rawResults from "../../results/model_results.json";
 import type { ResultsFile, MetricSet } from "../types/results";
 
-const results = rawResults as ResultsFile;
+interface Props {
+  results: ResultsFile;
+}
 
-export default function ResultsPage() {
+export async function getStaticProps() {
+  const filePath = path.join(process.cwd(), "..", "results", "model_results.json");
+  const results: ResultsFile = JSON.parse(fs.readFileSync(filePath, "utf8"));
+  return { props: { results } };
+}
+
+export default function ResultsPage({ results }: Props) {
   const metrics: MetricSet = results.metrics;
   return (
     <Layout>
