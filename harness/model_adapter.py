@@ -15,7 +15,8 @@ class OpenRouterAdapter:
     api_key: str
     system_prompt: str = DEFAULT_SYSTEM_PROMPT
     base_url: str = "https://openrouter.ai/api/v1/chat/completions"
-    timeout: int = 60
+    timeout: int = 180
+    max_retries: int = 3
 
     def generate(self, model: str, prompt: str) -> str:
         payload: Dict[str, Any] = {
@@ -27,21 +28,33 @@ class OpenRouterAdapter:
             "temperature": 0,
         }
         body = json.dumps(payload).encode("utf-8")
-        req = urllib.request.Request(
-            self.base_url,
-            data=body,
-            headers={
-                "Authorization": f"Bearer {self.api_key}",
-                "Content-Type": "application/json",
-            },
-            method="POST",
-        )
-        try:
-            with urllib.request.urlopen(req, timeout=self.timeout) as response:
-                data = json.loads(response.read().decode("utf-8"))
-        except urllib.error.HTTPError as exc:
-            raise RuntimeError(f"OpenRouter request failed: {exc.read().decode('utf-8')}") from exc
-        return data["choices"][0]["message"]["content"]
+        import time
+        for attempt in range(self.max_retries):
+            req = urllib.request.Request(
+                self.base_url,
+                data=body,
+                headers={
+                    "Authorization": f"Bearer {self.api_key}",
+                    "Content-Type": "application/json",
+                },
+                method="POST",
+            )
+            try:
+                with urllib.request.urlopen(req, timeout=self.timeout) as response:
+                    data = json.loads(response.read().decode("utf-8"))
+                    return data["choices"][0]["message"]["content"]
+            except urllib.error.HTTPError as exc:
+                err_body = exc.read().decode('utf-8')
+                if exc.code == 400:
+                    raise RuntimeError(f"OpenRouter Request Failed (400 Bad Request): {err_body}") from exc
+                print(f"[{model}] HTTP {exc.code} Error on attempt {attempt+1}/{self.max_retries}: {err_body}")
+            except Exception as exc:
+                print(f"[{model}] Exception on attempt {attempt+1}/{self.max_retries}: {type(exc).__name__} - {exc}")
+            
+            if attempt < self.max_retries - 1:
+                time.sleep(2 ** attempt)
+            else:
+                raise RuntimeError(f"Max retries reached for model {model}")
 
 
 def build_adapter() -> OpenRouterAdapter:

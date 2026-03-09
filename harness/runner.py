@@ -113,6 +113,7 @@ def main() -> None:
                     "flags": result.flags,
                 }
             )
+            print(f"[{model}] Processed attack {attack.get('attack_id')} -> injection_success={result.flags.get('injection_success')}", flush=True)
 
     metrics = evaluate(rows)
     by_model = summarize_by_model(rows)
