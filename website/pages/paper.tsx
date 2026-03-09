@@ -7,9 +7,10 @@ import { motion } from "framer-motion";
 interface PaperPageProps {
   paperContent: string;
   data: any | null;
+  catalog: any[] | null;
 }
 
-export default function PaperPage({ paperContent, data }: PaperPageProps) {
+export default function PaperPage({ paperContent, data, catalog }: PaperPageProps) {
   return (
     <Layout>
       <motion.article 
@@ -23,7 +24,17 @@ export default function PaperPage({ paperContent, data }: PaperPageProps) {
         {data && (
           <div className="mt-16 pt-8 border-t border-white/5">
             <h2 className="text-2xl font-bold text-white mb-6">Empirical Findings</h2>
-            <div className="overflow-x-auto not-prose">
+            
+            <h3 className="text-xl font-bold text-gray-200 mt-8 mb-4">Evaluated Models</h3>
+            <div className="flex flex-wrap gap-2 mb-8">
+              {Object.keys(data.metrics_by_model).map(model => (
+                <span key={model} className="px-3 py-1 bg-white/5 border border-white/10 rounded-full text-sm font-mono text-accent">
+                  {model.split('/').pop()}
+                </span>
+              ))}
+            </div>
+
+            <div className="overflow-x-auto not-prose mb-12">
               <table className="w-full text-left text-sm text-gray-400">
                 <thead className="bg-white/5 text-xs uppercase text-gray-300">
                   <tr>
@@ -47,7 +58,35 @@ export default function PaperPage({ paperContent, data }: PaperPageProps) {
                 </tbody>
               </table>
             </div>
-            <p className="mt-4 text-xs text-center text-gray-500">Live data generation from evaluation suite</p>
+            <p className="mt-4 text-xs text-center text-gray-500 mb-16">Live data generation from evaluation suite</p>
+          </div>
+        )}
+
+        {catalog && (
+          <div className="mt-16 pt-8 border-t border-white/5">
+             <h2 className="text-2xl font-bold text-white mb-6">Evaluation Dataset ({catalog.length} Scenarios)</h2>
+             <div className="overflow-x-auto not-prose">
+              <table className="w-full text-left text-sm text-gray-400">
+                <thead className="bg-white/5 text-xs uppercase text-gray-300">
+                  <tr>
+                    <th className="px-4 py-3 font-medium">Attack ID</th>
+                    <th className="px-4 py-3 font-medium">Type</th>
+                    <th className="px-4 py-3 font-medium">Trigger Condition</th>
+                    <th className="px-4 py-3 font-medium">Expected Behavior</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5">
+                  {catalog.map((attack) => (
+                    <tr key={attack.attack_id} className="hover:bg-white/5 transition-colors">
+                      <td className="px-4 py-3 font-mono text-accent">{attack.attack_id}</td>
+                      <td className="px-4 py-3">{attack.attack_type}</td>
+                      <td className="px-4 py-3">{attack.trigger_condition}</td>
+                      <td className="px-4 py-3">{attack.expected_behavior}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
       </motion.article>
@@ -58,17 +97,21 @@ export default function PaperPage({ paperContent, data }: PaperPageProps) {
 export async function getStaticProps() {
   const paperPath = path.join(process.cwd(), "..", "docs", "whitepaper.md");
   const dataPath = path.join(process.cwd(), "..", "results", "generated", "model_results.json");
+  const catalogPath = path.join(process.cwd(), "..", "dataset", "attack_catalog.json");
   
   let paperContent = "";
   let data = null;
+  let catalog = null;
 
   try { paperContent = fs.readFileSync(paperPath, "utf8"); } catch (e) {}
   try { data = JSON.parse(fs.readFileSync(dataPath, "utf8")); } catch (e) {}
+  try { catalog = JSON.parse(fs.readFileSync(catalogPath, "utf8")); } catch (e) {}
 
   return {
     props: {
       paperContent,
-      data
+      data,
+      catalog
     },
   };
 }
