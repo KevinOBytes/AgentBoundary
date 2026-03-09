@@ -14,6 +14,18 @@ export async function getStaticProps(): Promise<{ props: Props }> {
 
 export default function ResultsPage({ data }: Props) {
   const metrics: MetricSet = data.metrics;
+interface Props {
+  results: ResultsFile;
+}
+
+export async function getStaticProps() {
+  const filePath = path.join(process.cwd(), "..", "results", "model_results.json");
+  const results: ResultsFile = JSON.parse(fs.readFileSync(filePath, "utf8"));
+  return { props: { results } };
+}
+
+export default function ResultsPage({ results }: Props) {
+  const metrics: MetricSet = results.metrics;
   return (
     <Layout>
       <h1 className="text-3xl font-bold">Results</h1>

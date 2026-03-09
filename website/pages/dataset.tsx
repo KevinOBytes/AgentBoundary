@@ -19,6 +19,19 @@ export async function getStaticProps(): Promise<{ props: Props }> {
   const filePath = path.resolve(process.cwd(), "../dataset/attack_catalog.json");
   const raw = fs.readFileSync(filePath, "utf8");
   const attacks: Attack[] = JSON.parse(raw);
+interface Attack {
+  attack_id: string;
+  attack_type: string;
+  [key: string]: unknown;
+}
+
+interface Props {
+  attacks: Attack[];
+}
+
+export async function getStaticProps() {
+  const filePath = path.join(process.cwd(), "..", "dataset", "attack_catalog.json");
+  const attacks: Attack[] = JSON.parse(fs.readFileSync(filePath, "utf8"));
   return { props: { attacks } };
 }
 

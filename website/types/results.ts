@@ -12,6 +12,13 @@ export type ResultEntry = {
   model: string;
   output: string;
   flags: Record<string, boolean>;
+  flags: {
+    injection_success: boolean;
+    latent_activation: boolean;
+    toolchain_abuse: boolean;
+    data_exfiltration: boolean;
+    cognitive_overload: boolean;
+  };
 };
 
 export type ResultsFile = {
