@@ -7,11 +7,27 @@ import type { ResultsFile, MetricSet } from "../types/results";
 
 interface Props {
   data: ResultsFile | null;
+  expectedModels: string[];
 }
 
 export async function getStaticProps(): Promise<{ props: Props }> {
   const filePath = path.join(process.cwd(), "..", "results", "model_results.json");
+  const envPath = path.join(process.cwd(), "..", ".env");
   let data = null;
+  let expectedModels: string[] = [];
+
+  try {
+    if (fs.existsSync(envPath)) {
+      const envContent = fs.readFileSync(envPath, "utf8");
+      const modelsLine = envContent.split('\n').find(line => line.startsWith('MODELS='));
+      if (modelsLine) {
+        expectedModels = modelsLine.replace('MODELS=', '').replace(/"/g, '').replace(/'/g, '').split(',').map(m => m.trim());
+      }
+    }
+  } catch (e) {
+    console.error("Failed to load .env", e);
+  }
+
   try {
     if (fs.existsSync(filePath)) {
       data = JSON.parse(fs.readFileSync(filePath, "utf8"));
@@ -19,10 +35,10 @@ export async function getStaticProps(): Promise<{ props: Props }> {
   } catch (e) {
     console.error("Failed to load model results", e);
   }
-  return { props: { data } };
+  return { props: { data, expectedModels } };
 }
 
-export default function ResultsPage({ data }: Props) {
+export default function ResultsPage({ data, expectedModels }: Props) {
   if (!data) {
     return (
       <Layout>
@@ -36,9 +52,20 @@ export default function ResultsPage({ data }: Props) {
   }
 
   const { metadata, metrics, metrics_by_model } = data;
-  const models = Object.keys(metrics_by_model).sort((a, b) => 
-    metrics_by_model[a].injection_success_rate - metrics_by_model[b].injection_success_rate
-  );
+  
+  const evaluatedModels = Object.keys(metrics_by_model);
+  const allModels = Array.from(new Set([...expectedModels, ...evaluatedModels]));
+
+  const models = allModels.sort((a, b) => {
+    const mA = metrics_by_model[a];
+    const mB = metrics_by_model[b];
+    if (mA && mB) return mA.injection_success_rate - mB.injection_success_rate;
+    if (mA) return -1;
+    if (mB) return 1;
+    return a.localeCompare(b);
+  });
+
+  const totalModelsCount = Math.max(metadata.models.length, expectedModels.length);
 
   return (
     <Layout>
@@ -54,7 +81,7 @@ export default function ResultsPage({ data }: Props) {
             </div>
             <div>
               <h1 className="text-4xl font-bold tracking-tight text-white mb-2">Aggregate Results Dashboard</h1>
-              <p className="text-gray-400">Diagnostic telemetry from {metadata.attacks} orchestrated attacks across {metadata.models.length} sovereign models.</p>
+              <p className="text-gray-400">Diagnostic telemetry from {metadata.attacks} orchestrated attacks across {totalModelsCount} sovereign models.</p>
             </div>
           </div>
         </div>
@@ -106,6 +133,22 @@ export default function ResultsPage({ data }: Props) {
         <div className="space-y-4">
           {models.map((model, index) => {
              const m = metrics_by_model[model];
+             if (!m) {
+               return (
+                 <div key={model} className="glass p-5 rounded-xl border-l-4 border-l-gray-600 opacity-60 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                   <div className="flex items-center gap-4">
+                     <div className="text-gray-500 font-bold opacity-50 w-6">#{index + 1}</div>
+                     <div>
+                       <h3 className="font-mono text-sm text-gray-400 font-bold">{model}</h3>
+                       <div className="flex items-center gap-2 mt-1">
+                         <span className="text-xs text-gray-500 uppercase tracking-widest font-semibold">Evaluation Pending</span>
+                       </div>
+                     </div>
+                   </div>
+                 </div>
+               );
+             }
+
              const isClean = m.injection_success_rate === 0;
              const scoreClass = isClean ? "text-green-400" : (m.injection_success_rate > 0.05 ? "text-red-400" : "text-orange-400");
              

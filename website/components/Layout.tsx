@@ -17,7 +17,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Framework", href: "/framework" },
   { label: "Results", href: "/results" },
   { label: "Documentation", href: "/documentation" },
-  { label: "GitHub", href: "https://github.com/agentkillchain/agentkillchain", isExternal: true }
+  { label: "GitHub", href: "https://github.com/kevinobytes/agentkillchain", isExternal: true }
 ];
 
 export default function Layout({ children }: { children: ReactNode }) {

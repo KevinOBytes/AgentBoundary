@@ -8,9 +8,21 @@ interface PaperPageProps {
   paperContent: string;
   data: any | null;
   catalog: any[] | null;
+  expectedModels?: string[];
 }
 
-export default function PaperPage({ paperContent, data, catalog }: PaperPageProps) {
+export default function PaperPage({ paperContent, data, catalog, expectedModels = [] }: PaperPageProps) {
+  const evaluatedModels = data ? Object.keys(data.metrics_by_model) : [];
+  const allModels = Array.from(new Set([...expectedModels, ...evaluatedModels]));
+  const sortedModels = allModels.sort((a, b) => {
+    const mA = data?.metrics_by_model[a];
+    const mB = data?.metrics_by_model[b];
+    if (mA && mB) return mA.injection_success_rate - mB.injection_success_rate;
+    if (mA) return -1;
+    if (mB) return 1;
+    return a.localeCompare(b);
+  });
+
   return (
     <Layout>
       <motion.article 
@@ -27,11 +39,14 @@ export default function PaperPage({ paperContent, data, catalog }: PaperPageProp
             
             <h3 className="text-xl font-bold text-gray-200 mt-8 mb-4">Evaluated Models</h3>
             <div className="flex flex-wrap gap-2 mb-8">
-              {Object.keys(data.metrics_by_model).map(model => (
-                <span key={model} className="px-3 py-1 bg-white/5 border border-white/10 rounded-full text-sm font-mono text-accent">
-                  {model.split('/').pop()}
-                </span>
-              ))}
+              {allModels.map(model => {
+                const isEvaluated = data.metrics_by_model[model];
+                return (
+                  <span key={model} className={`px-3 py-1 ${isEvaluated ? 'bg-white/5 border-white/10 text-accent' : 'bg-transparent border-gray-800 text-gray-500'} border rounded-full text-sm font-mono`}>
+                    {model.split('/').pop()} {!isEvaluated && '(Pending)'}
+                  </span>
+                )
+              })}
             </div>
 
             <div className="overflow-x-auto not-prose mb-12">
@@ -45,16 +60,25 @@ export default function PaperPage({ paperContent, data, catalog }: PaperPageProp
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
-                  {Object.entries(data.metrics_by_model)
-                    .sort(([, a]: any, [, b]: any) => a.overall_vulnerability_score - b.overall_vulnerability_score)
-                    .map(([model, m]: [string, any]) => (
-                    <tr key={model} className="hover:bg-white/5 transition-colors">
-                      <td className="px-4 py-3 font-mono text-accent">{model.split('/').pop()}</td>
-                      <td className="px-4 py-3 text-right">{(m.injection_success_rate * 100).toFixed(1)}%</td>
-                      <td className="px-4 py-3 text-right">{(m.data_exfiltration_rate * 100).toFixed(1)}%</td>
-                      <td className="px-4 py-3 text-right font-bold text-white">{(m.overall_vulnerability_score * 100).toFixed(1)}</td>
-                    </tr>
-                  ))}
+                  {sortedModels.map(model => {
+                    const m = data.metrics_by_model[model];
+                    if (!m) {
+                      return (
+                        <tr key={model} className="hover:bg-white/5 transition-colors opacity-50">
+                          <td className="px-4 py-3 font-mono text-gray-500">{model.split('/').pop()}</td>
+                          <td className="px-4 py-3 text-right" colSpan={3}>Evaluating...</td>
+                        </tr>
+                      );
+                    }
+                    return (
+                      <tr key={model} className="hover:bg-white/5 transition-colors">
+                        <td className="px-4 py-3 font-mono text-accent">{model.split('/').pop()}</td>
+                        <td className="px-4 py-3 text-right">{(m.injection_success_rate * 100).toFixed(1)}%</td>
+                        <td className="px-4 py-3 text-right">{(m.data_exfiltration_rate * 100).toFixed(1)}%</td>
+                        <td className="px-4 py-3 text-right font-bold text-white">{(m.injection_success_rate * 100).toFixed(1)}</td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

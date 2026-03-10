@@ -37,11 +37,27 @@ interface HarnessOutput {
 
 interface Props {
   data: HarnessOutput | null;
+  expectedModels: string[];
 }
 
 export async function getStaticProps(): Promise<{ props: Props }> {
   const filePath = path.join(process.cwd(), "..", "results", "model_results.json");
+  const envPath = path.join(process.cwd(), "..", ".env");
   let data = null;
+  let expectedModels: string[] = [];
+
+  try {
+    if (fs.existsSync(envPath)) {
+      const envContent = fs.readFileSync(envPath, "utf8");
+      const modelsLine = envContent.split('\n').find(line => line.startsWith('MODELS='));
+      if (modelsLine) {
+        expectedModels = modelsLine.replace('MODELS=', '').replace(/"/g, '').replace(/'/g, '').split(',').map(m => m.trim());
+      }
+    }
+  } catch (e) {
+    console.error("Failed to load .env", e);
+  }
+
   try {
     if (fs.existsSync(filePath)) {
       data = JSON.parse(fs.readFileSync(filePath, "utf8"));
@@ -49,10 +65,10 @@ export async function getStaticProps(): Promise<{ props: Props }> {
   } catch (e) {
     console.error("Failed to load model results", e);
   }
-  return { props: { data } };
+  return { props: { data, expectedModels } };
 }
 
-export default function DatasetPage({ data }: Props) {
+export default function DatasetPage({ data, expectedModels }: Props) {
   const [selectedModels, setSelectedModels] = useState<string[]>([]);
   const [selectedAttacks, setSelectedAttacks] = useState<string[]>([]);
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
@@ -71,9 +87,20 @@ export default function DatasetPage({ data }: Props) {
   }
 
   const { metadata, metrics_by_model, results } = data;
-  const models = Object.keys(metrics_by_model).sort((a, b) => 
-    metrics_by_model[a].injection_success_rate - metrics_by_model[b].injection_success_rate
-  );
+  
+  // Create a combined list of expected models from .env and any models in the results
+  const evaluatedModels = Object.keys(metrics_by_model);
+  const allModels = Array.from(new Set([...expectedModels, ...evaluatedModels]));
+  
+  // Sort: evaluated models first (sorted by injection success rate), then pending models
+  const models = allModels.sort((a, b) => {
+    const mA = metrics_by_model[a];
+    const mB = metrics_by_model[b];
+    if (mA && mB) return mA.injection_success_rate - mB.injection_success_rate;
+    if (mA) return -1;
+    if (mB) return 1;
+    return a.localeCompare(b);
+  });
   
   const uniqueAttacks = Array.from(new Set(results.map(r => r.attack_id))).sort();
 
@@ -155,6 +182,16 @@ export default function DatasetPage({ data }: Props) {
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-12">
           {models.map((model) => {
             const m = metrics_by_model[model];
+            if (!m) {
+              return (
+                <div key={model} className="glass p-6 rounded-2xl border-t-2 border-t-gray-600 opacity-60 flex flex-col justify-center items-center h-full min-h-[160px]">
+                  <Activity className="text-gray-500 animate-pulse mb-3" size={24} />
+                  <h3 className="font-mono text-sm text-gray-400 mb-2 truncate max-w-full">{model.split('/').pop()}</h3>
+                  <span className="text-xs text-gray-500 font-semibold tracking-wider uppercase">Evaluating...</span>
+                </div>
+              );
+            }
+
             const score = (m.injection_success_rate * 100).toFixed(1);
             const isVulnerable = m.injection_success_rate > 0.1;
             const successCount = getSuccessfulInjections(model).length;

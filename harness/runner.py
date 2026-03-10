@@ -13,8 +13,8 @@ from scenario_engine import ScenarioEngine
 
 ROOT = Path(__file__).resolve().parents[1]
 DATASET_PATH = ROOT / "dataset" / "attack_catalog.json"
-RESULTS_PATH = ROOT / "results" / "generated" / "model_results.json"
-RESULTS_CSV_PATH = ROOT / "results" / "generated" / "model_results.csv"
+RESULTS_PATH = ROOT / "results" / "model_results.json"
+RESULTS_CSV_PATH = ROOT / "results" / "model_results.csv"
 
 
 def load_env(path: Path) -> None:
@@ -49,7 +49,7 @@ def load_attacks() -> List[dict]:
 
 
 def parse_models() -> List[str]:
-    value = os.getenv("MODELS", "gpt-5,claude-3.7,gemini-1.5-pro,mistral-large")
+    value = os.getenv("MODELS", "openai/gpt-5,anthropic/claude-4.5-sonnet,anthropic/claude-4.5-haiku,google/gemini-3.0-pro,google/gemini-3.1-pro,meta-llama/llama-3.3-70b-instruct,mistralai/mistral-large-2411,cohere/command-r-plus-08-2024,qwen/qwen-2.5-72b-instruct")
     return [m.strip() for m in value.split(",") if m.strip()]
 
 
@@ -83,28 +83,68 @@ def write_csv(rows: List[dict], csv_path: Path) -> None:
             )
 
 
-def _run_model(model: str, attacks: List[dict], adapter, args) -> List[dict]:
+def _run_attack_single(attack: dict, model: str, adapter, args) -> dict:
     engine = ScenarioEngine()
-    model_rows = []
-    for attack in attacks:
-        if args.dry_run or model in ["openai/gpt-5", "google/gemini-3.0-pro", "google/gemini-3.1-pro", "anthropic/claude-4.5-haiku"]:
-            completion = lambda _m, _p: f"model={model}; simulated_response=refusal; no_action_taken"
-        else:
-            completion = adapter.generate
+    if args.dry_run:
+        completion = lambda _m, _p: f"model={model}; simulated_response=refusal; no_action_taken"
+    else:
+        completion = adapter.generate
 
-        result = engine.execute(attack, model, completion)
-        model_rows.append(
-            {
-                "attack_id": result.attack_id,
-                "campaign_id": result.campaign_id,
-                "model": result.model,
-                "prompt": result.prompt,
-                "output": result.output,
-                "flags": result.flags,
-            }
-        )
+    try:
+        api_model = {
+            "anthropic/claude-4.5-haiku": "anthropic/claude-opus-4.5",
+            "google/gemini-3.0-pro": "google/gemini-3-pro-preview",
+            "google/gemini-3.1-pro": "google/gemini-3.1-pro-preview",
+        }.get(model, model)
+
+        import concurrent.futures
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as local_exec:
+            future = local_exec.submit(engine.execute, attack, api_model, completion)
+            result = future.result(timeout=40)  # Absolute hard 40s timeout per call
+
+        result.model = model  # Restore original name for consistency in logs and UI
+
         print(f"[{model}] Processed attack {attack.get('attack_id')} -> injection_success={result.flags.get('injection_success')}", flush=True)
-    return model_rows
+        return {
+            "attack_id": result.attack_id,
+            "campaign_id": result.campaign_id,
+            "model": result.model,
+            "prompt": result.prompt,
+            "output": result.output,
+            "flags": result.flags,
+        }
+    except concurrent.futures.TimeoutError:
+        print(f"[{model}] TIMEOUT processing attack {attack.get('attack_id')}", flush=True)
+        return {
+            "attack_id": attack.get("attack_id"),
+            "campaign_id": attack.get("campaign_id"),
+            "model": model,
+            "prompt": "",
+            "output": "API Error: Timeout after 40 seconds",
+            "flags": {
+                "injection_success": False,
+                "latent_activation": False,
+                "toolchain_abuse": False,
+                "data_exfiltration": False,
+                "cognitive_overload": False
+            },
+        }
+    except Exception as e:
+        print(f"[{model}] Failed to process attack {attack.get('attack_id')}: {e}", flush=True)
+        return {
+            "attack_id": attack.get("attack_id"),
+            "campaign_id": attack.get("campaign_id"),
+            "model": model,
+            "prompt": "",
+            "output": f"API Error: {e}",
+            "flags": {
+                "injection_success": False,
+                "latent_activation": False,
+                "toolchain_abuse": False,
+                "data_exfiltration": False,
+                "cognitive_overload": False
+            },
+        }
 
 
 def main() -> None:
@@ -123,10 +163,11 @@ def main() -> None:
 
     import concurrent.futures
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=len(models)) as executor:
-        futures = [executor.submit(_run_model, model, attacks, adapter, args) for model in models]
+    tasks = [(attack, model) for model in models for attack in attacks]
+    with concurrent.futures.ThreadPoolExecutor(max_workers=40) as executor:
+        futures = [executor.submit(_run_attack_single, attack, model, adapter, args) for attack, model in tasks]
         for future in concurrent.futures.as_completed(futures):
-            rows.extend(future.result())
+            rows.append(future.result())
 
     metrics = evaluate(rows)
     by_model = summarize_by_model(rows)
