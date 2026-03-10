@@ -79,6 +79,36 @@ export default function Home() {
       </motion.section>
 
       <motion.section
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.6 }}
+        className="mb-16 relative z-10"
+      >
+        <h2 className="text-3xl font-bold text-white mb-6 text-center">The New Metrics</h2>
+        <p className="text-gray-400 text-center max-w-3xl mx-auto mb-8">
+          Running a true 720 attack scenarios produced these updated global baseline metrics, which actually remained roughly stable despite adding all the new architectures:
+        </p>
+        <div className="grid gap-6 md:grid-cols-3">
+          <div className="glass p-6 rounded-2xl border-t-2 border-red-500 flex flex-col items-center text-center transition-transform hover:scale-105">
+            <h3 className="text-gray-300 font-medium mb-2 uppercase tracking-wider text-sm">Global Compromise Rate</h3>
+            <div className="text-5xl font-extrabold text-white mb-2">1.71%</div>
+            <p className="text-sm text-gray-500">(Up slightly from 1.63%)</p>
+          </div>
+          <div className="glass p-6 rounded-2xl border-t-2 border-orange-500 flex flex-col items-center text-center transition-transform hover:scale-105">
+            <h3 className="text-gray-300 font-medium mb-2 uppercase tracking-wider text-sm">Toolchain Abuse Rate</h3>
+            <div className="text-5xl font-extrabold text-white mb-2">0.38%</div>
+            <p className="text-sm text-gray-500">(Down slightly)</p>
+          </div>
+          <div className="glass p-6 rounded-2xl border-t-2 border-yellow-500 flex flex-col items-center text-center transition-transform hover:scale-105">
+            <h3 className="text-gray-300 font-medium mb-2 uppercase tracking-wider text-sm">Data Exfiltration</h3>
+            <div className="text-5xl font-extrabold text-white mb-2">0.19%</div>
+            <p className="text-sm text-gray-500">(Down slightly)</p>
+          </div>
+        </div>
+      </motion.section>
+
+      <motion.section
         variants={container}
         initial="hidden"
         animate="show"

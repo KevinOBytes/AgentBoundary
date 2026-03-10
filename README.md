@@ -33,6 +33,16 @@ We conceptualize this through the **Agent Kill Chain**:
 
 ---
 
+## 📊 The New Metrics
+
+Running a true 720 attack scenarios produced these updated global baseline metrics, which actually remained roughly stable despite adding all the new architectures:
+
+*   **Global Compromise Rate:** 1.71% (Up slightly from 1.63%)
+*   **Toolchain Abuse Rate:** 0.38% (Down slightly)
+*   **Data Exfiltration:** 0.19% (Down slightly)
+
+---
+
 ## 🚀 Key Features
 
 *   **🧪 The Evaluation Harness**: A Python framework capable of orchestrating simulated attacks across LLMs via the OpenRouter API.
