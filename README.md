@@ -5,7 +5,7 @@
     <strong>A prototype benchmark for evaluating persistent compromise in simulated autonomous AI agents.</strong>
   </p>
   <p align="center">
-    <a href="https://github.com/agentkillchain/agentkillchain/actions"><img src="https://img.shields.io/github/actions/workflow/status/agentkillchain/agentkillchain/ci.yml" alt="Build Status" /></a>
+    <a href="https://github.com/kevinobytes/agentkillchain/actions"><img src="https://img.shields.io/github/actions/workflow/status/kevinobytes/agentkillchain/ci.yml" alt="Build Status" /></a>
     <a href="SECURITY.md"><img src="https://img.shields.io/badge/Security-Policy-blue.svg" alt="Security Policy" /></a>
     <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License" /></a>
   </p>
