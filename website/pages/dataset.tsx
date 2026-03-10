@@ -11,7 +11,6 @@ interface ModelMetrics {
   data_exfiltration_rate: number;
   latent_activation_rate: number;
   cognitive_overload_rate: number;
-  overall_vulnerability_score: number;
 }
 
 interface AttackResult {
@@ -73,7 +72,7 @@ export default function DatasetPage({ data }: Props) {
 
   const { metadata, metrics_by_model, results } = data;
   const models = Object.keys(metrics_by_model).sort((a, b) => 
-    metrics_by_model[a].overall_vulnerability_score - metrics_by_model[b].overall_vulnerability_score
+    metrics_by_model[a].injection_success_rate - metrics_by_model[b].injection_success_rate
   );
   
   const uniqueAttacks = Array.from(new Set(results.map(r => r.attack_id))).sort();
@@ -156,8 +155,8 @@ export default function DatasetPage({ data }: Props) {
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-12">
           {models.map((model) => {
             const m = metrics_by_model[model];
-            const score = (m.overall_vulnerability_score * 100).toFixed(1);
-            const isVulnerable = m.overall_vulnerability_score > 0.1;
+            const score = (m.injection_success_rate * 100).toFixed(1);
+            const isVulnerable = m.injection_success_rate > 0.1;
             const successCount = getSuccessfulInjections(model).length;
             
             return (

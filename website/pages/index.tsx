@@ -1,12 +1,38 @@
 import Layout from "../components/Layout";
-import DiagramCard from "../components/DiagramCard";
+import DiagramCard, { DiagramItem } from "../components/DiagramCard";
 import { motion, Variants } from "framer-motion";
 import { ShieldAlert, Cpu, User } from "lucide-react";
 
-const lifecycle = `Initial Access -> Execution -> Persistence -> Latent Activation -> Escalation -> Exfiltration`;
-const architecture = `User Input / Memory / Planner / Tool Router / External Tools / Data Stores`;
-const latentTimeline = `Session 1: Seed -> Session 2..N: Dormancy -> Session N+1: Trigger Activation`;
-const toolFlow = `Malicious prompt -> Tool selection confusion -> Dangerous invocation -> Data exposure`;
+const lifecycleItems: DiagramItem[] = [
+  { label: "Initial Access", tooltip: "Gaining the first foothold in the AI agent's environment or context." },
+  { label: "Execution", tooltip: "Running unauthorized commands or code via the agent's capabilities." },
+  { label: "Persistence", tooltip: "Maintaining access or influence over the agent across sessions or turns." },
+  { label: "Latent Activation", tooltip: "A dormant payload is triggered by specific context or time." },
+  { label: "Escalation", tooltip: "Gaining higher privileges or access to more sensitive tools." },
+  { label: "Exfiltration", tooltip: "Stealing or leaking sensitive data out of the agent's environment." }
+];
+
+const architectureItems: DiagramItem[] = [
+  { label: "User Input", tooltip: "Direct prompts or files provided by the user." },
+  { label: "Memory", tooltip: "Long-term or short-term storage where the agent saves context." },
+  { label: "Planner", tooltip: "The reasoning component that decides which steps to take next." },
+  { label: "Tool Router", tooltip: "The mechanism that selects and formats tool calls." },
+  { label: "External Tools", tooltip: "Third-party APIs or local commands the agent can execute." },
+  { label: "Data Stores", tooltip: "Databases or document stores the agent queries for retrieval." }
+];
+
+const latentTimelineItems: DiagramItem[] = [
+  { label: "Session 1: Seed", tooltip: "The attacker injects a dormant payload into the agent's memory or data." },
+  { label: "Session 2..N: Dormancy", tooltip: "The payload remains hidden while the agent performs normal tasks." },
+  { label: "Session N+1: Trigger Activation", tooltip: "A specific condition is met, causing the payload to execute." }
+];
+
+const toolFlowItems: DiagramItem[] = [
+  { label: "Malicious prompt", tooltip: "An input designed to manipulate the agent's parsing or tool selection." },
+  { label: "Tool selection confusion", tooltip: "The agent is tricked into picking a dangerous tool instead of a safe one." },
+  { label: "Dangerous invocation", tooltip: "The agent executes the malicious action using the selected tool." },
+  { label: "Data exposure", tooltip: "The result of the action leads to unauthorized data access or leakage." }
+];
 
 const container: Variants = {
   hidden: { opacity: 0 },
@@ -24,7 +50,7 @@ const item: Variants = {
 export default function Home() {
   return (
     <Layout>
-      <motion.section 
+      <motion.section
         className="mb-16 mt-8 relative"
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -45,34 +71,34 @@ export default function Home() {
           <a href="/paper" className="inline-flex items-center gap-2 rounded-lg bg-accent px-6 py-3 font-semibold text-black transition-transform hover:scale-105 hover:bg-green-400">
             Read Whitepaper
           </a>
-          <a href="https://github.com/agentkillchain/agentkillchain" target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 px-6 py-3 font-semibold text-white transition-all hover:scale-105">
+          <a href="https://github.com/KevinOBytes/agentkillchain" target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 px-6 py-3 font-semibold text-white transition-all hover:scale-105">
             <Cpu size={18} />
             View GitHub
           </a>
         </div>
       </motion.section>
 
-      <motion.section 
+      <motion.section
         variants={container}
         initial="hidden"
         animate="show"
         className="grid gap-6 md:grid-cols-2 relative z-10 mb-16"
       >
         <motion.div variants={item}>
-          <DiagramCard title="Attacker Lifecycle" content={lifecycle} />
+          <DiagramCard title="Attacker Lifecycle" items={lifecycleItems} separator="->" />
         </motion.div>
         <motion.div variants={item}>
-          <DiagramCard title="Attack Surface" content={architecture} />
+          <DiagramCard title="Attack Surface" items={architectureItems} separator="/" />
         </motion.div>
         <motion.div variants={item}>
-          <DiagramCard title="Latent Timeline Profile" content={latentTimeline} />
+          <DiagramCard title="Latent Timeline Profile" items={latentTimelineItems} separator="->" />
         </motion.div>
         <motion.div variants={item}>
-          <DiagramCard title="Toolchain Confusion Strategy" content={toolFlow} />
+          <DiagramCard title="Toolchain Confusion Strategy" items={toolFlowItems} separator="->" />
         </motion.div>
       </motion.section>
 
-      <motion.section 
+      <motion.section
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}

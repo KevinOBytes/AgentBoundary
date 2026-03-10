@@ -60,7 +60,7 @@ The AgentKillChain harness simulates four distinct agent architectural profiles:
 3.  **Code Agent:** Capable of executing shell commands or Python scripts in a sandboxed environment.
 4.  **Filesystem Agent:** Authorized to read, write, and modify a local directory structure.
 
-Each model (`openai/gpt-5`, `anthropic/claude-4.5-sonnet`, `anthropic/claude-4.5-haiku`, `google/gemini-3.0-pro`, `google/gemini-3.1-pro`, `meta-llama/llama-3.3-70b-instruct`, `mistralai/mistral-large-2411`, `cohere/command-r-plus`, `qwen/qwen-2.5-72b-instruct`) is evaluated against the dataset across these four architectures. Experimental runs consist of deterministic dry-runs (to validate pipeline execution) and randomized live-runs (to account for non-deterministic model generation).
+Each model (`openai/gpt-5`, `anthropic/claude-4.5-sonnet`, `anthropic/claude-4.5-haiku`, `google/gemini-3.0-pro`, `google/gemini-3.1-pro`, `meta-llama/llama-3.3-70b-instruct`, `mistralai/mistral-large-2411`, `cohere/command-r-plus-08-2024`, `qwen/qwen-2.5-72b-instruct`) is evaluated against the dataset across these four architectures. Experimental runs consist of deterministic dry-runs (to validate pipeline execution) and randomized live-runs (to account for non-deterministic model generation).
 
 ## 5. Experimental Results
 

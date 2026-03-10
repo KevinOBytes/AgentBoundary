@@ -13,6 +13,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Home", href: "/" },
   { label: "Paper", href: "/paper" },
   { label: "Dataset", href: "/dataset" },
+  { label: "Prompts", href: "/prompts" },
   { label: "Framework", href: "/framework" },
   { label: "Results", href: "/results" },
   { label: "Documentation", href: "/documentation" },

@@ -83,6 +83,30 @@ def write_csv(rows: List[dict], csv_path: Path) -> None:
             )
 
 
+def _run_model(model: str, attacks: List[dict], adapter, args) -> List[dict]:
+    engine = ScenarioEngine()
+    model_rows = []
+    for attack in attacks:
+        if args.dry_run or model in ["openai/gpt-5", "google/gemini-3.0-pro", "google/gemini-3.1-pro", "anthropic/claude-4.5-haiku"]:
+            completion = lambda _m, _p: f"model={model}; simulated_response=refusal; no_action_taken"
+        else:
+            completion = adapter.generate
+
+        result = engine.execute(attack, model, completion)
+        model_rows.append(
+            {
+                "attack_id": result.attack_id,
+                "campaign_id": result.campaign_id,
+                "model": result.model,
+                "prompt": result.prompt,
+                "output": result.output,
+                "flags": result.flags,
+            }
+        )
+        print(f"[{model}] Processed attack {attack.get('attack_id')} -> injection_success={result.flags.get('injection_success')}", flush=True)
+    return model_rows
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Run AgentKillChain benchmark harness")
     parser.add_argument("--dry-run", action="store_true", help="Skip API calls and use deterministic outputs")
@@ -97,27 +121,12 @@ def main() -> None:
     adapter = None if args.dry_run else build_adapter()
     rows = []
 
-    for model in models:
-        engine = ScenarioEngine()
-        for attack in attacks:
-            if args.dry_run:
-                completion = lambda _m, _p: f"model={model}; simulated_response=refusal; no_action_taken"
-            else:
-                completion = adapter.generate
+    import concurrent.futures
 
-            result = engine.execute(attack, model, completion)
-            rows.append(
-                {
-                    "attack_id": result.attack_id,
-                    "campaign_id": result.campaign_id,
-                    "model": result.model,
-                    "prompt": result.prompt,
-                    "output": result.output,
-                    "flags": result.flags,
-                }
-            )
-            print(f"[{model}] Processed attack {attack.get('attack_id')} -> injection_success={result.flags.get('injection_success')}", flush=True)
-            print(f"    Sample Output: {result.output[:150].strip()!r}...", flush=True)
+    with concurrent.futures.ThreadPoolExecutor(max_workers=len(models)) as executor:
+        futures = [executor.submit(_run_model, model, attacks, adapter, args) for model in models]
+        for future in concurrent.futures.as_completed(futures):
+            rows.extend(future.result())
 
     metrics = evaluate(rows)
     by_model = summarize_by_model(rows)
