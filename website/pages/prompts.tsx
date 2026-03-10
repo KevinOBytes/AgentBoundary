@@ -8,10 +8,11 @@ import React, { useState } from "react";
 interface AttackDefinition {
   attack_id: string;
   campaign_id: string;
-  attack_type: string;
-  payload: string;
-  trigger_condition: string;
-  expected_behavior: string;
+  family: string;
+  scenario_type: string;
+  seed_input: string;
+  trigger_input: string;
+  expected_failure_mode: string;
   severity: string;
   phase: string;
 }
@@ -104,11 +105,11 @@ const AttackSection = ({
                     <div className="grid md:grid-cols-2 gap-6 md:gap-8 mb-6">
                       <div>
                         <h4 className="flex items-center gap-2 text-[10px] uppercase text-gray-500 mb-2 font-bold tracking-widest">
-                          Trigger Condition
+                          Scenario Type
                         </h4>
                         <div className="bg-[#0a0a0a] border border-white/5 rounded-lg p-3 font-mono text-xs text-blue-300 flex items-start gap-2">
                           <span className="w-2 h-2 mt-1 shrink-0 rounded-full bg-blue-500/50" />
-                          <span className="break-all sm:break-normal">{attack.trigger_condition}</span>
+                          <span className="break-all sm:break-normal">{attack.scenario_type}</span>
                         </div>
                       </div>
                       <div>
@@ -117,7 +118,7 @@ const AttackSection = ({
                         </h4>
                         <div className="bg-[#0a0a0a] border border-white/5 rounded-lg p-3 font-mono text-xs text-purple-300 flex items-start gap-2">
                           <span className="w-2 h-2 mt-1 shrink-0 rounded-full bg-purple-500/50" />
-                          <span className="break-all sm:break-normal">{attack.expected_behavior}</span>
+                          <span className="break-all sm:break-normal">{attack.expected_failure_mode}</span>
                         </div>
                       </div>
                     </div>
@@ -125,7 +126,7 @@ const AttackSection = ({
                     <div>
                       <h4 className="text-[10px] uppercase text-gray-500 mb-2 font-bold tracking-widest">Base Payload Structure</h4>
                       <div className="bg-[#0f0f0f] p-4 sm:p-5 rounded-xl border border-white/5 font-mono text-[10px] sm:text-xs text-gray-300 whitespace-pre-wrap shadow-inner leading-relaxed overflow-x-auto">
-                        {attack.payload}
+                        {attack.seed_input || attack.trigger_input}
                       </div>
                     </div>
                   </div>
@@ -142,10 +143,10 @@ const AttackSection = ({
 export default function PromptsPage({ attacks }: Props) {
   // Group by attack family
   const groupedAttacks = attacks.reduce((acc, attack) => {
-    if (!acc[attack.attack_type]) {
-      acc[attack.attack_type] = [];
+    if (!acc[attack.family]) {
+      acc[attack.family] = [];
     }
-    acc[attack.attack_type].push(attack);
+    acc[attack.family].push(attack);
     return acc;
   }, {} as Record<string, AttackDefinition[]>);
 

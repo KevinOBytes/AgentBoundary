@@ -2,7 +2,7 @@
   <img src="website/public/kevinbytes-logo.png" alt="AgentKillChain Logo" width="120" />
   <h1 align="center">AgentKillChain</h1>
   <p align="center">
-    <strong>An open, reproducible benchmark for evaluating persistent compromise in autonomous AI agents.</strong>
+    <strong>A prototype benchmark for evaluating persistent compromise in simulated autonomous AI agents.</strong>
   </p>
   <p align="center">
     <a href="https://github.com/agentkillchain/agentkillchain/actions"><img src="https://img.shields.io/github/actions/workflow/status/agentkillchain/agentkillchain/ci.yml" alt="Build Status" /></a>
@@ -13,7 +13,7 @@
 
 <br />
 
-> **AgentKillChain** is an empirical evaluation framework designed to surface how top-tier autonomous AI models fall prey to multi-stage, persistent compromise. We move beyond immediate single-turn prompt-injections (jailbreaks) to map the vulnerability of AI memory systems over time.
+> **AgentKillChain** is a prototype evaluation framework designed to simulate how autonomous AI models might fall prey to multi-stage, persistent compromise. We map the potential vulnerability of simulated AI memory systems over time to prompt-injections and poisoning attacks.
 
 ---
 
@@ -35,9 +35,9 @@ We conceptualize this through the **Agent Kill Chain**:
 
 ## 🚀 Key Features
 
-*   **🧪 The Evaluation Harness**: A robust Python framework capable of orchestrating concurrent attacks across arbitrary LLMs via the OpenRouter API.
+*   **🧪 The Evaluation Harness**: A Python framework capable of orchestrating simulated attacks across LLMs via the OpenRouter API.
 *   **📚 40-Vector Attack Catalog**: Spanning Markdown Injection, HTML Injection, Context Drift, and Toolchain Confusion scenarios (located in `dataset/attack_catalog.json`).
-*   **📊 Empirical Telemetry**: Produces deterministic JSON/CSV metrics tracking Overall Susceptibility, Latent Activation Rates, and more.
+*   **📊 Evaluative Telemetry**: Produces JSON/CSV metrics tracking simulated Susceptibility and Latent Activation Rates.
 *   **💻 Next.js Dashboard**: A premium, open-source visualization frontend to interactively explore model evaluation metrics, trace logs, and execution diffs.
 
 ---
@@ -77,7 +77,7 @@ python3 scripts/validate_artifacts.py
 python3 harness/runner.py
 ```
 > [!NOTE] 
-> This will generate fresh evaluation data at `results/generated/model_results.json`.
+> This will generate fresh evaluation data at `results/model_results.json`.
 
 ---
 
@@ -102,7 +102,7 @@ Navigate to [http://localhost:3000](http://localhost:3000). The dashboard provid
 
 ## 🛡️ Empirical Findings & Mitigations
 
-Through exhaustive empirical evaluation, we discovered that base architectural latency vulnerabilities—like the **Toolchain Confusion Strategy**—persist across multiple flagship frontier models (including GPT-4 and Llama 3). 
+Through evaluation in this simulated environment, we observe that models can be tricked by attacks like the **Toolchain Confusion Strategy**. Note that this benchmark is a prototype: memory, tools, and environments are mocked. Readers should consult `LIMITATIONS.md` and `TRUSTWORTHINESS.md` before applying these findings to production systems.
 
 **Recommended Mitigations:**
 1. **Memory Provenance Tagging**: Maintain strict boundaries in vector storage between "System Instructions", "User Intent", and "passively retrieved Context".

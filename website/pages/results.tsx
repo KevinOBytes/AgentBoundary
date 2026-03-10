@@ -59,13 +59,13 @@ export default function ResultsPage({ data, expectedModels }: Props) {
   const models = allModels.sort((a, b) => {
     const mA = metrics_by_model[a];
     const mB = metrics_by_model[b];
-    if (mA && mB) return mA.injection_success_rate - mB.injection_success_rate;
+    if (mA && mB) return mA.overall_vulnerability_score - mB.overall_vulnerability_score;
     if (mA) return -1;
     if (mB) return 1;
     return a.localeCompare(b);
   });
 
-  const totalModelsCount = Math.max(metadata.models.length, expectedModels.length);
+  const totalModelsCount = Math.max(metadata.models_requested?.length || 0, expectedModels.length);
 
   return (
     <Layout>
@@ -81,7 +81,7 @@ export default function ResultsPage({ data, expectedModels }: Props) {
             </div>
             <div>
               <h1 className="text-4xl font-bold tracking-tight text-white mb-2">Aggregate Results Dashboard</h1>
-              <p className="text-gray-400">Diagnostic telemetry from {metadata.attacks} orchestrated attacks across {totalModelsCount} sovereign models.</p>
+              <p className="text-gray-400">Diagnostic telemetry from {metadata.attacks_total || 0} orchestrated attacks across {totalModelsCount} sovereign models.</p>
             </div>
           </div>
         </div>
@@ -90,35 +90,35 @@ export default function ResultsPage({ data, expectedModels }: Props) {
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-16">
           <div className="glass p-6 rounded-2xl border-t-2 border-t-accent shadow-[0_0_30px_-10px_rgba(var(--accent-glow),0.3)]">
              <div className="flex items-center justify-between mb-4">
-               <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Global Compromise Rate</h3>
+               <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Global Vulnerability</h3>
                <Target className="text-accent/50" size={20} />
              </div>
              <div className="flex items-end gap-2">
-               <span className="text-5xl font-bold text-white">{(metrics.injection_success_rate * 100).toFixed(1)}%</span>
+               <span className="text-5xl font-bold text-white">{(metrics.overall_vulnerability_score * 100).toFixed(1)}%</span>
              </div>
-             <p className="text-xs text-gray-500 mt-4 leading-relaxed">Percentage of all cross-model attacks that achieved arbitrary exploitation objectives natively.</p>
+             <p className="text-xs text-gray-500 mt-4 leading-relaxed">Percentage of all cross-model attacks that achieved any exploitation objective securely.</p>
           </div>
 
           <div className="glass p-6 rounded-2xl border-t-2 border-t-orange-500">
              <div className="flex items-center justify-between mb-4">
-               <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Latent Activation</h3>
+               <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Unsafe Instruction</h3>
                <Skull className="text-orange-500/50" size={20} />
              </div>
              <div className="flex items-end gap-2">
-               <span className="text-5xl font-bold text-orange-400">{(metrics.latent_activation_rate * 100).toFixed(1)}%</span>
+               <span className="text-5xl font-bold text-orange-400">{(metrics.unsafe_instruction_adoption_rate * 100).toFixed(1)}%</span>
              </div>
-             <p className="text-xs text-gray-500 mt-4 leading-relaxed">Rate at which dormant malicious tokens successfully activated from seemingly benign context buffers.</p>
+             <p className="text-xs text-gray-500 mt-4 leading-relaxed">Rate at which malicious tokens successfully replaced core agent instructions.</p>
           </div>
 
           <div className="glass p-6 rounded-2xl border-t-2 border-t-red-500">
              <div className="flex items-center justify-between mb-4">
-               <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Data Exfiltration</h3>
+               <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Secret Disclosure</h3>
                <Database className="text-red-500/50" size={20} />
              </div>
              <div className="flex items-end gap-2">
-               <span className="text-5xl font-bold text-red-500">{(metrics.data_exfiltration_rate * 100).toFixed(1)}%</span>
+               <span className="text-5xl font-bold text-red-500">{(metrics.secret_disclosure_rate * 100).toFixed(1)}%</span>
              </div>
-             <p className="text-xs text-gray-500 mt-4 leading-relaxed">Percentage of attacks that successfully bypassed simulated egress filtration logic securely.</p>
+             <p className="text-xs text-gray-500 mt-4 leading-relaxed">Percentage of attacks that successfully leaked memory contexts or secrets.</p>
           </div>
         </div>
 
@@ -149,8 +149,8 @@ export default function ResultsPage({ data, expectedModels }: Props) {
                );
              }
 
-             const isClean = m.injection_success_rate === 0;
-             const scoreClass = isClean ? "text-green-400" : (m.injection_success_rate > 0.05 ? "text-red-400" : "text-orange-400");
+             const isClean = m.overall_vulnerability_score === 0;
+             const scoreClass = isClean ? "text-green-400" : (m.overall_vulnerability_score > 0.05 ? "text-red-400" : "text-orange-400");
              
              return (
                <motion.div 
@@ -172,20 +172,20 @@ export default function ResultsPage({ data, expectedModels }: Props) {
 
                  <div className="w-full md:flex-1 grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div>
-                      <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Injection Success</p>
-                      <p className={`text-xl font-bold ${scoreClass}`}>{(m.injection_success_rate * 100).toFixed(1)}%</p>
+                      <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Vuln. Score</p>
+                      <p className={`text-xl font-bold ${scoreClass}`}>{(m.overall_vulnerability_score * 100).toFixed(1)}%</p>
                     </div>
                     <div>
-                      <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Direct Inject</p>
-                      <p className={`text-xl font-bold ${m.injection_success_rate > 0 ? "text-orange-400" : "text-gray-300"}`}>{(m.injection_success_rate * 100).toFixed(1)}%</p>
+                      <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Unsafe Instruct</p>
+                      <p className={`text-xl font-bold ${m.unsafe_instruction_adoption_rate > 0 ? "text-orange-400" : "text-gray-300"}`}>{(m.unsafe_instruction_adoption_rate * 100).toFixed(1)}%</p>
                     </div>
                     <div>
                       <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Tool Abuse</p>
-                      <p className={`text-xl font-bold ${m.toolchain_abuse_rate > 0 ? "text-red-400" : "text-gray-300"}`}>{(m.toolchain_abuse_rate * 100).toFixed(1)}%</p>
+                      <p className={`text-xl font-bold ${m.unsafe_tool_proposal_rate > 0 ? "text-red-400" : "text-gray-300"}`}>{(m.unsafe_tool_proposal_rate * 100).toFixed(1)}%</p>
                     </div>
                     <div>
                       <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Data Exfil.</p>
-                      <p className={`text-xl font-bold ${m.data_exfiltration_rate > 0 ? "text-purple-400" : "text-gray-300"}`}>{(m.data_exfiltration_rate * 100).toFixed(1)}%</p>
+                      <p className={`text-xl font-bold ${m.secret_disclosure_rate > 0 ? "text-purple-400" : "text-gray-300"}`}>{(m.secret_disclosure_rate * 100).toFixed(1)}%</p>
                     </div>
                  </div>
                </motion.div>

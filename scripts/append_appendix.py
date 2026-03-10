@@ -1,10 +1,15 @@
 import json
+from pathlib import Path
 
 def append_appendix():
-    with open('/Users/example/Projects/AgentKillChain/dataset/attack_catalog.json', 'r') as f:
+    root_dir = Path(__file__).resolve().parent.parent
+    catalog_path = root_dir / 'dataset' / 'attack_catalog.json'
+    whitepaper_path = root_dir / 'docs' / 'whitepaper.md'
+
+    with open(catalog_path, 'r') as f:
         catalog = json.load(f)
 
-    with open('/Users/example/Projects/AgentKillChain/docs/whitepaper.md', 'r') as f:
+    with open(whitepaper_path, 'r') as f:
         content = f.read()
 
     appendix = "\n\n### Appendix A: The 40 Attack Scenarios\n\n"
@@ -14,12 +19,13 @@ def append_appendix():
 
     for item in catalog:
         # cleanup newlines in payload for markdown table compatibility
-        payload = item['payload'].replace('\n', ' ')
-        appendix += f"| `{item['attack_id']}` | `{item['attack_type']}` | `{item['trigger_condition']}` | `{item['expected_behavior']}` | `{payload}` |\n"
+        payload = item.get('seed_input', '') + item.get('trigger_input', '')
+        payload = payload.replace('\n', ' ')
+        appendix += f"| `{item['attack_id']}` | `{item['family']}` | `{item['scenario_type']}` | `{item['attacker_goal']}` | `{payload}` |\n"
 
     # append if not already there
     if "Appendix A: The 40 Attack Scenarios" not in content:
-        with open('/Users/example/Projects/AgentKillChain/docs/whitepaper.md', 'a') as f:
+        with open(whitepaper_path, 'a') as f:
             f.write(appendix)
 
 append_appendix()

@@ -4,14 +4,14 @@
 > Kevin O'Connor
 
 ## Abstract
-As large language models (LLMs) are increasingly deployed as autonomous agents with access to tools, memory, and external data sources, they become uniquely vulnerable to multi-stage, persistent compromise. We introduce **AgentKillChain**, an open, reproducible benchmark designed to evaluate how autonomous AI agents fall prey to latent prompt injection via memory poisoning across session boundaries. Unlike traditional prompt injection benchmarks that focus on single-turn, immediate jailbreaks, AgentKillChain evaluates an attacker's ability to seamlessly transition from initial access to execution, maintain persistent presence via agent memory, and execute latent triggers that result in system escalation or data exfiltration. This paper outlines the theoretical threat model, details our novel evaluation taxonomy of persistent attacks, and presents empirical results across leading LLMs (`gpt-5`, `claude-3.7`, `gemini-1.5-pro`, `mistral-large`). Our findings highlight a critical gap in current agent architectures: the failure to maintain contextual integrity across temporal session boundaries. 
+As large language models (LLMs) are increasingly deployed as autonomous agents with access to tools, memory, and external data sources, they become uniquely vulnerable to multi-stage, persistent compromise. We introduce **AgentKillChain**, an open, reproducible prototype benchmark designed to simulate how autonomous AI agents fall prey to latent prompt injection via memory poisoning across session boundaries. Unlike traditional prompt injection benchmarks that focus on single-turn, immediate jailbreaks, AgentKillChain evaluates an attacker's hypothetical ability to seamlessly transition from initial access to execution, maintain persistent presence via agent memory, and execute latent triggers that result in system escalation or data exfiltration. This paper outlines the theoretical threat model, details our novel evaluation taxonomy of persistent attacks, and presents empirical results across leading LLMs (`gpt-5`, `claude-3.7`, `gemini-1.5-pro`, `mistral-large`) within a simulated testing harness. Our findings highlight a critical gap in current agent architectures: the failure to maintain contextual integrity across temporal session boundaries. 
 
 ## 1. Introduction
 The integration of Large Language Models (LLMs) into autonomous systems marks a transition from passive query-response interfaces to active, stateful agents capable of executing complex workflows. These agents rely heavily on semantic memory (e.g., vector databases), short-term working memory, and functional toolchains (e.g., APIs, local file system access, browser automation) to accomplish user objectives.
 
 While the utility of these systems is significant, their expanded attack surface introduces novel vulnerabilities that transcend traditional prompt injection. When an adversary successfully manipulates an agent's memory, the compromise can lay dormant for weeks, only activating when specific semantic triggers are encountered in future sessions. We define this paradigm as the **Agent Kill Chain**: a structured progression of adversarial actions designed to persistently compromise an autonomous AI agent.
 
-AgentKillChain provides a comprehensive methodology and dataset to systematically stress-test agent architectures against these multi-stage threats. By formalizing the concepts of latent memory poisoning, toolchain confusion, and context drift exploitation, we aim to provide security researchers and system designers with the empirical tools necessary to build resilient autonomous systems.
+AgentKillChain provides a prototype methodology and dataset to systematically stress-test agent architectures against these multi-stage threats in a mocked, simulated environment. By formalizing the concepts of latent memory poisoning, toolchain confusion, and context drift exploitation, we aim to provide security researchers and system designers with the empirical tools necessary to build resilient autonomous systems. Readers are encouraged to reference `LIMITATIONS.md` and `TRUSTWORTHINESS.md` for context on our simulation constraints.
 
 > *"If an adversary successfully manipulates an agent's semantic memory, the payload can lie dormant for weeks, only activating when specific semantic triggers are encountered."*
 
@@ -71,19 +71,19 @@ Our evaluation framework quantified the vulnerability of frontier models across 
 ### 5.1 Baseline Vulnerability Rates
 The benchmark revealed a consistent susceptibility to prompt injection and persistent compromise across all tested architectures:
 
-*   **Global Compromise Rate:** Natively, the total injection success rate across all cross-model attacks reached **8.61%**. This indicates that nearly 1 in 10 attacks successfully achieved arbitrary exploitation objectives natively without alerting the underlying safety filters. 
-*   This baseline holds uniformly across the model families; all independently registered around an **8.61%** injection success rate when faced with the full evaluation taxonomy. This suggests that the vulnerability to latent memory exploitation is a fundamental architectural challenge within current LLM paradigms, rather than an implementation flaw of any single provider. 
+*   **Global Compromise Rate:** Natively, the total injection success rate across all cross-model attacks reached **3.47%**. This indicates a persistent baseline where attacks successfully achieved arbitrary exploitation objectives natively without alerting the underlying safety filters. 
+*   While some models demonstrated higher resilience, the aggregate **3.47%** vulnerability score across the full evaluation taxonomy suggests that susceptibility to latent memory exploitation remains a notable architectural challenge within current LLM paradigms.
 
 ### 5.2 Latent Activation Efficacy
 A core focus of AgentKillChain is measuring the persistence of adversarial memory.
-*   **Latent Activation Rate:** Across all tested environments, dormant malicious payloads were successfully activated from seemingly benign context buffers in **0.00%** of evaluated cases out of the box. 
-*   While immediate direct injection succeeded, models showed significant robustness against long-term *latent* triggers specifically within simulated memory buffer boundaries when evaluated without explicit state tracking bypasses. This confirms that while models struggle with immediate context drift, they are more capable of isolating distinct summarized memories.
+*   **Latent Activation Rate:** Across all tested environments, dormant malicious payloads were successfully activated from seemingly benign context buffers in **2.02%** of evaluated cases out of the box. 
+*   While immediate direct injection sometimes succeeded, models showed increased but imperfect robustness against long-term *latent* triggers specifically within simulated memory buffer boundaries. This confirms that while current models attempt to isolate distinct summarized memories, sophisticated persistent payloads can still bridge the temporal gap to achieve execution.
 
 ### 5.3 Toolchain Abuse
 The escalation phase of the killchain explores how adversarial instructions map to privileged execution:
-*   **Toolchain Abuse Rate:** Exfiltration attempts and privilege escalations via toolchain confusion succeeded at a rate of **13.61%**. 
-*   This indicates that when an injected payload attempts to invoke an authorized tool (e.g., executing a command or accessing a file structure) maliciously, the agent's internal reasoning loop fails to differentiate between legitimate user intent and the adversarial objective more than one-tenth of the time. 
-*   In the current evaluation set, the simulated filtering logic successfully caught arbitrary **Cognitive Overload** strategies at the perimeter, resulting in a **0.00%** recorded success rate for those endpoint outcomes (highlighting the value of explicit egress boundaries), however **Data Exfiltration** natively succeeded **3.89%** of the time across models.
+*   **Toolchain Abuse Rate:** Exfiltration attempts and privilege escalations via toolchain confusion succeeded at a rate of **0.87%**. 
+*   This indicates that when an injected payload attempts to invoke an authorized tool (e.g., executing a command or accessing a file structure) maliciously, the agent's internal reasoning loop occasionally fails to differentiate between legitimate user intent and the adversarial objective. 
+*   While safety fine-tuning caught the vast majority of arbitrary execution strategies, targeted **Data Exfiltration** attempts still natively succeeded **1.73%** of the time across models, and overarching policy violations were successfully blocked (a **0.00%** bypass rate on explicit policy directives).
 
 ## 6. Mitigations and Defensive Posture
 Based on our architectural analyses and the (forthcoming) empirical data, we propose several defensive strategies to harden autonomous agents against persistent compromise:
@@ -118,7 +118,7 @@ python3 scripts/validate_artifacts.py
 # Live evaluation execution
 python3 harness/runner.py
 ```
-*Generated reports can be located at `results/generated/model_results.json`.*
+*Generated reports can be located at `results/model_results.json`.*
 
 
 ### Appendix A: The 40 Attack Scenarios

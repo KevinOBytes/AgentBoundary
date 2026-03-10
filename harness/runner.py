@@ -34,11 +34,14 @@ def load_attacks() -> List[dict]:
     required = {
         "attack_id",
         "campaign_id",
-        "attack_type",
-        "payload",
-        "trigger_condition",
-        "expected_behavior",
+        "family",
+        "scenario_type",
+        "seed_input",
+        "trigger_input",
+        "attacker_goal",
+        "expected_failure_mode",
         "severity",
+        "realism_level",
         "phase",
     }
     for attack in attacks:
@@ -59,11 +62,13 @@ def write_csv(rows: List[dict], csv_path: Path) -> None:
         "attack_id",
         "campaign_id",
         "model",
-        "injection_success",
-        "latent_activation",
-        "toolchain_abuse",
-        "data_exfiltration",
-        "cognitive_overload",
+        "status",
+        "error_type",
+        "refusal_detected",
+        "unsafe_instruction_adopted",
+        "unsafe_tool_call_proposed",
+        "secret_disclosure_claimed",
+        "policy_violation",
         "prompt",
         "output",
     ]
@@ -76,6 +81,8 @@ def write_csv(rows: List[dict], csv_path: Path) -> None:
                     "attack_id": row["attack_id"],
                     "campaign_id": row["campaign_id"],
                     "model": row["model"],
+                    "status": row["status"],
+                    "error_type": row["error_type"],
                     "prompt": row["prompt"],
                     "output": row["output"],
                     **row["flags"],
@@ -98,17 +105,22 @@ def _run_attack_single(attack: dict, model: str, adapter, args) -> dict:
         }.get(model, model)
 
         import concurrent.futures
-        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as local_exec:
-            future = local_exec.submit(engine.execute, attack, api_model, completion)
+        local_exec = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+        future = local_exec.submit(engine.execute, attack, api_model, completion)
+        try:
             result = future.result(timeout=40)  # Absolute hard 40s timeout per call
+        finally:
+            local_exec.shutdown(wait=False)
 
         result.model = model  # Restore original name for consistency in logs and UI
 
-        print(f"[{model}] Processed attack {attack.get('attack_id')} -> injection_success={result.flags.get('injection_success')}", flush=True)
+        print(f"[{model}] Processed attack {attack.get('attack_id')} -> unsafe={result.flags.get('unsafe_instruction_adopted')}", flush=True)
         return {
             "attack_id": result.attack_id,
             "campaign_id": result.campaign_id,
             "model": result.model,
+            "status": "scored",
+            "error_type": None,
             "prompt": result.prompt,
             "output": result.output,
             "flags": result.flags,
@@ -119,14 +131,16 @@ def _run_attack_single(attack: dict, model: str, adapter, args) -> dict:
             "attack_id": attack.get("attack_id"),
             "campaign_id": attack.get("campaign_id"),
             "model": model,
+            "status": "timed_out",
+            "error_type": "TimeoutError",
             "prompt": "",
             "output": "API Error: Timeout after 40 seconds",
             "flags": {
-                "injection_success": False,
-                "latent_activation": False,
-                "toolchain_abuse": False,
-                "data_exfiltration": False,
-                "cognitive_overload": False
+                "refusal_detected": False,
+                "unsafe_instruction_adopted": False,
+                "unsafe_tool_call_proposed": False,
+                "secret_disclosure_claimed": False,
+                "policy_violation": False
             },
         }
     except Exception as e:
@@ -135,14 +149,16 @@ def _run_attack_single(attack: dict, model: str, adapter, args) -> dict:
             "attack_id": attack.get("attack_id"),
             "campaign_id": attack.get("campaign_id"),
             "model": model,
+            "status": "api_error",
+            "error_type": type(e).__name__,
             "prompt": "",
             "output": f"API Error: {e}",
             "flags": {
-                "injection_success": False,
-                "latent_activation": False,
-                "toolchain_abuse": False,
-                "data_exfiltration": False,
-                "cognitive_overload": False
+                "refusal_detected": False,
+                "unsafe_instruction_adopted": False,
+                "unsafe_tool_call_proposed": False,
+                "secret_disclosure_claimed": False,
+                "policy_violation": False
             },
         }
 
@@ -164,15 +180,34 @@ def main() -> None:
     import concurrent.futures
 
     tasks = [(attack, model) for model in models for attack in attacks]
-    with concurrent.futures.ThreadPoolExecutor(max_workers=40) as executor:
-        futures = [executor.submit(_run_attack_single, attack, model, adapter, args) for attack, model in tasks]
-        for future in concurrent.futures.as_completed(futures):
-            rows.append(future.result())
+    executor = concurrent.futures.ThreadPoolExecutor(max_workers=40)
+    futures = [executor.submit(_run_attack_single, attack, model, adapter, args) for attack, model in tasks]
+    for future in concurrent.futures.as_completed(futures):
+        rows.append(future.result())
+    
+    # Do not use 'with' block to avoid hanging on shutdown if threads are deadlocked.
+    executor.shutdown(wait=False)
 
     metrics = evaluate(rows)
     by_model = summarize_by_model(rows)
+    
+    import datetime
+    run_timestamp = datetime.datetime.now(datetime.timezone.utc).isoformat()
+    timeout_count = sum(1 for r in rows if r["status"] == "timed_out")
+    error_count = sum(1 for r in rows if r["status"] == "api_error")
+    scored_count = sum(1 for r in rows if r["status"] == "scored")
+
     output = {
-        "metadata": {"models": models, "attacks": len(attacks)},
+        "metadata": {
+            "benchmark_version": "0.1.0-prototype",
+            "run_timestamp": run_timestamp,
+            "dry_run": args.dry_run,
+            "models_requested": models,
+            "attacks_total": len(attacks),
+            "scored_count": scored_count,
+            "timeout_count": timeout_count,
+            "error_count": error_count,
+        },
         "metrics": metrics,
         "metrics_by_model": by_model,
         "results": rows,

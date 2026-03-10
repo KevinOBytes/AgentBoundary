@@ -5,8 +5,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 DATASET_PATH = ROOT / "dataset" / "attack_catalog.json"
-RESULTS_PATH = ROOT / "results" / "generated" / "model_results.json"
-CSV_PATH = ROOT / "results" / "generated" / "model_results.csv"
+RESULTS_PATH = ROOT / "results" / "model_results.json"
+CSV_PATH = ROOT / "results" / "model_results.csv"
 
 
 def validate_dataset() -> None:
@@ -16,11 +16,14 @@ def validate_dataset() -> None:
     required = {
         "attack_id",
         "campaign_id",
-        "attack_type",
-        "payload",
-        "trigger_condition",
-        "expected_behavior",
+        "family",
+        "scenario_type",
+        "seed_input",
+        "trigger_input",
+        "attacker_goal",
+        "expected_failure_mode",
         "severity",
+        "realism_level",
         "phase",
     }
     for row in data:

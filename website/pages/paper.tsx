@@ -17,7 +17,7 @@ export default function PaperPage({ paperContent, data, catalog, expectedModels 
   const sortedModels = allModels.sort((a, b) => {
     const mA = data?.metrics_by_model[a];
     const mB = data?.metrics_by_model[b];
-    if (mA && mB) return mA.injection_success_rate - mB.injection_success_rate;
+    if (mA && mB) return mA.overall_vulnerability_score - mB.overall_vulnerability_score;
     if (mA) return -1;
     if (mB) return 1;
     return a.localeCompare(b);
@@ -54,7 +54,7 @@ export default function PaperPage({ paperContent, data, catalog, expectedModels 
                 <thead className="bg-white/5 text-xs uppercase text-gray-300">
                   <tr>
                     <th className="px-4 py-3 font-medium">Model</th>
-                    <th className="px-4 py-3 font-medium text-right">Inj. Success %</th>
+                    <th className="px-4 py-3 font-medium text-right">Unsafe Instruct %</th>
                     <th className="px-4 py-3 font-medium text-right">Exfil %</th>
                     <th className="px-4 py-3 font-medium text-right">Overall Vuln</th>
                   </tr>
@@ -73,9 +73,9 @@ export default function PaperPage({ paperContent, data, catalog, expectedModels 
                     return (
                       <tr key={model} className="hover:bg-white/5 transition-colors">
                         <td className="px-4 py-3 font-mono text-accent">{model.split('/').pop()}</td>
-                        <td className="px-4 py-3 text-right">{(m.injection_success_rate * 100).toFixed(1)}%</td>
-                        <td className="px-4 py-3 text-right">{(m.data_exfiltration_rate * 100).toFixed(1)}%</td>
-                        <td className="px-4 py-3 text-right font-bold text-white">{(m.injection_success_rate * 100).toFixed(1)}</td>
+                        <td className="px-4 py-3 text-right">{(m.unsafe_instruction_adoption_rate * 100).toFixed(1)}%</td>
+                        <td className="px-4 py-3 text-right">{(m.secret_disclosure_rate * 100).toFixed(1)}%</td>
+                        <td className="px-4 py-3 text-right font-bold text-white">{(m.overall_vulnerability_score * 100).toFixed(1)}</td>
                       </tr>
                     );
                   })}
@@ -94,8 +94,8 @@ export default function PaperPage({ paperContent, data, catalog, expectedModels 
                 <thead className="bg-white/5 text-xs uppercase text-gray-300">
                   <tr>
                     <th className="px-4 py-3 font-medium">Attack ID</th>
-                    <th className="px-4 py-3 font-medium">Type</th>
-                    <th className="px-4 py-3 font-medium">Trigger Condition</th>
+                    <th className="px-4 py-3 font-medium">Scenario Type</th>
+                    <th className="px-4 py-3 font-medium">Trigger Input</th>
                     <th className="px-4 py-3 font-medium">Expected Behavior</th>
                   </tr>
                 </thead>
@@ -103,8 +103,8 @@ export default function PaperPage({ paperContent, data, catalog, expectedModels 
                   {catalog.map((attack) => (
                     <tr key={attack.attack_id} className="hover:bg-white/5 transition-colors">
                       <td className="px-4 py-3 font-mono text-accent">{attack.attack_id}</td>
-                      <td className="px-4 py-3">{attack.attack_type}</td>
-                      <td className="px-4 py-3">{attack.trigger_condition}</td>
+                      <td className="px-4 py-3">{attack.scenario_type}</td>
+                      <td className="px-4 py-3">{attack.trigger_input}</td>
                       <td className="px-4 py-3">{attack.expected_behavior}</td>
                     </tr>
                   ))}
@@ -120,7 +120,7 @@ export default function PaperPage({ paperContent, data, catalog, expectedModels 
 
 export async function getStaticProps() {
   const paperPath = path.join(process.cwd(), "..", "docs", "whitepaper.md");
-  const dataPath = path.join(process.cwd(), "..", "results", "generated", "model_results.json");
+  const dataPath = path.join(process.cwd(), "..", "results", "model_results.json");
   const catalogPath = path.join(process.cwd(), "..", "dataset", "attack_catalog.json");
   
   let paperContent = "";

@@ -16,7 +16,7 @@ docker run --rm --env-file .env agentkillchain-harness
 ### Scheduled GitHub Action (recommended)
 - Add a scheduled workflow using cron.
 - Inject `OPENROUTER_API_KEY` from repository secrets.
-- Upload `results/generated/*` to GitHub Releases or Cloudflare R2.
+- Upload `results/*` to GitHub Releases or Cloudflare R2.
 
 ## One-click compose local run
 ```bash

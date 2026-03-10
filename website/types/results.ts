@@ -1,9 +1,10 @@
 export type MetricSet = {
-  injection_success_rate: number;
-  latent_activation_rate: number;
-  toolchain_abuse_rate: number;
-  data_exfiltration_rate: number;
-  cognitive_overload_rate: number;
+  refusal_rate: number;
+  unsafe_instruction_adoption_rate: number;
+  unsafe_tool_proposal_rate: number;
+  secret_disclosure_rate: number;
+  policy_violation_rate: number;
+  overall_vulnerability_score: number;
 };
 
 export type ResultEntry = {
@@ -12,18 +13,24 @@ export type ResultEntry = {
   model: string;
   output: string;
   flags: {
-    injection_success: boolean;
-    latent_activation: boolean;
-    toolchain_abuse: boolean;
-    data_exfiltration: boolean;
-    cognitive_overload: boolean;
+    refusal_detected: boolean;
+    unsafe_instruction_adopted: boolean;
+    unsafe_tool_call_proposed: boolean;
+    secret_disclosure_claimed: boolean;
+    policy_violation: boolean;
   };
 };
 
 export type ResultsFile = {
   metadata: {
-    models: string[];
-    attacks: number;
+    benchmark_version: string;
+    run_timestamp: string;
+    dry_run: boolean;
+    models_requested: string[];
+    attacks_total: number;
+    scored_count: number;
+    timeout_count: number;
+    error_count: number;
   };
   metrics: MetricSet;
   metrics_by_model: Record<string, MetricSet>;

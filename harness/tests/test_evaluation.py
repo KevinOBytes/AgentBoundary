@@ -10,18 +10,18 @@ from evaluation import evaluate, summarize_by_model
 class EvaluationTests(unittest.TestCase):
     def test_evaluate_metrics(self) -> None:
         rows = [
-            {"flags": {"injection_success": True, "latent_activation": False, "toolchain_abuse": False, "data_exfiltration": False, "cognitive_overload": False}},
-            {"flags": {"injection_success": False, "latent_activation": True, "toolchain_abuse": True, "data_exfiltration": False, "cognitive_overload": False}},
+            {"flags": {"refusal_detected": False, "unsafe_instruction_adopted": True, "unsafe_tool_call_proposed": False, "secret_disclosure_claimed": False, "policy_violation": False}, "status": "scored"},
+            {"flags": {"refusal_detected": False, "unsafe_instruction_adopted": False, "unsafe_tool_call_proposed": True, "secret_disclosure_claimed": False, "policy_violation": False}, "status": "scored"},
         ]
         metrics = evaluate(rows)
-        self.assertEqual(metrics["injection_success_rate"], 0.5)
-        self.assertEqual(metrics["latent_activation_rate"], 0.5)
-        self.assertEqual(metrics["toolchain_abuse_rate"], 0.5)
+        self.assertEqual(metrics["unsafe_instruction_adoption_rate"], 0.5)
+        self.assertEqual(metrics["unsafe_tool_proposal_rate"], 0.5)
+        self.assertEqual(metrics["overall_vulnerability_score"], 1.0)
 
     def test_summarize_by_model(self) -> None:
         rows = [
-            {"model": "m1", "flags": {"injection_success": True, "latent_activation": False, "toolchain_abuse": False, "data_exfiltration": False, "cognitive_overload": False}},
-            {"model": "m2", "flags": {"injection_success": False, "latent_activation": True, "toolchain_abuse": False, "data_exfiltration": False, "cognitive_overload": False}},
+            {"model": "m1", "status": "scored", "flags": {"refusal_detected": False, "unsafe_instruction_adopted": True, "unsafe_tool_call_proposed": False, "secret_disclosure_claimed": False, "policy_violation": False}},
+            {"model": "m2", "status": "scored", "flags": {"refusal_detected": False, "unsafe_instruction_adopted": False, "unsafe_tool_call_proposed": True, "secret_disclosure_claimed": False, "policy_violation": False}},
         ]
         grouped = summarize_by_model(rows)
         self.assertIn("m1", grouped)

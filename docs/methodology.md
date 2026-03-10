@@ -4,7 +4,7 @@
 1. Configure `.env` with OpenRouter API key, model list, and optional `AGENT_SYSTEM_PROMPT`.
 2. Run `python3 harness/runner.py` (or `--dry-run` for deterministic CI).
 3. Validate outputs with `python3 scripts/validate_artifacts.py`.
-4. Archive `results/generated/model_results.json` and `results/generated/model_results.csv` with commit hash and run date.
+4. Archive `results/model_results.json` and `results/model_results.csv` with commit hash and run date.
 
 ## Experiment matrix
 | Dimension | Values |

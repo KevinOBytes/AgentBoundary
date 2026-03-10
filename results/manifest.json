@@ -1,8 +1,8 @@
 {
   "result_manifest_version": "1.0.0",
   "default_outputs": {
-    "json": "results/generated/model_results.json",
-    "csv": "results/generated/model_results.csv"
+    "json": "results/model_results.json",
+    "csv": "results/model_results.csv"
   },
   "required_top_level_keys": [
     "metadata",

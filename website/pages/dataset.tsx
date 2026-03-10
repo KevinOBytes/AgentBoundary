@@ -7,10 +7,12 @@ import React, { useState } from "react";
 
 interface ModelMetrics {
   total: number;
-  injection_success_rate: number;
-  data_exfiltration_rate: number;
-  latent_activation_rate: number;
-  cognitive_overload_rate: number;
+  refusal_rate: number;
+  unsafe_instruction_adoption_rate: number;
+  unsafe_tool_proposal_rate: number;
+  secret_disclosure_rate: number;
+  policy_violation_rate: number;
+  overall_vulnerability_score: number;
 }
 
 interface AttackResult {
@@ -20,16 +22,25 @@ interface AttackResult {
   prompt: string;
   output: string;
   flags: {
-    injection_success: boolean;
-    latent_activation: boolean;
-    toolchain_abuse: boolean;
-    data_exfiltration: boolean;
-    cognitive_overload: boolean;
+    refusal_detected: boolean;
+    unsafe_instruction_adopted: boolean;
+    unsafe_tool_call_proposed: boolean;
+    secret_disclosure_claimed: boolean;
+    policy_violation: boolean;
   };
 }
 
 interface HarnessOutput {
-  metadata: { models: string[]; attacks: number };
+  metadata: { 
+    benchmark_version: string;
+    run_timestamp: string;
+    dry_run: boolean;
+    models_requested: string[]; 
+    attacks_total: number;
+    scored_count: number;
+    timeout_count: number;
+    error_count: number;
+  };
   metrics: ModelMetrics;
   metrics_by_model: Record<string, ModelMetrics>;
   results: AttackResult[];
@@ -96,7 +107,7 @@ export default function DatasetPage({ data, expectedModels }: Props) {
   const models = allModels.sort((a, b) => {
     const mA = metrics_by_model[a];
     const mB = metrics_by_model[b];
-    if (mA && mB) return mA.injection_success_rate - mB.injection_success_rate;
+    if (mA && mB) return mA.overall_vulnerability_score - mB.overall_vulnerability_score;
     if (mA) return -1;
     if (mB) return 1;
     return a.localeCompare(b);
@@ -152,13 +163,13 @@ export default function DatasetPage({ data, expectedModels }: Props) {
     const matchAttack = selectedAttacks.length === 0 || selectedAttacks.includes(res.attack_id);
     return matchModel && matchAttack;
   }).sort((a, b) => {
-    if (a.flags.injection_success && !b.flags.injection_success) return -1;
-    if (!a.flags.injection_success && b.flags.injection_success) return 1;
+    if (a.flags.unsafe_instruction_adopted && !b.flags.unsafe_instruction_adopted) return -1;
+    if (!a.flags.unsafe_instruction_adopted && b.flags.unsafe_instruction_adopted) return 1;
     return 0;
   });
 
   const getSuccessfulInjections = (modelId: string) => {
-    return results.filter(r => r.model === modelId && r.flags.injection_success);
+    return results.filter(r => r.model === modelId && r.flags.unsafe_instruction_adopted);
   };
 
   return (
@@ -174,7 +185,7 @@ export default function DatasetPage({ data, expectedModels }: Props) {
           </div>
           <div>
             <h1 className="text-4xl font-bold tracking-tight text-white">Empirical Evaluation Results</h1>
-            <p className="mt-2 text-gray-400">Comparing state-of-the-art LLMs against {metadata.attacks} multi-stage injection scenarios.</p>
+            <p className="mt-2 text-gray-400">Comparing state-of-the-art LLMs against {metadata.attacks_total} multi-stage injection scenarios. Ran at {metadata.run_timestamp}.</p>
           </div>
         </div>
 
@@ -192,8 +203,8 @@ export default function DatasetPage({ data, expectedModels }: Props) {
               );
             }
 
-            const score = (m.injection_success_rate * 100).toFixed(1);
-            const isVulnerable = m.injection_success_rate > 0.1;
+            const score = (m.overall_vulnerability_score * 100).toFixed(1);
+            const isVulnerable = m.overall_vulnerability_score > 0.1;
             const successCount = getSuccessfulInjections(model).length;
             
             return (
@@ -211,15 +222,15 @@ export default function DatasetPage({ data, expectedModels }: Props) {
                 
                 <div className="space-y-2 text-xs">
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Injection Success</span>
-                    <span className={m.injection_success_rate > 0 ? "text-orange-400" : "text-gray-300"}>
-                      {(m.injection_success_rate * 100).toFixed(1)}%
+                    <span className="text-gray-500">Unsafe Instruction</span>
+                    <span className={m.unsafe_instruction_adoption_rate > 0 ? "text-orange-400" : "text-gray-300"}>
+                      {(m.unsafe_instruction_adoption_rate * 100).toFixed(1)}%
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-500">Data Exfil</span>
-                    <span className={m.data_exfiltration_rate > 0 ? "text-red-400" : "text-gray-300"}>
-                      {(m.data_exfiltration_rate * 100).toFixed(1)}%
+                    <span className={m.secret_disclosure_rate > 0 ? "text-red-400" : "text-gray-300"}>
+                      {(m.secret_disclosure_rate * 100).toFixed(1)}%
                     </span>
                   </div>
                 </div>
@@ -345,8 +356,8 @@ export default function DatasetPage({ data, expectedModels }: Props) {
                         </td>
                         <td className="px-6 py-4 font-mono text-accent text-xs whitespace-nowrap">{res.attack_id}</td>
                         <td className="px-6 py-4 text-center whitespace-nowrap">
-                          <span className={`px-2 py-1 rounded text-xs font-semibold ${res.flags.injection_success ? 'bg-red-500/20 text-red-300 ring-1 ring-red-500/50' : 'bg-green-500/20 text-green-300 ring-1 ring-green-500/30'}`}>
-                            {res.flags.injection_success ? 'YES' : 'NO'}
+                          <span className={`px-2 py-1 rounded text-xs font-semibold ${res.flags.unsafe_instruction_adopted ? 'bg-red-500/20 text-red-300 ring-1 ring-red-500/50' : 'bg-green-500/20 text-green-300 ring-1 ring-green-500/30'}`}>
+                            {res.flags.unsafe_instruction_adopted ? 'YES' : 'NO'}
                           </span>
                         </td>
                         <td className="px-6 py-4 truncate max-w-sm font-mono text-[11px] opacity-80 group-hover:opacity-100 transition-opacity" title={res.output}>
@@ -368,9 +379,9 @@ export default function DatasetPage({ data, expectedModels }: Props) {
                               <div>
                                 <h4 className="text-[10px] uppercase text-gray-500 mb-2 font-bold tracking-widest flex items-center justify-between">
                                   <span>Model Output Payload</span>
-                                  {res.flags.injection_success && <span className="text-red-400 bg-red-400/10 px-2 py-0.5 rounded">Vulnerable Output</span>}
+                                  {res.flags.unsafe_instruction_adopted && <span className="text-red-400 bg-red-400/10 px-2 py-0.5 rounded">Vulnerable Output</span>}
                                 </h4>
-                                <div className={`bg-[#0f0f0f] p-4 rounded-xl font-mono text-xs border whitespace-pre-wrap max-h-[300px] overflow-auto custom-scrollbar shadow-inner ${res.flags.injection_success ? 'border-red-500/20 text-red-300/90' : 'border-white/5 text-orange-300/90'}`}>
+                                <div className={`bg-[#0f0f0f] p-4 rounded-xl font-mono text-xs border whitespace-pre-wrap max-h-[300px] overflow-auto custom-scrollbar shadow-inner ${res.flags.unsafe_instruction_adopted ? 'border-red-500/20 text-red-300/90' : 'border-white/5 text-orange-300/90'}`}>
                                   {res.output}
                                 </div>
                               </div>
