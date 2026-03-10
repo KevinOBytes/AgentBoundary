@@ -71,19 +71,19 @@ Our evaluation framework quantified the vulnerability of frontier models across 
 ### 5.1 Baseline Vulnerability Rates
 The benchmark revealed a consistent susceptibility to prompt injection and persistent compromise across all tested architectures:
 
-*   **Global Compromise Rate:** Natively, the total injection success rate across all cross-model attacks reached **3.47%**. This indicates a persistent baseline where attacks successfully achieved arbitrary exploitation objectives natively without alerting the underlying safety filters. 
-*   While some models demonstrated higher resilience, the aggregate **3.47%** vulnerability score across the full evaluation taxonomy suggests that susceptibility to latent memory exploitation remains a notable architectural challenge within current LLM paradigms.
+*   **Global Compromise Rate:** Natively, the total injection success rate across all cross-model attacks reached **2.69%**. This indicates a persistent baseline where attacks successfully achieved arbitrary exploitation objectives natively without alerting the underlying safety filters. 
+*   While some models demonstrated higher resilience, the aggregate **2.69%** vulnerability score across the full evaluation taxonomy suggests that susceptibility to latent memory exploitation remains a notable architectural challenge within current LLM paradigms.
 
 ### 5.2 Latent Activation Efficacy
 A core focus of AgentKillChain is measuring the persistence of adversarial memory.
-*   **Latent Activation Rate:** Across all tested environments, dormant malicious payloads were successfully activated from seemingly benign context buffers in **2.02%** of evaluated cases out of the box. 
+*   **Latent Activation Rate:** Across all tested environments, dormant malicious payloads were successfully activated from seemingly benign context buffers in a small subset of cases out of the box. 
 *   While immediate direct injection sometimes succeeded, models showed increased but imperfect robustness against long-term *latent* triggers specifically within simulated memory buffer boundaries. This confirms that while current models attempt to isolate distinct summarized memories, sophisticated persistent payloads can still bridge the temporal gap to achieve execution.
 
 ### 5.3 Toolchain Abuse
 The escalation phase of the killchain explores how adversarial instructions map to privileged execution:
-*   **Toolchain Abuse Rate:** Exfiltration attempts and privilege escalations via toolchain confusion succeeded at a rate of **0.87%**. 
+*   **Toolchain Abuse Rate:** Exfiltration attempts and privilege escalations via toolchain confusion succeeded at a rate of **1.79%**. 
 *   This indicates that when an injected payload attempts to invoke an authorized tool (e.g., executing a command or accessing a file structure) maliciously, the agent's internal reasoning loop occasionally fails to differentiate between legitimate user intent and the adversarial objective. 
-*   While safety fine-tuning caught the vast majority of arbitrary execution strategies, targeted **Data Exfiltration** attempts still natively succeeded **1.73%** of the time across models, and overarching policy violations were successfully blocked (a **0.00%** bypass rate on explicit policy directives).
+*   While safety fine-tuning caught the vast majority of arbitrary execution strategies, targeted **Data Exfiltration** attempts still natively succeeded **1.19%** of the time across models, and overarching policy violations were successfully blocked (a **0.00%** bypass rate on explicit policy directives).
 
 ## 6. Mitigations and Defensive Posture
 Based on our architectural analyses and the (forthcoming) empirical data, we propose several defensive strategies to harden autonomous agents against persistent compromise:

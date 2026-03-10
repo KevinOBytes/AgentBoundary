@@ -3,6 +3,7 @@ import path from "path";
 import Layout from "../components/Layout";
 import { motion } from "framer-motion";
 import { Activity, Shield, ShieldAlert, ShieldCheck, Database, Target, Skull, Cpu, Crosshair } from "lucide-react";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import type { ResultsFile, MetricSet } from "../types/results";
 
 interface Props {
@@ -67,6 +68,16 @@ export default function ResultsPage({ data, expectedModels }: Props) {
 
   const totalModelsCount = Math.max(metadata.models_requested?.length || 0, expectedModels.length);
 
+  const chartData = models.map(model => {
+    const m = metrics_by_model[model] || { overall_vulnerability_score: 0, unsafe_tool_proposal_rate: 0, secret_disclosure_rate: 0 };
+    return {
+      name: model.split('/').pop(),
+      Vulnerability: Number((m.overall_vulnerability_score * 100).toFixed(1)),
+      ToolAbuse: Number((m.unsafe_tool_proposal_rate * 100).toFixed(1)),
+      Exfiltration: Number((m.secret_disclosure_rate * 100).toFixed(1))
+    };
+  });
+
   return (
     <Layout>
       <motion.div 
@@ -119,6 +130,31 @@ export default function ResultsPage({ data, expectedModels }: Props) {
                <span className="text-5xl font-bold text-red-500">{(metrics.secret_disclosure_rate * 100).toFixed(1)}%</span>
              </div>
              <p className="text-xs text-gray-500 mt-4 leading-relaxed">Percentage of attacks that successfully leaked memory contexts or secrets.</p>
+          </div>
+        </div>
+
+        {/* Global Chart Visualization */}
+        <div className="mb-16">
+          <h2 className="text-2xl font-bold text-white flex items-center gap-3 mb-6">
+             <Activity className="text-accent" /> Vulnerability Distribution
+          </h2>
+          <div className="glass p-6 rounded-2xl h-[400px] w-full border border-white/5">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={chartData} margin={{ top: 20, right: 30, left: 0, bottom: 20 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#333" vertical={false} />
+                <XAxis dataKey="name" stroke="#888" tick={{fill: '#888', fontSize: 12}} />
+                <YAxis stroke="#888" tick={{fill: '#888'}} domain={[0, 'auto']} />
+                <Tooltip 
+                  contentStyle={{ backgroundColor: '#111', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}
+                  itemStyle={{ color: '#ccc' }}
+                  formatter={(value: any) => [`${value}%`]}
+                />
+                <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px' }} />
+                <Bar dataKey="Vulnerability" name="Overall Vulnerability" fill="#fb923c" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="ToolAbuse" name="Toolchain Abuse" fill="#f87171" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="Exfiltration" name="Data Exfiltration" fill="#c084fc" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
           </div>
         </div>
 
