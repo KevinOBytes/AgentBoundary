@@ -40,7 +40,7 @@ interface Props {
 }
 
 export async function getStaticProps(): Promise<{ props: Props }> {
-  const filePath = path.join(process.cwd(), "..", "results", "generated", "model_results.json");
+  const filePath = path.join(process.cwd(), "..", "results", "model_results.json");
   let data = null;
   try {
     if (fs.existsSync(filePath)) {
