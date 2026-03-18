@@ -26,7 +26,7 @@
 - Per-model metrics are produced under `metrics_by_model` for comparative analysis.
 
 ## Prompt catalog rendering policy
-- The website prompt catalog groups attacks by normalized payload text (`trigger_input` preferred, then `seed_input` fallback).
+- The website prompt catalog groups attacks by normalized payload text, choosing the field that contains the primary payload (`trigger_input` when it holds the payload, otherwise `seed_input` for multi-stage setups where `trigger_input` is only an activation prompt).
 - Reused prompts remain fully traceable through a retained list of contributing `attack_id` values.
 - Grouped cards display the highest severity represented in that prompt cluster (Critical > High > Medium > Low).
 - This removes repeated cards in `/prompts` without changing benchmark scoring or raw dataset contents.
