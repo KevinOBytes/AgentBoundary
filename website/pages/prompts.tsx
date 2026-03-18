@@ -22,6 +22,7 @@ interface Props {
 }
 
 interface PromptVariant {
+  key: string;
   prompt: string;
   attackIds: string[];
   phases: string[];
@@ -53,6 +54,7 @@ const buildPromptVariants = (familyAttacks: AttackDefinition[]): PromptVariant[]
     const existing = variants.get(key);
     if (!existing) {
       variants.set(key, {
+        key,
         prompt: payload,
         attackIds: [attack.attack_id],
         phases: [attack.phase],
@@ -71,6 +73,25 @@ const buildPromptVariants = (familyAttacks: AttackDefinition[]): PromptVariant[]
   });
 
   return Array.from(variants.values()).sort((a, b) => b.attackIds.length - a.attackIds.length);
+};
+
+const severityRank: Record<string, number> = {
+  critical: 4,
+  high: 3,
+  medium: 2,
+  low: 1,
+};
+
+const getVariantSeverity = (variant: PromptVariant) => {
+  if (variant.severities.length === 0) {
+    return "unknown";
+  }
+
+  return variant.severities.reduce((currentMax, severity) => {
+    const normalized = severity.toLowerCase();
+    const maxNormalized = currentMax.toLowerCase();
+    return (severityRank[normalized] || 0) > (severityRank[maxNormalized] || 0) ? severity : currentMax;
+  }, variant.severities[0]);
 };
 
 export async function getStaticProps(): Promise<{ props: Props }> {
@@ -140,15 +161,15 @@ const AttackSection = ({
             >
               <div className="grid gap-6 mt-6 pb-2">
                 {promptVariants.map((variant) => (
-                  <div key={`${type}-${variant.prompt.slice(0, 40)}`} className="glass rounded-xl p-6 border border-white/5 shadow-xl hover:border-white/10 transition-colors">
+                  <div key={`${type}-${variant.key}`} className="glass rounded-xl p-6 border border-white/5 shadow-xl hover:border-white/10 transition-colors">
                     <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-6">
                        <div>
                          <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-2">
                            <span className="font-mono text-accent font-bold bg-accent/10 px-3 py-1 rounded-md text-sm border border-accent/20 shadow-inner">
                              {variant.attackIds.length} Variant{variant.attackIds.length > 1 ? "s" : ""}
                            </span>
-                           <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded border flex items-center ${getSeverityColor(variant.severities[0])}`}>
-                             {variant.severities.join("/")} Priority
+                           <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded border flex items-center ${getSeverityColor(getVariantSeverity(variant))}`}>
+                             {getVariantSeverity(variant)} Priority
                            </span>
                            <span className="flex items-center text-xs text-gray-400 bg-white/5 border border-white/10 px-2 py-1 rounded capitalize">
                              {getPhaseIcon(variant.phases[0])} {variant.phases.join(", ")} Phase
