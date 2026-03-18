@@ -34,11 +34,12 @@ interface PromptVariant {
 const normalizePrompt = (value: string) => value.trim().replace(/\s+/g, " ");
 
 const getPromptPayload = (attack: AttackDefinition) => {
-  const trigger = attack.trigger_input?.trim();
-  if (trigger) {
-    return trigger;
+  const seed = attack.seed_input?.trim();
+  if (seed) {
+    return seed;
   }
-  return attack.seed_input?.trim() || "";
+  const trigger = attack.trigger_input?.trim();
+  return trigger || "";
 };
 
 const buildPromptVariants = (familyAttacks: AttackDefinition[]): PromptVariant[] => {
