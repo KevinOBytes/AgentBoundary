@@ -49,6 +49,7 @@ Running a true 720 attack scenarios produced these updated global baseline metri
 *   **📚 40-Vector Attack Catalog**: Spanning Markdown Injection, HTML Injection, Context Drift, and Toolchain Confusion scenarios (located in `dataset/attack_catalog.json`).
 *   **📊 Evaluative Telemetry**: Produces JSON/CSV metrics tracking simulated Susceptibility and Latent Activation Rates.
 *   **💻 Next.js Dashboard**: A premium, open-source visualization frontend to interactively explore model evaluation metrics, trace logs, and execution diffs.
+*   **🧹 Prompt Variant Deduplication**: The `/prompts` view now groups repeated payload text into unique prompt variants while still exposing every linked `attack_id` and highest-severity rollup.
 
 ---
 
@@ -106,7 +107,7 @@ npm run dev
 Navigate to [http://localhost:3000](http://localhost:3000). The dashboard provides paths to:
 * `/results` - Overview of resilient and vulnerable models.
 * `/dataset` - Granular inspection of execution traces and modal payloads.
-* `/prompts` - The comprehensive taxonomy of the attack catalog.
+* `/prompts` - The comprehensive taxonomy of the attack catalog, grouped by unique prompt payload to avoid repeated cards.
 
 ---
 
