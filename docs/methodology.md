@@ -25,6 +25,11 @@
 - Aggregate metrics across all attacks.
 - Per-model metrics are produced under `metrics_by_model` for comparative analysis.
 
+## Prompt catalog rendering policy
+- The website prompt catalog groups attacks by normalized payload text (`trigger_input` preferred, then `seed_input` fallback).
+- Reused prompts remain fully traceable through a retained list of contributing `attack_id` values.
+- This removes repeated cards in `/prompts` without changing benchmark scoring or raw dataset contents.
+
 ## Baselines and ablations
 - Baseline: standard system prompt and policy routing.
 - Ablation A: memory safeguards reduced.

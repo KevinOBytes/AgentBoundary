@@ -21,6 +21,58 @@ interface Props {
   attacks: AttackDefinition[];
 }
 
+interface PromptVariant {
+  prompt: string;
+  attackIds: string[];
+  phases: string[];
+  scenarioTypes: string[];
+  expectedFailureModes: string[];
+  severities: string[];
+}
+
+const normalizePrompt = (value: string) => value.trim().replace(/\s+/g, " ");
+
+const getPromptPayload = (attack: AttackDefinition) => {
+  const trigger = attack.trigger_input?.trim();
+  if (trigger) {
+    return trigger;
+  }
+  return attack.seed_input?.trim() || "";
+};
+
+const buildPromptVariants = (familyAttacks: AttackDefinition[]): PromptVariant[] => {
+  const variants = new Map<string, PromptVariant>();
+
+  familyAttacks.forEach((attack) => {
+    const payload = getPromptPayload(attack);
+    if (!payload) {
+      return;
+    }
+
+    const key = normalizePrompt(payload);
+    const existing = variants.get(key);
+    if (!existing) {
+      variants.set(key, {
+        prompt: payload,
+        attackIds: [attack.attack_id],
+        phases: [attack.phase],
+        scenarioTypes: [attack.scenario_type],
+        expectedFailureModes: [attack.expected_failure_mode],
+        severities: [attack.severity],
+      });
+      return;
+    }
+
+    existing.attackIds = Array.from(new Set([...existing.attackIds, attack.attack_id]));
+    existing.phases = Array.from(new Set([...existing.phases, attack.phase]));
+    existing.scenarioTypes = Array.from(new Set([...existing.scenarioTypes, attack.scenario_type]));
+    existing.expectedFailureModes = Array.from(new Set([...existing.expectedFailureModes, attack.expected_failure_mode]));
+    existing.severities = Array.from(new Set([...existing.severities, attack.severity]));
+  });
+
+  return Array.from(variants.values()).sort((a, b) => b.attackIds.length - a.attackIds.length);
+};
+
 export async function getStaticProps(): Promise<{ props: Props }> {
   const filePath = path.join(process.cwd(), "..", "dataset", "attack_catalog.json");
   let attacks: AttackDefinition[] = [];
@@ -42,12 +94,13 @@ const AttackSection = ({
   getPhaseIcon 
 }: { 
   type: string; 
-  familyAttacks: AttackDefinition[]; 
+  familyAttacks: AttackDefinition[];
   index: number;
   getSeverityColor: (val: string) => string;
   getPhaseIcon: (val: string) => React.ReactNode;
 }) => {
   const [isExpanded, setIsExpanded] = useState(true);
+  const promptVariants = buildPromptVariants(familyAttacks);
 
   return (
     <motion.div 
@@ -67,7 +120,9 @@ const AttackSection = ({
             <h2 className="text-xl md:text-2xl font-bold text-white mb-1 uppercase tracking-wider font-mono flex items-center gap-3">
               <span className="text-accent opacity-50">/</span> {type.replace(/_/g, ' ')}
             </h2>
-            <p className="text-gray-400 text-sm">Targeting `{type}` primitive bypass logic across {familyAttacks.length} variants.</p>
+            <p className="text-gray-400 text-sm">
+              Targeting `{type}` primitive bypass logic across {promptVariants.length} unique prompts ({familyAttacks.length} total attacks).
+            </p>
           </div>
           <div className="text-gray-500 group-hover:text-accent transition-colors ml-4 mt-1 sm:mt-0 shrink-0">
             {isExpanded ? <ChevronDown size={24} /> : <ChevronRight size={24} />}
@@ -84,21 +139,24 @@ const AttackSection = ({
               className="overflow-hidden"
             >
               <div className="grid gap-6 mt-6 pb-2">
-                {familyAttacks.map((attack) => (
-                  <div key={attack.attack_id} className="glass rounded-xl p-6 border border-white/5 shadow-xl hover:border-white/10 transition-colors">
+                {promptVariants.map((variant) => (
+                  <div key={`${type}-${variant.prompt.slice(0, 40)}`} className="glass rounded-xl p-6 border border-white/5 shadow-xl hover:border-white/10 transition-colors">
                     <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-6">
                        <div>
                          <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-2">
                            <span className="font-mono text-accent font-bold bg-accent/10 px-3 py-1 rounded-md text-sm border border-accent/20 shadow-inner">
-                             {attack.attack_id}
+                             {variant.attackIds.length} Variant{variant.attackIds.length > 1 ? "s" : ""}
                            </span>
-                           <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded border flex items-center ${getSeverityColor(attack.severity)}`}>
-                             {attack.severity} Priority
+                           <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded border flex items-center ${getSeverityColor(variant.severities[0])}`}>
+                             {variant.severities.join("/")} Priority
                            </span>
                            <span className="flex items-center text-xs text-gray-400 bg-white/5 border border-white/10 px-2 py-1 rounded capitalize">
-                             {getPhaseIcon(attack.phase)} {attack.phase} Phase
+                             {getPhaseIcon(variant.phases[0])} {variant.phases.join(", ")} Phase
                            </span>
                          </div>
+                         <p className="text-[11px] text-gray-500 font-mono break-all">
+                           Attack IDs: {variant.attackIds.join(", ")}
+                         </p>
                        </div>
                     </div>
 
@@ -109,7 +167,7 @@ const AttackSection = ({
                         </h4>
                         <div className="bg-[#0a0a0a] border border-white/5 rounded-lg p-3 font-mono text-xs text-blue-300 flex items-start gap-2">
                           <span className="w-2 h-2 mt-1 shrink-0 rounded-full bg-blue-500/50" />
-                          <span className="break-all sm:break-normal">{attack.scenario_type}</span>
+                          <span className="break-all sm:break-normal">{variant.scenarioTypes.join(", ")}</span>
                         </div>
                       </div>
                       <div>
@@ -118,7 +176,7 @@ const AttackSection = ({
                         </h4>
                         <div className="bg-[#0a0a0a] border border-white/5 rounded-lg p-3 font-mono text-xs text-purple-300 flex items-start gap-2">
                           <span className="w-2 h-2 mt-1 shrink-0 rounded-full bg-purple-500/50" />
-                          <span className="break-all sm:break-normal">{attack.expected_failure_mode}</span>
+                          <span className="break-all sm:break-normal">{variant.expectedFailureModes.join(", ")}</span>
                         </div>
                       </div>
                     </div>
@@ -126,7 +184,7 @@ const AttackSection = ({
                     <div>
                       <h4 className="text-[10px] uppercase text-gray-500 mb-2 font-bold tracking-widest">Base Payload Structure</h4>
                       <div className="bg-[#0f0f0f] p-4 sm:p-5 rounded-xl border border-white/5 font-mono text-[10px] sm:text-xs text-gray-300 whitespace-pre-wrap shadow-inner leading-relaxed overflow-x-auto">
-                        {attack.seed_input || attack.trigger_input}
+                        {variant.prompt}
                       </div>
                     </div>
                   </div>
