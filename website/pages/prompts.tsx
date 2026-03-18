@@ -166,7 +166,7 @@ const AttackSection = ({
                        <div>
                          <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-2">
                            <span className="font-mono text-accent font-bold bg-accent/10 px-3 py-1 rounded-md text-sm border border-accent/20 shadow-inner">
-                             {variant.attackIds.length} Variant{variant.attackIds.length > 1 ? "s" : ""}
+                             {variant.attackIds.length} Attack{variant.attackIds.length > 1 ? "s" : ""}
                            </span>
                            <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded border flex items-center ${getSeverityColor(getVariantSeverity(variant))}`}>
                              {getVariantSeverity(variant)} Priority
