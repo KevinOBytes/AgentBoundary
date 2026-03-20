@@ -46,6 +46,7 @@ Running a true 720 attack scenarios produced these updated global baseline metri
 ## 🚀 Key Features
 
 *   **🧪 The Evaluation Harness**: A Python framework capable of orchestrating simulated attacks across LLMs via the OpenRouter API.
+*   **🔁 Backward-Compatible Scenario Inputs**: The harness accepts both the current (`seed_input`/`trigger_input`, `expected_failure_mode`) and legacy (`payload`, `trigger_condition`, `expected_behavior`) attack keys.
 *   **📚 40-Vector Attack Catalog**: Spanning Markdown Injection, HTML Injection, Context Drift, and Toolchain Confusion scenarios (located in `dataset/attack_catalog.json`).
 *   **📊 Evaluative Telemetry**: Produces JSON/CSV metrics tracking simulated Susceptibility and Latent Activation Rates.
 *   **💻 Next.js Dashboard**: A premium, open-source visualization frontend to interactively explore model evaluation metrics, trace logs, and execution diffs.
