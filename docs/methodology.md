@@ -35,7 +35,7 @@
 Injection success is based on executed malicious behavior signals and excludes plain refusal text echoes to reduce false positives.
 
 ## Scenario schema compatibility
-The scenario engine supports both canonical fields (`seed_input`, `trigger_input`, `expected_failure_mode`) and legacy aliases (`payload`, `trigger_condition`, `expected_behavior`) so older scenario definitions can still execute deterministically.
+The scenario engine supports both canonical fields (`scenario_type`, `seed_input`, `trigger_input`, `expected_failure_mode`) and legacy aliases (`trigger_condition`, `payload`, `expected_behavior`), and treats `scenario_type` as the canonical equivalent of legacy `trigger_condition` so older scenario definitions can still execute deterministically.
 
 ## Statistical recommendations
 Run >=3 repetitions per model configuration; aggregate means with 95% confidence intervals (bootstrap recommended).
