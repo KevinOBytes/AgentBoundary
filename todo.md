@@ -11,6 +11,6 @@
 - [x] Add release/ops hardening files (CI, Docker, security, ownership, vercel config, eslint config).
 - [x] Strengthen publication methodology depth (experiment matrix, ablations, assumptions/limitations, reproducibility appendix).
 - [x] Add integration-grade artifact/schema smoke checks.
-- [ ] Verify website lint/build pass in a network-enabled environment.
-- [ ] Capture updated website screenshot artifact after successful website boot.
+- [x] Verify website lint/build pass in a network-enabled environment.
+- [x] Capture updated website screenshot artifact after successful website boot.
 - [x] Update docs and README to reflect all implemented capabilities.

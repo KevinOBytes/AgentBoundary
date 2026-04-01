@@ -35,11 +35,11 @@ We conceptualize this through the **Agent Kill Chain**:
 
 ## 📊 The New Metrics
 
-Running a true 720 attack scenarios produced these updated global baseline metrics, which actually remained roughly stable despite adding all the new architectures:
+Across 720 attempted scenarios (40 attacks × 18 models), **526 were successfully scored** (the remainder lost to API errors and timeouts). These are the global baseline metrics computed from scored results:
 
-*   **Global Compromise Rate:** 1.71% (Up slightly from 1.63%)
-*   **Toolchain Abuse Rate:** 0.38% (Down slightly)
-*   **Data Exfiltration:** 0.19% (Down slightly)
+*   **Global Compromise Rate:** 1.71%
+*   **Toolchain Abuse Rate:** 0.38%
+*   **Data Exfiltration:** 0.19%
 
 ---
 
@@ -47,7 +47,7 @@ Running a true 720 attack scenarios produced these updated global baseline metri
 
 *   **🧪 The Evaluation Harness**: A Python framework capable of orchestrating simulated attacks across LLMs via the OpenRouter API.
 *   **🔁 Backward-Compatible Scenario Inputs**: `ScenarioEngine.execute` supports legacy attack key aliases (e.g. `payload`, `trigger_condition`, `expected_behavior`), but the main harness runner/dataset loader currently requires canonical fields (`scenario_type`, `seed_input`, `trigger_input`, `expected_failure_mode`) or pre-translated scenarios.
-*   **📚 40-Vector Attack Catalog**: Spanning Markdown Injection, HTML Injection, Context Drift, and Toolchain Confusion scenarios (located in `dataset/attack_catalog.json`).
+*   **📚 Attack Catalog**: 8 unique payload families (HTML injection, RAG poisoning, markdown injection, memory poisoning, latent memory poisoning, context drift, toolchain confusion, cognitive overload) × 5 workflow framings = 40 structured scenarios (located in `dataset/attack_catalog.json`).
 *   **📊 Evaluative Telemetry**: Produces JSON/CSV metrics tracking simulated Susceptibility and Latent Activation Rates.
 *   **💻 Next.js Dashboard**: A premium, open-source visualization frontend to interactively explore model evaluation metrics, trace logs, and execution diffs.
 *   **🧹 Prompt Variant Deduplication**: The `/prompts` view now groups repeated payload text into unique prompt variants while still exposing every linked `attack_id` and highest-severity rollup.

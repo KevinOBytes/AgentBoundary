@@ -9,10 +9,11 @@
 ## Experiment matrix
 | Dimension | Values |
 |---|---|
-| Models | gpt-5, claude-3.7, gemini-1.5-pro, mistral-large |
-| Attack categories | 8 |
-| Attacks | 40 |
-| Repetitions | >=3 per model in live runs |
+| Models | 18 requested (14 produced scored data; see metadata in results JSON) |
+| Attack payload families | 8 unique |
+| Workflow framings | 5 per family |
+| Total scenarios | 40 (8 × 5) |
+| Repetitions | 1 pass at temperature=0.0 (>=3 recommended for confidence intervals) |
 
 ## Metrics
 - injection_success_rate
@@ -33,9 +34,11 @@
 
 ## Baselines and ablations
 - Baseline: standard system prompt and policy routing.
-- Ablation A: memory safeguards reduced.
-- Ablation B: tool policy gate relaxed.
-- Ablation C: refusal-filtering disabled.
+- Ablation A (planned): memory safeguards reduced.
+- Ablation B (planned): tool policy gate relaxed.
+- Ablation C (planned): refusal-filtering disabled.
+
+> **Note:** Ablations A–C are not yet implemented in the codebase. They are planned for a future iteration of the benchmark.
 
 ## Evaluation safety note
 Injection success is based on executed malicious behavior signals and excludes plain refusal text echoes to reduce false positives.
