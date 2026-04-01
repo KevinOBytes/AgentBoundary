@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import List
 
 from evaluation import evaluate, summarize_by_model
-from model_adapter import build_adapter
+from model_adapter import build_adapter, GenerationResult
 from scenario_engine import ScenarioEngine
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -52,7 +52,30 @@ def load_attacks() -> List[dict]:
 
 
 def parse_models() -> List[str]:
-    value = os.getenv("MODELS", "openai/gpt-5,anthropic/claude-4.5-sonnet,anthropic/claude-4.5-haiku,google/gemini-3.0-pro,google/gemini-3.1-pro,meta-llama/llama-3.3-70b-instruct,mistralai/mistral-large-2411,cohere/command-r-plus-08-2024,qwen/qwen-2.5-72b-instruct")
+    # Updated 2026-04: Added mistral-large-3 and mistral-medium-3.1 for version comparison.
+    # Removed 4 models that produced 0/40 scored results in v0.1 run:
+    #   microsoft/phi-4, nousresearch/hermes-4-70b, liquid/lfm-2-24b-a2b, perplexity/sonar-reasoning-pro
+    value = os.getenv(
+        "MODELS",
+        ",".join([
+            "openai/gpt-5",
+            "anthropic/claude-4.5-sonnet",
+            "anthropic/claude-4.5-haiku",
+            "google/gemini-3.0-pro",
+            "google/gemini-3.1-pro",
+            "meta-llama/llama-3.3-70b-instruct",
+            "mistralai/mistral-large-2411",       # v0.1 baseline (3 positives)
+            "mistralai/mistral-large-3-2512",      # Latest Large (Dec 2025)
+            "mistralai/mistral-medium-3.1",        # Latest Medium
+            "cohere/command-r-plus-08-2024",
+            "qwen/qwen-2.5-72b-instruct",
+            "x-ai/grok-4-fast",
+            "deepseek/deepseek-v3.2",
+            "amazon/nova-premier-v1",
+            "minimax/minimax-m2.5",
+            "baidu/ernie-4.5-21b-a3b",
+        ])
+    )
     return [m.strip() for m in value.split(",") if m.strip()]
 
 
@@ -93,7 +116,7 @@ def write_csv(rows: List[dict], csv_path: Path) -> None:
 def _run_attack_single(attack: dict, model: str, adapter, args) -> dict:
     engine = ScenarioEngine()
     if args.dry_run:
-        completion = lambda _m, _p: f"model={model}; simulated_response=refusal; no_action_taken"
+        completion = lambda _m, _p: GenerationResult(f"model={model}; simulated_response=refusal; no_action_taken", [])
     else:
         completion = adapter.generate
 

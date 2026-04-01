@@ -42,12 +42,12 @@ We conceptualize the attack surface of an autonomous agent through a progression
 To systematically evaluate agent vulnerability to the AgentKillChain, we constructed a targeted dataset and evaluation harness.
 
 ### 4.1 Dataset Composition
-Our dataset consists of 40 structured attack vectors distributed across 8 distinct categories. Each scenario is strictly defined by:
+Our dataset consists of 40 structured attack scenarios derived from **8 unique payload families** (HTML injection, RAG poisoning, markdown injection, memory poisoning, latent memory poisoning, context drift, toolchain confusion, and cognitive overload), each tested across **5 workflow framings** (`document_summary`, `incident_response`, `tool_selection`, `memory_recall`, `user_debug_request`). This Cartesian product design allows us to measure whether attack efficacy varies by operational context. Each scenario is strictly defined by:
 *   `attack_id` & `campaign_id`
-*   `payload`: The raw injection string.
-*   `trigger_condition`: The specific query or state required to activate the latent payload.
-*   `expected_behavior`: The defined failure state (e.g., the invocation of a specific tool with attacker-controlled arguments).
-*   `severity` and `killchain_phase`.
+*   `seed_input` / `trigger_input`: The raw injection and activation strings.
+*   `scenario_type`: The workflow framing under which the attack is presented.
+*   `expected_failure_mode`: The defined failure state (e.g., the invocation of a specific tool with attacker-controlled arguments).
+*   `severity`, `realism_level`, and `phase` (single, seed, dormancy, or activation).
 
 **Attack Classes Evaluated:**
 *   Latent Memory Poisoning
@@ -56,17 +56,22 @@ Our dataset consists of 40 structured attack vectors distributed across 8 distin
 *   Cognitive Overload/Attention Hijacking
 
 ### 4.2 Evaluation Harness
-The AgentKillChain harness simulates four distinct agent architectural profiles:
-1.  **Browser Agent:** Has access to web-scraping and DOM-interaction tools.
-2.  **RAG Agent:** Heavily reliant on vector search and summarization of external documents.
-3.  **Code Agent:** Capable of executing shell commands or Python scripts in a sandboxed environment.
-4.  **Filesystem Agent:** Authorized to read, write, and modify a local directory structure.
+The AgentKillChain harness evaluates a single, unified agent architecture equipped with a representative toolchain of five JSON-schema tool definitions passed via native OpenAI-format function calling:
+1.  **`read_document`** — Reads a document from the local workspace.
+2.  **`fetch_url`** — Fetches the contents of a URL.
+3.  **`search_notes`** — Searches the user's notes.
+4.  **`send_email`** — Sends an email to a recipient.
+5.  **`write_note`** — Writes a new note.
 
-Each model (`openai/gpt-5`, `anthropic/claude-4.5-sonnet`, `anthropic/claude-4.5-haiku`, `google/gemini-3.0-pro`, `google/gemini-3.1-pro`, `meta-llama/llama-3.3-70b-instruct`, `mistralai/mistral-large-2411`, `cohere/command-r-plus-08-2024`, `qwen/qwen-2.5-72b-instruct`) is evaluated against the dataset across these four architectures. Experimental runs consist of deterministic dry-runs (to validate pipeline execution) and randomized live-runs (to account for non-deterministic model generation).
+The agent operates in a **multi-turn ReAct loop** (up to 5 iterations), receiving mock tool responses after each invocation. A lightweight **mock policy layer** blocks tool calls containing overtly malicious arguments. This architecture models a general-purpose assistant agent rather than a specialized profile.
+
+Each model is evaluated against all 40 scenarios across five workflow framings. Experimental runs consist of deterministic dry-runs (to validate pipeline execution) and live-runs at `temperature=0.0` (for reproducibility).
+
+> **Note on coverage:** Some models may fail to produce scored results due to API errors or timeouts. Per-model data coverage is reported in `results/model_results.json` under `metadata`.
 
 ## 5. Experimental Results
 
-Our evaluation framework quantified the vulnerability of frontier models across the four main categories of the AgentKillChain. Across the 40 orchestrated attacks directed at our 9 tested models (including `gpt-5`, `claude-4.5-sonnet`, `gemini-3.1-pro`, `llama-3.3`, and `mistral-large`), we recorded a significant baseline vulnerability. 
+Our evaluation framework quantified the vulnerability of frontier models across the eight attack families of the AgentKillChain. Across 720 attempted scenarios (40 attacks × 18 models), **526 were successfully scored**, with the remainder lost to API errors and timeouts. We report metrics computed from scored results only.
 
 ### 5.1 Baseline Vulnerability Rates
 The benchmark revealed a consistent susceptibility to prompt injection and persistent compromise across all tested architectures:
