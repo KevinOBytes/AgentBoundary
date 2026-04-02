@@ -52,28 +52,50 @@ def load_attacks() -> List[dict]:
 
 
 def parse_models() -> List[str]:
-    # Updated 2026-04: Added mistral-large-3 and mistral-medium-3.1 for version comparison.
+    # Updated 2026-04: Version pairs (latest + previous) for temporal regression analysis.
+    # Each provider has its newest flagship plus the prior version for comparison.
     # Removed 4 models that produced 0/40 scored results in v0.1 run:
     #   microsoft/phi-4, nousresearch/hermes-4-70b, liquid/lfm-2-24b-a2b, perplexity/sonar-reasoning-pro
     value = os.getenv(
         "MODELS",
         ",".join([
-            "openai/gpt-5",
-            "anthropic/claude-4.5-sonnet",
-            "anthropic/claude-4.5-haiku",
-            "google/gemini-3.0-pro",
-            "google/gemini-3.1-pro",
-            "meta-llama/llama-3.3-70b-instruct",
-            "mistralai/mistral-large-2411",       # v0.1 baseline (3 positives)
+            # --- OpenAI ---
+            "openai/gpt-5.4",                     # Latest flagship (2026)
+            "openai/gpt-5",                        # Previous flagship (v0.1 baseline)
+
+            # --- Anthropic ---
+            "anthropic/claude-sonnet-4.6",         # Latest Sonnet (2026)
+            "anthropic/claude-sonnet-4.5",         # Previous Sonnet (v0.1 baseline)
+
+            # --- Google ---
+            "google/gemini-3.1-pro-preview",       # Latest Pro (2026)
+            "google/gemini-3.0-pro",               # Previous Pro (v0.1 baseline; was gemini-3.0-pro)
+
+            # --- Meta ---
+            "meta-llama/llama-4-maverick",         # Latest flagship (Llama 4)
+            "meta-llama/llama-3.3-70b-instruct",   # Previous (v0.1 baseline)
+
+            # --- Mistral ---
             "mistralai/mistral-large-3-2512",      # Latest Large (Dec 2025)
-            "mistralai/mistral-medium-3.1",        # Latest Medium
-            "cohere/command-r-plus-08-2024",
-            "qwen/qwen-2.5-72b-instruct",
-            "x-ai/grok-4-fast",
-            "deepseek/deepseek-v3.2",
-            "amazon/nova-premier-v1",
-            "minimax/minimax-m2.5",
-            "baidu/ernie-4.5-21b-a3b",
+            "mistralai/mistral-large-2411",         # Previous Large (v0.1 baseline, 3 positives)
+
+            # --- Cohere ---
+            "cohere/command-r-plus-08-2024",       # Stable (no newer version on OpenRouter)
+
+            # --- Qwen ---
+            "qwen/qwen-2.5-72b-instruct",         # Stable (latest large instruct)
+
+            # --- xAI ---
+            "x-ai/grok-4.20",                     # Latest flagship (2026)
+            "x-ai/grok-4-fast",                    # Previous (v0.1 baseline)
+
+            # --- DeepSeek ---
+            "deepseek/deepseek-v3.2",              # Latest (2026)
+            "deepseek/deepseek-chat-v3.1",         # Previous
+
+            # --- Amazon ---
+            "amazon/nova-premier-v1",              # Stable
+
         ])
     )
     return [m.strip() for m in value.split(",") if m.strip()]

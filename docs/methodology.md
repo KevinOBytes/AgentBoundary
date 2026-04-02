@@ -9,7 +9,7 @@
 ## Experiment matrix
 | Dimension | Values |
 |---|---|
-| Models | 18 requested (14 produced scored data; see metadata in results JSON) |
+| Models | 19 models configured (version pairs for temporal analysis across 7 major providers) |
 | Attack payload families | 8 unique |
 | Workflow framings | 5 per family |
 | Total scenarios | 40 (8 × 5) |
