@@ -130,6 +130,10 @@ class OpenRouterAdapter:
                 try:
                     with urllib.request.urlopen(req, timeout=self.timeout) as response:
                         data = json.loads(response.read().decode("utf-8"))
+                        if "error" in data:
+                            raise RuntimeError(f"OpenRouter API Error: {json.dumps(data['error'])}")
+                        if "choices" not in data or not data["choices"]:
+                            raise RuntimeError(f"OpenRouter API Error: No choices returned. Payload: {json.dumps(data)}")
                         message_obj = data["choices"][0]["message"]
                         break
                 except urllib.error.HTTPError as exc:
