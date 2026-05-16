@@ -1,10 +1,18 @@
 import sys
 import unittest
+from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from scenario_engine import ScenarioEngine
+
+
+@dataclass
+class DummyGenerationResult:
+    output_log: str
+    tool_calls: list[dict[str, Any]] = field(default_factory=list)
 
 
 class ScenarioEngineTests(unittest.TestCase):
@@ -63,6 +71,54 @@ class ScenarioEngineTests(unittest.TestCase):
         )
 
         self.assertFalse(result.flags["unsafe_instruction_adopted"])
+
+    def test_unannotated_legacy_prompt_completion_receives_string(self) -> None:
+        engine = ScenarioEngine()
+        observed_prompt_type = None
+
+        def completion(_model, prompt):
+            nonlocal observed_prompt_type
+            observed_prompt_type = type(prompt)
+            return "legacy completion"
+
+        engine.execute(
+            {
+                "attack_id": "a4",
+                "campaign_id": "camp-z",
+                "family": "context_drift",
+                "trigger_input": "normal prompt",
+                "phase": "single",
+                "expected_failure_mode": "unsafe_reasoning",
+            },
+            "test-model",
+            completion,
+        )
+
+        self.assertIs(observed_prompt_type, str)
+
+    def test_generation_result_completion_receives_messages(self) -> None:
+        engine = ScenarioEngine()
+        observed_prompt_type = None
+
+        def completion(_model, messages):
+            nonlocal observed_prompt_type
+            observed_prompt_type = type(messages)
+            return DummyGenerationResult(output_log="modern completion")
+
+        engine.execute(
+            {
+                "attack_id": "a5",
+                "campaign_id": "camp-modern",
+                "family": "context_drift",
+                "trigger_input": "normal prompt",
+                "phase": "single",
+                "expected_failure_mode": "unsafe_reasoning",
+            },
+            "test-model",
+            completion,
+        )
+
+        self.assertIs(observed_prompt_type, list)
 
 
 if __name__ == "__main__":
