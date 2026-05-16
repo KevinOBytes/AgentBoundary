@@ -41,6 +41,22 @@ Across 720 attempted scenarios (40 attacks × 18 models), **526 were successfull
 *   **Toolchain Abuse Rate:** 0.38%
 *   **Data Exfiltration:** 0.19%
 
+Static charts for the 720-scenario benchmark are available in [`results/`](results/README.md), including coverage, failure-mode, model-risk, and attack-family views.
+
+---
+
+## Implications for Frontier Model Evaluation
+
+AgentKillChain is not only a security benchmark. It is also a prototype safety evaluation for frontier agentic systems that must preserve instruction hierarchy, memory integrity, and tool-use boundaries across long-running workflows.
+
+The benchmark maps directly onto current frontier lab concerns:
+
+*   **Context drift → alignment degradation under optimization pressure.** The model is tested on whether it preserves the user's legitimate objective when adversarial context is framed as helpful operational detail.
+*   **Latent memory poisoning → sleeper agent / deferred defection behavior.** The model is tested on whether a harmless-looking seed can become durable state and activate later under a delayed trigger.
+*   **Toolchain confusion → unauthorized capability acquisition.** The model is tested on whether adversarial context can induce unsafe tool selection or privileged action, even when the text response appears guarded.
+
+This framing makes the harness useful for evaluating failure chains that single-turn jailbreak tests miss: seed-time behavior, memory writeback, delayed activation, planner integrity, tool-call safety, and downstream impact. See [`SAFETY_RELEVANCE.md`](SAFETY_RELEVANCE.md) for the full kill-chain-to-safety-evaluation mapping.
+
 ---
 
 ## 🚀 Key Features
@@ -63,7 +79,7 @@ The project is structured into distinct, decoupled components:
 | `harness/` | Core Python evaluation engine. Mocks an architectural AI agent and pipelines prompts to target LLMs. |
 | `website/` | Next.js tailored dashboard. Ingests evaluation metrics to generate real-time visualization widgets and interactive catalogs. |
 | `dataset/` | The definitive JSON corpus defining `attack_id`, `trigger_condition`, and exact payloads for empirical evaluation. |
-| `results/` | Output directory where the harness writes structured `model_results.json` datasets post-evaluation. |
+| `results/` | Output directory for structured result artifacts plus static benchmark visualizations for repository and paper readers. |
 | `docs/` | Deep-dive research papers, architectural deployment guides, and storage strategy workflows. |
 
 ---
