@@ -1,11 +1,14 @@
 from __future__ import annotations
 
 import argparse
+import concurrent.futures
 import csv
 import json
 import os
+import subprocess
+from collections import OrderedDict
 from pathlib import Path
-from typing import List
+from typing import Any, Dict, List
 
 from evaluation import evaluate, summarize_by_model
 from model_adapter import build_adapter, GenerationResult
@@ -51,53 +54,70 @@ def load_attacks() -> List[dict]:
     return attacks
 
 
-def parse_models() -> List[str]:
+def parse_models(provider: str = "openrouter", cli_models: str | None = None) -> List[str]:
+    if cli_models:
+        return [m.strip() for m in cli_models.split(",") if m.strip()]
+
+    env_value = os.getenv("MODELS")
+    if env_value:
+        return [m.strip() for m in env_value.split(",") if m.strip()]
+
+    if provider == "ollama":
+        value = os.getenv(
+            "OLLAMA_MODELS",
+            ",".join([
+                "llama3.2:latest",
+                "phi4:latest",
+                "deepseek-r1:14b",
+                "gemma3:27b",
+                "qwen2.5-coder:32b",
+            ])
+        )
+        return [m.strip() for m in value.split(",") if m.strip()]
+
     # Updated 2026-04: Version pairs (latest + previous) for temporal regression analysis.
     # Each provider has its newest flagship plus the prior version for comparison.
     # Removed 4 models that produced 0/40 scored results in v0.1 run:
     #   microsoft/phi-4, nousresearch/hermes-4-70b, liquid/lfm-2-24b-a2b, perplexity/sonar-reasoning-pro
-    value = os.getenv(
-        "MODELS",
-        ",".join([
-            # --- OpenAI ---
-            "openai/gpt-5.4",                     # Latest flagship (2026)
-            "openai/gpt-5",                        # Previous flagship (v0.1 baseline)
+    value = ",".join([
+        # --- OpenAI ---
+        "openai/gpt-5.4",                     # Latest flagship (2026)
+        "openai/gpt-5",                        # Previous flagship (v0.1 baseline)
 
-            # --- Anthropic ---
-            "anthropic/claude-sonnet-4.6",         # Latest Sonnet (2026)
-            "anthropic/claude-sonnet-4.5",         # Previous Sonnet (v0.1 baseline)
+        # --- Anthropic ---
+        "anthropic/claude-sonnet-4.6",         # Latest Sonnet (2026)
+        "anthropic/claude-sonnet-4.5",         # Previous Sonnet (v0.1 baseline)
 
-            # --- Google ---
-            "google/gemini-3.1-pro-preview",       # Latest Pro (2026)
-            "google/gemini-3.0-pro",               # Previous Pro (v0.1 baseline; was gemini-3.0-pro)
+        # --- Google ---
+        "google/gemini-3.1-pro-preview",       # Latest Pro (2026)
+        "google/gemini-3.0-pro",               # Previous Pro (v0.1 baseline; was gemini-3.0-pro)
 
-            # --- Meta ---
-            "meta-llama/llama-4-maverick",         # Latest flagship (Llama 4)
-            "meta-llama/llama-3.3-70b-instruct",   # Previous (v0.1 baseline)
+        # --- Meta ---
+        "meta-llama/llama-4-maverick",         # Latest flagship (Llama 4)
+        "meta-llama/llama-3.3-70b-instruct",   # Previous (v0.1 baseline)
 
-            # --- Mistral ---
-            "mistralai/mistral-large-3-2512",      # Latest Large (Dec 2025)
-            "mistralai/mistral-large-2411",         # Previous Large (v0.1 baseline, 3 positives)
+        # --- Mistral ---
+        "mistralai/mistral-large-3-2512",      # Latest Large (Dec 2025)
+        "mistralai/mistral-large-2411",         # Previous Large (v0.1 baseline, 3 positives)
 
-            # --- Cohere ---
-            "cohere/command-r-plus-08-2024",       # Stable (no newer version on OpenRouter)
+        # --- Cohere ---
+        "cohere/command-r-plus-08-2024",       # Stable (no newer version on OpenRouter)
 
-            # --- Qwen ---
-            "qwen/qwen-2.5-72b-instruct",         # Stable (latest large instruct)
+        # --- Qwen ---
+        "qwen/qwen-2.5-72b-instruct",         # Stable (latest large instruct)
 
-            # --- xAI ---
-            "x-ai/grok-4.20",                     # Latest flagship (2026)
-            "x-ai/grok-4-fast",                    # Previous (v0.1 baseline)
+        # --- xAI ---
+        "x-ai/grok-4.20",                     # Latest flagship (2026)
+        "x-ai/grok-4-fast",                    # Previous (v0.1 baseline)
 
-            # --- DeepSeek ---
-            "deepseek/deepseek-v3.2",              # Latest (2026)
-            "deepseek/deepseek-chat-v3.1",         # Previous
+        # --- DeepSeek ---
+        "deepseek/deepseek-v3.2",              # Latest (2026)
+        "deepseek/deepseek-chat-v3.1",         # Previous
 
-            # --- Amazon ---
-            "amazon/nova-premier-v1",              # Stable
+        # --- Amazon ---
+        "amazon/nova-premier-v1",              # Stable
 
-        ])
-    )
+    ])
     return [m.strip() for m in value.split(",") if m.strip()]
 
 
@@ -106,6 +126,9 @@ def write_csv(rows: List[dict], csv_path: Path) -> None:
     fieldnames = [
         "attack_id",
         "campaign_id",
+        "family",
+        "phase",
+        "scenario_type",
         "model",
         "status",
         "error_type",
@@ -125,6 +148,9 @@ def write_csv(rows: List[dict], csv_path: Path) -> None:
                 {
                     "attack_id": row["attack_id"],
                     "campaign_id": row["campaign_id"],
+                    "family": row["family"],
+                    "phase": row["phase"],
+                    "scenario_type": row["scenario_type"],
                     "model": row["model"],
                     "status": row["status"],
                     "error_type": row["error_type"],
@@ -135,25 +161,49 @@ def write_csv(rows: List[dict], csv_path: Path) -> None:
             )
 
 
-def _run_attack_single(attack: dict, model: str, adapter, args) -> dict:
-    engine = ScenarioEngine()
+def _base_error_row(attack: dict, model: str, status: str, error_type: str, output: str) -> dict:
+    return {
+        "attack_id": attack.get("attack_id"),
+        "campaign_id": attack.get("campaign_id"),
+        "family": attack.get("family"),
+        "phase": attack.get("phase"),
+        "scenario_type": attack.get("scenario_type"),
+        "model": model,
+        "status": status,
+        "error_type": error_type,
+        "prompt": "",
+        "output": output,
+        "flags": {
+            "refusal_detected": False,
+            "unsafe_instruction_adopted": False,
+            "unsafe_tool_call_proposed": False,
+            "secret_disclosure_claimed": False,
+            "policy_violation": False
+        },
+    }
+
+
+def _model_alias(model: str) -> str:
+    return {
+        "anthropic/claude-4.5-haiku": "anthropic/claude-opus-4.5",
+        "google/gemini-3.0-pro": "google/gemini-3-pro-preview",
+        "google/gemini-3.1-pro": "google/gemini-3.1-pro-preview",
+    }.get(model, model)
+
+
+def _run_attack_single(attack: dict, model: str, engine: ScenarioEngine, adapter, args) -> dict:
     if args.dry_run:
         completion = lambda _m, _p: GenerationResult(f"model={model}; simulated_response=refusal; no_action_taken", [])
     else:
         completion = adapter.generate
 
     try:
-        api_model = {
-            "anthropic/claude-4.5-haiku": "anthropic/claude-opus-4.5",
-            "google/gemini-3.0-pro": "google/gemini-3-pro-preview",
-            "google/gemini-3.1-pro": "google/gemini-3.1-pro-preview",
-        }.get(model, model)
+        api_model = _model_alias(model) if args.provider == "openrouter" else model
 
-        import concurrent.futures
         local_exec = concurrent.futures.ThreadPoolExecutor(max_workers=1)
         future = local_exec.submit(engine.execute, attack, api_model, completion)
         try:
-            result = future.result(timeout=40)  # Absolute hard 40s timeout per call
+            result = future.result(timeout=args.per_attack_timeout)
         finally:
             local_exec.shutdown(wait=False)
 
@@ -163,6 +213,9 @@ def _run_attack_single(attack: dict, model: str, adapter, args) -> dict:
         return {
             "attack_id": result.attack_id,
             "campaign_id": result.campaign_id,
+            "family": attack.get("family"),
+            "phase": attack.get("phase"),
+            "scenario_type": attack.get("scenario_type"),
             "model": result.model,
             "status": "scored",
             "error_type": None,
@@ -172,63 +225,83 @@ def _run_attack_single(attack: dict, model: str, adapter, args) -> dict:
         }
     except concurrent.futures.TimeoutError:
         print(f"[{model}] TIMEOUT processing attack {attack.get('attack_id')}", flush=True)
-        return {
-            "attack_id": attack.get("attack_id"),
-            "campaign_id": attack.get("campaign_id"),
-            "model": model,
-            "status": "timed_out",
-            "error_type": "TimeoutError",
-            "prompt": "",
-            "output": "API Error: Timeout after 40 seconds",
-            "flags": {
-                "refusal_detected": False,
-                "unsafe_instruction_adopted": False,
-                "unsafe_tool_call_proposed": False,
-                "secret_disclosure_claimed": False,
-                "policy_violation": False
-            },
-        }
+        return _base_error_row(
+            attack,
+            model,
+            "timed_out",
+            "TimeoutError",
+            f"API Error: Timeout after {args.per_attack_timeout} seconds",
+        )
     except Exception as e:
         print(f"[{model}] Failed to process attack {attack.get('attack_id')}: {e}", flush=True)
-        return {
-            "attack_id": attack.get("attack_id"),
-            "campaign_id": attack.get("campaign_id"),
-            "model": model,
-            "status": "api_error",
-            "error_type": type(e).__name__,
-            "prompt": "",
-            "output": f"API Error: {e}",
-            "flags": {
-                "refusal_detected": False,
-                "unsafe_instruction_adopted": False,
-                "unsafe_tool_call_proposed": False,
-                "secret_disclosure_claimed": False,
-                "policy_violation": False
-            },
-        }
+        return _base_error_row(attack, model, "api_error", type(e).__name__, f"API Error: {e}")
+
+
+def campaign_groups(attacks: List[dict]) -> "OrderedDict[str, List[dict]]":
+    groups: "OrderedDict[str, List[dict]]" = OrderedDict()
+    for attack in attacks:
+        groups.setdefault(attack["campaign_id"], []).append(attack)
+    return groups
+
+
+def _run_model(attacks: List[dict], model: str, adapter, args) -> List[dict]:
+    rows: List[dict] = []
+    for _campaign_id, campaign_attacks in campaign_groups(attacks).items():
+        engine = ScenarioEngine(judge_mode=args.judge_mode)
+        for attack in campaign_attacks:
+            row = _run_attack_single(attack, model, engine, adapter, args)
+            rows.append(row)
+            if row["status"] != "scored":
+                engine = ScenarioEngine(judge_mode=args.judge_mode)
+    return rows
+
+
+def git_commit() -> str | None:
+    try:
+        return subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
+    except Exception:
+        return None
+
+
+def status_counts(rows: List[dict]) -> Dict[str, int]:
+    return {
+        "scored": sum(1 for r in rows if r["status"] == "scored"),
+        "timed_out": sum(1 for r in rows if r["status"] == "timed_out"),
+        "api_error": sum(1 for r in rows if r["status"] == "api_error"),
+        "attempted": len(rows),
+    }
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Run AgentKillChain benchmark harness")
     parser.add_argument("--dry-run", action="store_true", help="Skip API calls and use deterministic outputs")
+    parser.add_argument("--provider", choices=["openrouter", "ollama"], default=os.getenv("AKC_PROVIDER", "openrouter"))
+    parser.add_argument("--models", help="Comma-separated model list. Overrides MODELS/OLLAMA_MODELS/defaults.")
+    parser.add_argument("--judge-mode", choices=["llm", "heuristic"], default=None)
+    parser.add_argument("--max-workers", type=int, default=None)
+    parser.add_argument("--per-attack-timeout", type=int, default=int(os.getenv("AKC_PER_ATTACK_TIMEOUT", "120")))
+    parser.add_argument("--run-label", default=os.getenv("AKC_RUN_LABEL", "first-local-release"))
     parser.add_argument("--output-json", default=str(RESULTS_PATH), help="Results JSON path")
     parser.add_argument("--output-csv", default=str(RESULTS_CSV_PATH), help="Results CSV path")
     args = parser.parse_args()
 
     load_env(ROOT / ".env")
     attacks = load_attacks()
-    models = parse_models()
+    models = parse_models(args.provider, args.models)
+    if args.judge_mode is None:
+        args.judge_mode = "heuristic" if args.provider == "ollama" or args.dry_run else "llm"
 
-    adapter = None if args.dry_run else build_adapter()
+    adapter = None if args.dry_run else build_adapter(args.provider)
     rows = []
 
-    import concurrent.futures
+    max_workers = args.max_workers
+    if max_workers is None:
+        max_workers = 1 if args.provider == "ollama" else min(40, len(models))
 
-    tasks = [(attack, model) for model in models for attack in attacks]
-    executor = concurrent.futures.ThreadPoolExecutor(max_workers=40)
-    futures = [executor.submit(_run_attack_single, attack, model, adapter, args) for attack, model in tasks]
+    executor = concurrent.futures.ThreadPoolExecutor(max_workers=max_workers)
+    futures = [executor.submit(_run_model, attacks, model, adapter, args) for model in models]
     for future in concurrent.futures.as_completed(futures):
-        rows.append(future.result())
+        rows.extend(future.result())
     
     # Do not use 'with' block to avoid hanging on shutdown if threads are deadlocked.
     executor.shutdown(wait=False)
@@ -238,20 +311,26 @@ def main() -> None:
     
     import datetime
     run_timestamp = datetime.datetime.now(datetime.timezone.utc).isoformat()
-    timeout_count = sum(1 for r in rows if r["status"] == "timed_out")
-    error_count = sum(1 for r in rows if r["status"] == "api_error")
-    scored_count = sum(1 for r in rows if r["status"] == "scored")
+    counts = status_counts(rows)
 
     output = {
         "metadata": {
-            "benchmark_version": "0.1.0-prototype",
+            "benchmark_version": "1.0.0-local",
+            "run_label": args.run_label,
             "run_timestamp": run_timestamp,
+            "git_commit": git_commit(),
+            "provider": args.provider,
+            "judge_mode": args.judge_mode,
             "dry_run": args.dry_run,
             "models_requested": models,
+            "models_total": len(models),
             "attacks_total": len(attacks),
-            "scored_count": scored_count,
-            "timeout_count": timeout_count,
-            "error_count": error_count,
+            "campaigns_total": len(campaign_groups(attacks)),
+            "attempted_count": counts["attempted"],
+            "expected_count": len(models) * len(attacks),
+            "scored_count": counts["scored"],
+            "timeout_count": counts["timed_out"],
+            "error_count": counts["api_error"],
         },
         "metrics": metrics,
         "metrics_by_model": by_model,
