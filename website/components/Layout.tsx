@@ -1,4 +1,5 @@
 import { ReactNode } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { motion, AnimatePresence } from "framer-motion";
@@ -28,7 +29,7 @@ export default function Layout({ children }: { children: ReactNode }) {
       <header className="sticky top-0 z-50 glass border-b-0 border-white/5">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <Link href="/" className="flex items-center gap-3 transition-opacity hover:opacity-80">
-            <img src="/kevinbytes-logo.png" alt="KevinBytes Logo" className="h-8 w-auto object-contain" />
+            <Image src="/kevinbytes-logo.png" alt="KevinBytes Logo" width={32} height={32} className="h-8 w-auto object-contain" />
             <span className="text-lg font-bold tracking-tight text-white hidden sm:block">AgentKillChain</span>
           </Link>
           <nav className="flex flex-wrap items-center gap-6 text-sm font-medium">

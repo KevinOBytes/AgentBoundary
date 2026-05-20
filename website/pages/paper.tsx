@@ -128,7 +128,14 @@ export async function getStaticProps() {
   let catalog = null;
 
   try { paperContent = fs.readFileSync(paperPath, "utf8"); } catch (e) {}
-  try { data = JSON.parse(fs.readFileSync(dataPath, "utf8")); } catch (e) {}
+  try {
+    const parsed = JSON.parse(fs.readFileSync(dataPath, "utf8"));
+    data = {
+      metadata: parsed.metadata,
+      metrics: parsed.metrics,
+      metrics_by_model: parsed.metrics_by_model,
+    };
+  } catch (e) {}
   try { catalog = JSON.parse(fs.readFileSync(catalogPath, "utf8")); } catch (e) {}
 
   return {

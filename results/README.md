@@ -1,7 +1,9 @@
 # Benchmark Visualizations
 
-This directory contains raw benchmark outputs and static visualizations for the
-current AgentKillChain benchmark run.
+This directory contains public benchmark outputs and static visualizations for
+the current AgentKillChain benchmark run. Public result artifacts redact raw
+request prompts and raw model outputs while retaining metrics, flags, row
+counts, character counts, and SHA-256 digests.
 
 The current artifact is the Ollama Cloud run from May 20, 2026: 40 attack
 scenarios across 39 authenticated Ollama Cloud models, for 1,560 attempted
@@ -38,3 +40,6 @@ The generator writes:
 - `results/benchmark_current_failure_modes.svg`
 - `results/benchmark_current_model_risk.svg`
 - `results/benchmark_current_attack_family_risk.svg`
+
+Raw live-run traces should stay outside the public repository, preferably under
+the ignored `results/generated/` directory or in private archival storage.

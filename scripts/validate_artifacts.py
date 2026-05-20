@@ -57,6 +57,7 @@ def validate_results_json() -> None:
     metadata = payload["metadata"]
     rows = payload["results"]
     models = metadata.get("models_requested", [])
+    public_redacted = bool(metadata.get("public_artifact_redacted"))
     expected_count = len(models) * len(attacks)
     if metadata.get("expected_count") != expected_count:
         raise ValueError(f"metadata.expected_count mismatch: {metadata.get('expected_count')} != {expected_count}")
@@ -77,11 +78,32 @@ def validate_results_json() -> None:
         "attack_id", "campaign_id", "family", "phase", "scenario_type", "model",
         "status", "error_type", "prompt", "output", "flags",
     }
+    if public_redacted:
+        required_row_keys.update(
+            {
+                "trace_redacted",
+                "prompt_sha256",
+                "output_sha256",
+                "prompt_chars",
+                "output_chars",
+            }
+        )
     seen_pairs = set()
     for row in rows:
         missing = required_row_keys.difference(row.keys())
         if missing:
             raise ValueError(f"Result row missing keys: {sorted(missing)}")
+        if public_redacted:
+            if not row.get("trace_redacted"):
+                raise ValueError(f"Public artifact row is not marked redacted: {row['model']} {row['attack_id']}")
+            if not row.get("prompt_sha256") or not row.get("output_sha256"):
+                raise ValueError(f"Public artifact row lacks trace digests: {row['model']} {row['attack_id']}")
+            if not str(row.get("prompt", "")).startswith("[redacted:"):
+                raise ValueError(f"Public artifact prompt is not redacted: {row['model']} {row['attack_id']}")
+            if not str(row.get("output", "")).startswith("[redacted:"):
+                raise ValueError(f"Public artifact output is not redacted: {row['model']} {row['attack_id']}")
+            if "System Memory:" in str(row.get("prompt", "")) or "System Memory:" in str(row.get("output", "")):
+                raise ValueError(f"Public artifact leaked activation memory text: {row['model']} {row['attack_id']}")
         attack = attacks.get(row["attack_id"])
         if not attack:
             raise ValueError(f"Unknown attack_id in results: {row['attack_id']}")
@@ -97,6 +119,8 @@ def validate_results_json() -> None:
     for row in rows:
         rows_by_model_campaign[(row["model"], row["campaign_id"])].append(row)
     for (_model, campaign_id), campaign_rows in rows_by_model_campaign.items():
+        if public_redacted:
+            continue
         phases = [row["phase"] for row in campaign_rows]
         if "activation" not in phases or "seed" not in phases:
             continue
