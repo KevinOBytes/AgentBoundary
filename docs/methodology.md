@@ -4,7 +4,7 @@
 1. Configure `.env` with an OpenRouter API key or authenticated Ollama Cloud key, model list overrides if needed, and optional `AGENT_SYSTEM_PROMPT`.
 2. Run `python3 harness/runner.py` (or `--dry-run` for deterministic CI). The runner defaults to ignored raw outputs under `results/generated/`. For the May 20, 2026 run, add `--provider ollama-cloud --judge-mode heuristic --run-label ollama-cloud-take-2026-05-20`.
 3. Redact public artifacts with `python3 scripts/redact_public_results.py --input-json results/generated/model_results.json --output-json results/model_results.json --output-csv results/model_results.csv`.
-4. Validate public outputs with `python3 scripts/validate_artifacts.py`.
+4. Validate public outputs with `python3 scripts/validate_artifacts.py` and `python3 scripts/check_public_release.py`.
 5. Archive the ignored raw files in private storage with commit hash and run date.
 
 ## Experiment matrix

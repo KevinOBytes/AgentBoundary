@@ -14,13 +14,17 @@ jobs:
         with:
           python-version: "3.11"
       - name: Python compile check
-        run: python3 -m compileall harness
-      - name: Harness unit tests
-        run: python3 -m unittest discover -s harness/tests
+        run: python3 -m compileall harness scripts tests test_all.py
+      - name: Unit tests
+        run: python3 -m unittest discover
       - name: Dry-run benchmark
         run: python3 harness/runner.py --dry-run
+      - name: Redact dry-run public artifact
+        run: python3 scripts/redact_public_results.py --input-json results/generated/model_results.json --output-json results/model_results.json --output-csv results/model_results.csv
       - name: Validate dataset and result schemas
         run: python3 scripts/validate_artifacts.py
+      - name: Public release guard
+        run: python3 scripts/check_public_release.py
 
   website:
     runs-on: ubuntu-latest

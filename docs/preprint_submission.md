@@ -32,6 +32,16 @@ AgentKillChain does not need arXiv as the first public venue. The practical rout
 - Reproducibility notes: `docs/methodology.md`, `TRUSTWORTHINESS.md`, `LIMITATIONS.md`
 - Code release: GitHub release from `main`
 
+## Exclude From Public Uploads
+
+- `.env` and any `.env.*` files except `.env.example`
+- `results/generated/`
+- `results/raw/`, `results/private/`, and `results/archive/`
+- any `*.raw.*`, `*.trace.*`, `*.log`, SQLite, or local database files
+- `website/node_modules/`, `website/.next/`, Python caches, and local release bundles
+
+Use `git archive` or a GitHub release archive for the software bundle so only tracked, public-safe files are included.
+
 ## Before Upload
 
 1. Create a GitHub release tag, for example `v1.0-preprint`.

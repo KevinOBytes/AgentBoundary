@@ -4,20 +4,46 @@ node_modules/
 out/
 website/.next/
 website/node_modules/
+dist/
+release/
 
 # Python
 __pycache__/
 *.pyc
 .venv/
 venv/
+.pytest_cache/
 
 # Env
 .env
+.env.*
+!.env.example
 *.env.local
 
-# Results artifacts
+# Local raw/private benchmark artifacts
 results/generated/
+results/raw/
+results/private/
+results/archive/
+results/dry_run_results.*
+results/*raw*
+results/*trace*
+*.raw.json
+*.raw.csv
+*.trace.json
+*.trace.jsonl
+
+# Logs and local databases
+*.log
+*.sqlite
+*.sqlite3
+*.db
 
 # OS
 .DS_Store
 website/tsconfig.tsbuildinfo
+
+# Local release bundles
+*.zip
+*.tar
+*.tar.gz

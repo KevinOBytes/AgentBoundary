@@ -103,6 +103,7 @@ python3 -m unittest discover -s harness/tests
 python3 harness/runner.py --dry-run
 python3 scripts/redact_public_results.py --input-json results/generated/model_results.json --output-json results/model_results.json --output-csv results/model_results.csv
 python3 scripts/validate_artifacts.py
+python3 scripts/check_public_release.py
 
 # 3. Execute live runs against target LLMs
 python3 harness/runner.py
