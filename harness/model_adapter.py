@@ -241,6 +241,7 @@ class OpenRouterAdapter:
 @dataclass
 class OllamaAdapter:
     base_url: str = "http://localhost:11434"
+    api_key: str | None = None
     timeout: int = 120
     max_turns: int = 5
 
@@ -277,7 +278,10 @@ class OllamaAdapter:
             req = urllib.request.Request(
                 f"{self.base_url.rstrip('/')}/api/chat",
                 data=body,
-                headers={"Content-Type": "application/json"},
+                headers={
+                    "Content-Type": "application/json",
+                    **({"Authorization": f"Bearer {self.api_key}"} if self.api_key else {}),
+                },
                 method="POST",
             )
             try:
@@ -341,6 +345,15 @@ def build_adapter(provider: str = "openrouter") -> OpenRouterAdapter | OllamaAda
     if provider == "ollama":
         return OllamaAdapter(
             base_url=os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),
+            timeout=int(os.getenv("OLLAMA_TIMEOUT_SECONDS", "120")),
+        )
+    if provider == "ollama-cloud":
+        key = os.getenv("OLLAMA_API_KEY", "")
+        if not key:
+            raise RuntimeError("OLLAMA_API_KEY is not set.")
+        return OllamaAdapter(
+            base_url=os.getenv("OLLAMA_CLOUD_BASE_URL", "https://ollama.com"),
+            api_key=key,
             timeout=int(os.getenv("OLLAMA_TIMEOUT_SECONDS", "120")),
         )
     if provider != "openrouter":

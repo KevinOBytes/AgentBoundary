@@ -6,13 +6,14 @@ import csv
 import json
 import os
 import subprocess
+import urllib.request
 from collections import OrderedDict
 from pathlib import Path
 from typing import Any, Dict, List
 
 from evaluation import evaluate, summarize_by_model
 from model_adapter import build_adapter, GenerationResult
-from scenario_engine import ScenarioEngine
+from scenario_engine import DEFAULT_SYSTEM_PROMPT, ScenarioEngine
 
 ROOT = Path(__file__).resolve().parents[1]
 DATASET_PATH = ROOT / "dataset" / "attack_catalog.json"
@@ -54,26 +55,48 @@ def load_attacks() -> List[dict]:
     return attacks
 
 
+def list_ollama_cloud_models() -> List[str]:
+    key = os.getenv("OLLAMA_API_KEY", "")
+    if not key:
+        raise RuntimeError("OLLAMA_API_KEY is not set.")
+    req = urllib.request.Request(
+        f"{os.getenv('OLLAMA_CLOUD_BASE_URL', 'https://ollama.com').rstrip('/')}/api/tags",
+        headers={"Authorization": f"Bearer {key}"},
+        method="GET",
+    )
+    with urllib.request.urlopen(req, timeout=int(os.getenv("OLLAMA_TIMEOUT_SECONDS", "120"))) as response:
+        payload = json.loads(response.read().decode("utf-8"))
+    models = [row["name"] for row in payload.get("models", []) if row.get("name")]
+    if not models:
+        raise RuntimeError("No Ollama cloud models returned by /api/tags.")
+    return models
+
+
 def parse_models(provider: str = "openrouter", cli_models: str | None = None) -> List[str]:
     if cli_models:
         return [m.strip() for m in cli_models.split(",") if m.strip()]
 
+    if provider == "ollama-cloud":
+        env_value = os.getenv("OLLAMA_CLOUD_MODELS")
+        if env_value:
+            return [m.strip() for m in env_value.split(",") if m.strip()]
+        return list_ollama_cloud_models()
+
+    if provider == "ollama":
+        value = os.getenv("OLLAMA_MODELS")
+        if not value:
+            value = ",".join([
+                    "llama3.2:latest",
+                    "phi4:latest",
+                    "deepseek-r1:14b",
+                    "gemma3:27b",
+                    "qwen2.5-coder:32b",
+                ])
+        return [m.strip() for m in value.split(",") if m.strip()]
+
     env_value = os.getenv("MODELS")
     if env_value:
         return [m.strip() for m in env_value.split(",") if m.strip()]
-
-    if provider == "ollama":
-        value = os.getenv(
-            "OLLAMA_MODELS",
-            ",".join([
-                "llama3.2:latest",
-                "phi4:latest",
-                "deepseek-r1:14b",
-                "gemma3:27b",
-                "qwen2.5-coder:32b",
-            ])
-        )
-        return [m.strip() for m in value.split(",") if m.strip()]
 
     # Updated 2026-04: Version pairs (latest + previous) for temporal regression analysis.
     # Each provider has its newest flagship plus the prior version for comparison.
@@ -247,12 +270,12 @@ def campaign_groups(attacks: List[dict]) -> "OrderedDict[str, List[dict]]":
 def _run_model(attacks: List[dict], model: str, adapter, args) -> List[dict]:
     rows: List[dict] = []
     for _campaign_id, campaign_attacks in campaign_groups(attacks).items():
-        engine = ScenarioEngine(judge_mode=args.judge_mode)
+        engine = ScenarioEngine(judge_mode=args.judge_mode, system_prompt=args.system_prompt)
         for attack in campaign_attacks:
             row = _run_attack_single(attack, model, engine, adapter, args)
             rows.append(row)
             if row["status"] != "scored":
-                engine = ScenarioEngine(judge_mode=args.judge_mode)
+                engine = ScenarioEngine(judge_mode=args.judge_mode, system_prompt=args.system_prompt)
     return rows
 
 
@@ -275,9 +298,10 @@ def status_counts(rows: List[dict]) -> Dict[str, int]:
 def main() -> None:
     parser = argparse.ArgumentParser(description="Run AgentKillChain benchmark harness")
     parser.add_argument("--dry-run", action="store_true", help="Skip API calls and use deterministic outputs")
-    parser.add_argument("--provider", choices=["openrouter", "ollama"], default=os.getenv("AKC_PROVIDER", "openrouter"))
+    parser.add_argument("--provider", choices=["openrouter", "ollama", "ollama-cloud"], default=os.getenv("AKC_PROVIDER", "openrouter"))
     parser.add_argument("--models", help="Comma-separated model list. Overrides MODELS/OLLAMA_MODELS/defaults.")
     parser.add_argument("--judge-mode", choices=["llm", "heuristic"], default=None)
+    parser.add_argument("--system-prompt", default=None)
     parser.add_argument("--max-workers", type=int, default=None)
     parser.add_argument("--per-attack-timeout", type=int, default=int(os.getenv("AKC_PER_ATTACK_TIMEOUT", "120")))
     parser.add_argument("--run-label", default=os.getenv("AKC_RUN_LABEL", "first-local-release"))
@@ -289,14 +313,21 @@ def main() -> None:
     attacks = load_attacks()
     models = parse_models(args.provider, args.models)
     if args.judge_mode is None:
-        args.judge_mode = "heuristic" if args.provider == "ollama" or args.dry_run else "llm"
+        args.judge_mode = "heuristic" if args.provider in {"ollama", "ollama-cloud"} or args.dry_run else "llm"
+    if args.system_prompt is None:
+        args.system_prompt = os.getenv("AGENT_SYSTEM_PROMPT", DEFAULT_SYSTEM_PROMPT)
 
     adapter = None if args.dry_run else build_adapter(args.provider)
     rows = []
 
     max_workers = args.max_workers
     if max_workers is None:
-        max_workers = 1 if args.provider == "ollama" else min(40, len(models))
+        if args.provider == "ollama":
+            max_workers = 1
+        elif args.provider == "ollama-cloud":
+            max_workers = min(4, len(models))
+        else:
+            max_workers = min(40, len(models))
 
     executor = concurrent.futures.ThreadPoolExecutor(max_workers=max_workers)
     futures = [executor.submit(_run_model, attacks, model, adapter, args) for model in models]
@@ -315,12 +346,13 @@ def main() -> None:
 
     output = {
         "metadata": {
-            "benchmark_version": "1.0.0-local",
+            "benchmark_version": "1.0.0-local" if args.provider != "ollama-cloud" else "1.0.0-ollama-cloud",
             "run_label": args.run_label,
             "run_timestamp": run_timestamp,
             "git_commit": git_commit(),
             "provider": args.provider,
             "judge_mode": args.judge_mode,
+            "system_prompt_configured": bool(args.system_prompt),
             "dry_run": args.dry_run,
             "models_requested": models,
             "models_total": len(models),

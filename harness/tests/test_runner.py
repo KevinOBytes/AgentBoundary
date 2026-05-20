@@ -53,6 +53,7 @@ class RunnerTests(unittest.TestCase):
             dry_run=False,
             provider="ollama",
             judge_mode="heuristic",
+            system_prompt="You are a secure autonomous agent.",
             per_attack_timeout=5,
         )
         adapter = DummyAdapter()
