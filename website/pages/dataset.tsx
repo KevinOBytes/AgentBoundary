@@ -19,6 +19,9 @@ interface AttackResult {
   attack_id: string;
   campaign_id: string;
   model: string;
+  provider?: string;
+  cohort_label?: string;
+  status?: string;
   prompt?: string;
   output?: string;
   trace_redacted?: boolean;
@@ -40,7 +43,12 @@ interface HarnessOutput {
     benchmark_version: string;
     run_timestamp: string;
     dry_run: boolean;
+    provider?: string;
+    providers?: string[];
     models_requested: string[]; 
+    model_providers?: Record<string, string>;
+    model_cohorts?: Record<string, string>;
+    result_grain?: string;
     attacks_total: number;
     scored_count: number;
     timeout_count: number;
@@ -124,7 +132,7 @@ export default function DatasetPage({ data, expectedModels }: Props) {
   const evaluatedModels = Object.keys(metrics_by_model);
   const allModels = Array.from(new Set([...expectedModels, ...evaluatedModels]));
   
-  // Sort: evaluated models first (sorted by injection success rate), then pending models
+  // Sort evaluated models first by unsafe-signal rate, then pending models.
   const models = allModels.sort((a, b) => {
     const mA = metrics_by_model[a];
     const mB = metrics_by_model[b];
@@ -136,8 +144,11 @@ export default function DatasetPage({ data, expectedModels }: Props) {
   
   const uniqueAttacks = Array.from(new Set(results.map(r => r.attack_id))).sort();
 
+  const modelProvider = (model: string) => metadata.model_providers?.[model] || (model.includes("/") ? model.split("/")[0] : "ollama-cloud");
+  const modelCohort = (model: string) => metadata.model_cohorts?.[model];
+
   // Derived providers & categories
-  const providers = Array.from(new Set(models.map(m => m.split('/')[0])));
+  const providers = Array.from(new Set(models.map(modelProvider))).sort();
   
   const getAttackCategory = (id: string) => {
     const parts = id.split('_');
@@ -153,11 +164,11 @@ export default function DatasetPage({ data, expectedModels }: Props) {
   const toggleAttack = (a: string) => setSelectedAttacks(prev => prev.includes(a) ? prev.filter(x => x !== a) : [...prev, a]);
   
   const selectProvider = (p: string) => {
-     const pModels = models.filter(m => m.startsWith(p + '/'));
+     const pModels = models.filter(m => modelProvider(m) === p);
      setSelectedModels(prev => Array.from(new Set([...prev, ...pModels])));
   };
   const unselectProvider = (p: string) => {
-     const pModels = models.filter(m => m.startsWith(p + '/'));
+     const pModels = models.filter(m => modelProvider(m) === p);
      setSelectedModels(prev => prev.filter(m => !pModels.includes(m)));
   };
 
@@ -189,9 +200,16 @@ export default function DatasetPage({ data, expectedModels }: Props) {
     return 0;
   });
 
-  const getSuccessfulInjections = (modelId: string) => {
-    return results.filter(r => r.model === modelId && r.flags.unsafe_instruction_adopted);
+  const getUnsafeSignals = (modelId: string) => {
+    return results.filter(r => r.model === modelId && hasUnsafeSignal(r));
   };
+
+  const hasUnsafeSignal = (res: AttackResult) => Boolean(
+    res.flags.unsafe_instruction_adopted ||
+    res.flags.unsafe_tool_call_proposed ||
+    res.flags.secret_disclosure_claimed ||
+    res.flags.policy_violation
+  );
 
   return (
     <Layout>
@@ -206,7 +224,7 @@ export default function DatasetPage({ data, expectedModels }: Props) {
           </div>
           <div>
             <h1 className="text-4xl font-bold tracking-tight text-white">Empirical Evaluation Results</h1>
-            <p className="mt-2 text-gray-400">Comparing state-of-the-art LLMs against {metadata.attacks_total} multi-stage injection scenarios. Ran at {metadata.run_timestamp}.</p>
+            <p className="mt-2 text-gray-400">Comparing evaluated models against {metadata.attacks_total} controlled scenarios. Ran at {metadata.run_timestamp}.</p>
           </div>
         </div>
 
@@ -225,20 +243,23 @@ export default function DatasetPage({ data, expectedModels }: Props) {
             }
 
             const score = (m.overall_vulnerability_score * 100).toFixed(1);
-            const isVulnerable = m.overall_vulnerability_score > 0.1;
-            const successCount = getSuccessfulInjections(model).length;
+	            const hasModelUnsafeSignal = m.overall_vulnerability_score > 0;
+	            const unsafeSignalCount = getUnsafeSignals(model).length;
             
             return (
               <motion.div 
                 key={model}
                 whileHover={{ y: -5, boxShadow: "0 10px 30px -10px rgba(var(--accent-glow), 0.3)" }}
                 onClick={() => setActiveModalModel(model)}
-                className={`glass p-6 rounded-2xl border-t-2 cursor-pointer ${isVulnerable ? 'border-t-orange-500 hover:border-orange-400' : 'border-t-green-500 hover:border-green-400'}`}
+                className={`glass p-6 rounded-2xl border-t-2 cursor-pointer ${hasModelUnsafeSignal ? 'border-t-orange-500 hover:border-orange-400' : 'border-t-green-500 hover:border-green-400'}`}
               >
-                <h3 className="font-mono text-sm text-gray-400 truncate mb-1">{model.split('/').pop()}</h3>
-                <div className="flex items-end gap-2 mb-4">
-                  <span className="text-4xl font-bold text-white">{score}%</span>
-                  <span className="text-sm text-gray-500 mb-1">Vuln. Score</span>
+	                <h3 className="font-mono text-sm text-gray-400 truncate mb-1">{model.split('/').pop()}</h3>
+                  <div className="text-[10px] text-gray-600 uppercase tracking-widest mb-3">
+                    {modelProvider(model)}{modelCohort(model) ? ` / ${modelCohort(model)?.replace(/-/g, " ")}` : ""}
+                  </div>
+	                <div className="flex items-end gap-2 mb-4">
+	                  <span className="text-4xl font-bold text-white">{score}%</span>
+	                  <span className="text-sm text-gray-500 mb-1">Unsafe Signal</span>
                 </div>
                 
                 <div className="space-y-2 text-xs">
@@ -249,20 +270,20 @@ export default function DatasetPage({ data, expectedModels }: Props) {
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Data Exfil</span>
+	                    <span className="text-gray-500">Secret Disclosure</span>
                     <span className={m.secret_disclosure_rate > 0 ? "text-red-400" : "text-gray-300"}>
                       {(m.secret_disclosure_rate * 100).toFixed(1)}%
                     </span>
                   </div>
                 </div>
-                {successCount > 0 && (
+                {unsafeSignalCount > 0 && (
                   <div className="mt-4 pt-3 border-t border-white/5 text-center text-accent text-xs font-semibold">
-                    View {successCount} Exploit{successCount !== 1 && 's'} &rarr;
+	                    View {unsafeSignalCount} Signal{unsafeSignalCount !== 1 && 's'} &rarr;
                   </div>
                 )}
-                {successCount === 0 && (
+                {unsafeSignalCount === 0 && (
                   <div className="mt-4 pt-3 border-t border-white/5 text-center text-green-500 text-xs font-semibold opacity-50">
-                    Uncompromised
+	                    No Unsafe Signal
                   </div>
                 )}
               </motion.div>
@@ -271,7 +292,7 @@ export default function DatasetPage({ data, expectedModels }: Props) {
         </div>
 
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-6 gap-4">
-          <h2 className="text-2xl font-bold text-white">Execution Trace Log</h2>
+	          <h2 className="text-2xl font-bold text-white">Evaluation Records</h2>
           
           {/* Filters */}
           <div className="flex flex-wrap items-center gap-3 bg-white/5 p-2 rounded-xl border border-white/10">
@@ -358,7 +379,7 @@ export default function DatasetPage({ data, expectedModels }: Props) {
                 <tr>
                   <th className="px-6 py-4 font-medium border-b border-white/5 w-1/4">Model</th>
                   <th className="px-6 py-4 font-medium border-b border-white/5 w-1/4">Attack ID</th>
-                  <th className="px-6 py-4 font-medium text-center border-b border-white/5 w-1/12">Injected?</th>
+	                  <th className="px-6 py-4 font-medium text-center border-b border-white/5 w-1/12">Unsafe Signal</th>
                   <th className="px-6 py-4 font-medium border-b border-white/5">Trace Availability</th>
                 </tr>
               </thead>
@@ -373,12 +394,13 @@ export default function DatasetPage({ data, expectedModels }: Props) {
                           <span className="opacity-50 group-hover:opacity-100 transition-opacity">
                             {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
                           </span>
-                          {res.model.split('/').pop()}
+	                          <span>{res.model.split('/').pop()}</span>
+                            <span className="text-[10px] text-gray-600 uppercase tracking-widest">{res.provider || modelProvider(res.model)}</span>
                         </td>
                         <td className="px-6 py-4 font-mono text-accent text-xs whitespace-nowrap">{res.attack_id}</td>
                         <td className="px-6 py-4 text-center whitespace-nowrap">
-                          <span className={`px-2 py-1 rounded text-xs font-semibold ${res.flags.unsafe_instruction_adopted ? 'bg-red-500/20 text-red-300 ring-1 ring-red-500/50' : 'bg-green-500/20 text-green-300 ring-1 ring-green-500/30'}`}>
-                            {res.flags.unsafe_instruction_adopted ? 'YES' : 'NO'}
+	                          <span className={`px-2 py-1 rounded text-xs font-semibold ${hasUnsafeSignal(res) ? 'bg-red-500/20 text-red-300 ring-1 ring-red-500/50' : 'bg-green-500/20 text-green-300 ring-1 ring-green-500/30'}`}>
+	                            {hasUnsafeSignal(res) ? 'YES' : 'NO'}
                           </span>
                         </td>
                         <td className="px-6 py-4 truncate max-w-sm font-mono text-[11px] opacity-80 group-hover:opacity-100 transition-opacity" title={res.trace_redacted ? "Raw trace redacted from public artifact" : traceText(res.output)}>
@@ -393,7 +415,7 @@ export default function DatasetPage({ data, expectedModels }: Props) {
                             {res.trace_redacted ? (
                               <div>
                                 <div className="mb-4 rounded-xl border border-accent/20 bg-accent/10 p-4 text-sm text-gray-300">
-                                  Raw request and response traces are withheld from the public artifact. Metrics, flags, row counts, character counts, and digests are retained for verification.
+	                                  Raw request and response traces are withheld from the public artifact. Metrics, flags, evaluation counts, character counts, and digests are retained for verification. Public attack prompts remain available in the attack catalog.
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                   <TraceDigest label="Prompt Digest" hash={res.prompt_sha256} chars={res.prompt_chars} />
@@ -413,9 +435,9 @@ export default function DatasetPage({ data, expectedModels }: Props) {
                                 <div>
                                   <h4 className="text-[10px] uppercase text-gray-500 mb-2 font-bold tracking-widest flex items-center justify-between">
                                     <span>Model Output Payload</span>
-                                    {res.flags.unsafe_instruction_adopted && <span className="text-red-400 bg-red-400/10 px-2 py-0.5 rounded">Vulnerable Output</span>}
+	                                    {hasUnsafeSignal(res) && <span className="text-red-400 bg-red-400/10 px-2 py-0.5 rounded">Unsafe Signal</span>}
                                   </h4>
-                                  <div className={`bg-[#0f0f0f] p-4 rounded-xl font-mono text-xs border whitespace-pre-wrap max-h-[300px] overflow-auto custom-scrollbar shadow-inner ${res.flags.unsafe_instruction_adopted ? 'border-red-500/20 text-red-300/90' : 'border-white/5 text-orange-300/90'}`}>
+	                                  <div className={`bg-[#0f0f0f] p-4 rounded-xl font-mono text-xs border whitespace-pre-wrap max-h-[300px] overflow-auto custom-scrollbar shadow-inner ${hasUnsafeSignal(res) ? 'border-red-500/20 text-red-300/90' : 'border-white/5 text-orange-300/90'}`}>
                                     {traceText(res.output)}
                                   </div>
                                 </div>
@@ -438,7 +460,7 @@ export default function DatasetPage({ data, expectedModels }: Props) {
             </table>
           </div>
           <div className="p-4 bg-black/60 text-center text-sm text-gray-500 border-t border-white/5">
-            Showing {filteredResults.length} of {results.length} total records.
+	            Showing {filteredResults.length} of {results.length} total evaluations.
           </div>
         </div>
         {publicArtifactRedacted && (
@@ -469,7 +491,7 @@ export default function DatasetPage({ data, expectedModels }: Props) {
                 <div>
                   <h2 className="text-2xl font-bold text-white font-mono">{activeModalModel.split('/').pop()}</h2>
                   <p className="text-gray-400 mt-1">
-                    {getSuccessfulInjections(activeModalModel).length} Successful Exploits Logged
+	                    {getUnsafeSignals(activeModalModel).length} Unsafe Signal{getUnsafeSignals(activeModalModel).length !== 1 && "s"} Logged
                   </p>
                 </div>
                 <button 
@@ -481,16 +503,16 @@ export default function DatasetPage({ data, expectedModels }: Props) {
               </div>
               
               <div className="p-6 overflow-y-auto custom-scrollbar">
-                {getSuccessfulInjections(activeModalModel).length > 0 ? (
+                {getUnsafeSignals(activeModalModel).length > 0 ? (
                   <div className="space-y-6">
-                    {getSuccessfulInjections(activeModalModel).map((res, i) => (
+                    {getUnsafeSignals(activeModalModel).map((res, i) => (
                       <div key={i} className="bg-black/50 border border-white/5 rounded-xl p-5 shadow-inner">
                         <div className="flex items-center justify-between mb-4">
                           <span className="font-mono text-accent text-sm font-bold bg-accent/10 px-3 py-1 rounded-md">{res.attack_id}</span>
-                          <span className="text-xs text-red-400 font-bold uppercase tracking-wide border border-red-500/30 bg-red-500/10 px-2 py-1 rounded">Exploited</span>
+	                          <span className="text-xs text-red-400 font-bold uppercase tracking-wide border border-red-500/30 bg-red-500/10 px-2 py-1 rounded">Unsafe Signal</span>
                         </div>
                         <div className="mb-4">
-                          <h4 className="text-[10px] uppercase text-gray-500 mb-2 font-bold tracking-widest">Adversarial Prompt</h4>
+	                          <h4 className="text-[10px] uppercase text-gray-500 mb-2 font-bold tracking-widest">Request Trace</h4>
                           {res.trace_redacted ? (
                             <TraceDigest label="Prompt Digest" hash={res.prompt_sha256} chars={res.prompt_chars} />
                           ) : (
@@ -517,8 +539,8 @@ export default function DatasetPage({ data, expectedModels }: Props) {
                     <div className="w-16 h-16 rounded-full bg-green-500/10 flex items-center justify-center mb-4 border border-green-500/20">
                       <ShieldAlert className="text-green-500" size={32} />
                     </div>
-                    <h3 className="text-xl font-bold text-white mb-2">Resilient Model</h3>
-                    <p className="text-gray-400 max-w-sm">No successful injections were recorded for this model across all evaluated attack vectors.</p>
+	                    <h3 className="text-xl font-bold text-white mb-2">No Unsafe Signals</h3>
+	                    <p className="text-gray-400 max-w-sm">No unsafe behavior signals were recorded for this model across the evaluated scenarios.</p>
                   </div>
                 )}
               </div>

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Layout from "../components/Layout";
 import { motion } from "framer-motion";
 import { Activity, Shield, ShieldAlert, ShieldCheck, Database, Target, Skull, Cpu, Crosshair } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
 import type { ResultsFile, MetricSet } from "../types/results";
 
 interface Props {
@@ -69,15 +69,19 @@ export default function ResultsPage({ data, expectedModels }: Props) {
 
   const totalModelsCount = Math.max(metadata.models_requested?.length || 0, expectedModels.length);
 
+  const modelProvider = (model: string) => metadata.model_providers?.[model] || (model.includes("/") ? model.split("/")[0] : "ollama-cloud");
+  const modelCohort = (model: string) => metadata.model_cohorts?.[model];
+
   const chartData = models.map(model => {
     const m = metrics_by_model[model] || { overall_vulnerability_score: 0, unsafe_tool_proposal_rate: 0, secret_disclosure_rate: 0 };
     return {
       name: model.split('/').pop(),
-      Vulnerability: Number((m.overall_vulnerability_score * 100).toFixed(1)),
-      ToolAbuse: Number((m.unsafe_tool_proposal_rate * 100).toFixed(1)),
-      Exfiltration: Number((m.secret_disclosure_rate * 100).toFixed(1))
+      UnsafeSignal: Number((m.overall_vulnerability_score * 100).toFixed(1)),
+      UnsafeTools: Number((m.unsafe_tool_proposal_rate * 100).toFixed(1)),
+      Disclosure: Number((m.secret_disclosure_rate * 100).toFixed(1))
     };
   });
+  const chartWidth = Math.max(960, chartData.length * 30);
 
   return (
     <Layout>
@@ -93,10 +97,35 @@ export default function ResultsPage({ data, expectedModels }: Props) {
             </div>
             <div>
               <h1 className="text-4xl font-bold tracking-tight text-white mb-2">Aggregate Results Dashboard</h1>
-              <p className="text-gray-400">Diagnostic telemetry from {metadata.attacks_total || 0} simulated attack scenarios across {totalModelsCount} evaluated models.</p>
+              <p className="text-gray-400">Diagnostic telemetry from {metadata.attacks_total || 0} controlled scenarios across {totalModelsCount} evaluated models.</p>
             </div>
           </div>
         </div>
+
+        {metadata.cohorts && metadata.cohorts.length > 0 && (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-12">
+            {metadata.cohorts.map(cohort => (
+              <div key={cohort.label} className="glass p-5 rounded-2xl border border-white/5">
+                <div className="text-xs text-gray-500 uppercase tracking-widest mb-2">{cohort.provider}</div>
+                <h3 className="text-white font-semibold mb-3">{cohort.label.replace(/-/g, " ")}</h3>
+                <div className="grid grid-cols-3 gap-3 text-sm">
+                  <div>
+                    <div className="text-gray-500 text-xs uppercase">Models</div>
+                    <div className="text-gray-200 font-mono">{cohort.models_requested.length}</div>
+                  </div>
+                  <div>
+                    <div className="text-gray-500 text-xs uppercase">Scored</div>
+                    <div className="text-gray-200 font-mono">{cohort.scored_count}</div>
+                  </div>
+                  <div>
+                    <div className="text-gray-500 text-xs uppercase">Unsafe</div>
+                    <div className="text-gray-200 font-mono">{(cohort.metrics.overall_vulnerability_score * 100).toFixed(1)}%</div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Global Aggregate Highlights */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-16">
@@ -108,7 +137,7 @@ export default function ResultsPage({ data, expectedModels }: Props) {
              <div className="flex items-end gap-2">
                <span className="text-5xl font-bold text-white">{(metrics.overall_vulnerability_score * 100).toFixed(1)}%</span>
              </div>
-             <p className="text-xs text-gray-500 mt-4 leading-relaxed">Share of scored simulated interactions with at least one unsafe behavior flag.</p>
+	             <p className="text-xs text-gray-500 mt-4 leading-relaxed">Share of scored evaluations with at least one unsafe behavior flag.</p>
           </div>
 
           <div className="glass p-6 rounded-2xl border-t-2 border-t-orange-500">
@@ -130,19 +159,18 @@ export default function ResultsPage({ data, expectedModels }: Props) {
              <div className="flex items-end gap-2">
                <span className="text-5xl font-bold text-red-500">{(metrics.secret_disclosure_rate * 100).toFixed(1)}%</span>
              </div>
-             <p className="text-xs text-gray-500 mt-4 leading-relaxed">Share of scored rows marked as secret-disclosure signals.</p>
+	             <p className="text-xs text-gray-500 mt-4 leading-relaxed">Share of scored evaluations marked as secret-disclosure signals.</p>
           </div>
         </div>
 
         {/* Global Chart Visualization */}
         <div className="mb-16">
           <h2 className="text-2xl font-bold text-white flex items-center gap-3 mb-6">
-             <Activity className="text-accent" /> Vulnerability Distribution
+	             <Activity className="text-accent" /> Unsafe Signal Distribution
           </h2>
-          <div className="glass p-6 rounded-2xl h-[400px] w-full border border-white/5">
+          <div className="glass p-6 rounded-2xl h-[400px] w-full border border-white/5 overflow-x-auto custom-scrollbar">
             {chartReady ? (
-              <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-                <BarChart data={chartData} margin={{ top: 20, right: 30, left: 0, bottom: 20 }}>
+                <BarChart width={chartWidth} height={340} data={chartData} margin={{ top: 20, right: 30, left: 0, bottom: 20 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#333" vertical={false} />
                   <XAxis dataKey="name" stroke="#888" tick={{fill: '#888', fontSize: 12}} />
                   <YAxis stroke="#888" tick={{fill: '#888'}} domain={[0, 'auto']} />
@@ -152,23 +180,22 @@ export default function ResultsPage({ data, expectedModels }: Props) {
                     formatter={(value: any) => [`${value}%`]}
                   />
                   <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px' }} />
-                  <Bar dataKey="Vulnerability" name="Overall Vulnerability" fill="#fb923c" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="ToolAbuse" name="Toolchain Abuse" fill="#f87171" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="Exfiltration" name="Data Exfiltration" fill="#c084fc" radius={[4, 4, 0, 0]} />
+	                  <Bar dataKey="UnsafeSignal" name="Overall Unsafe Signal" fill="#fb923c" radius={[4, 4, 0, 0]} />
+	                  <Bar dataKey="UnsafeTools" name="Unsafe Tool Proposal" fill="#f87171" radius={[4, 4, 0, 0]} />
+	                  <Bar dataKey="Disclosure" name="Secret Disclosure Signal" fill="#c084fc" radius={[4, 4, 0, 0]} />
                 </BarChart>
-              </ResponsiveContainer>
             ) : (
               <div className="h-full w-full" />
             )}
           </div>
         </div>
 
-        {/* Model Efficacy Leaderboard */}
+        {/* Model-level signal summary */}
         <div className="mb-6">
           <h2 className="text-2xl font-bold text-white flex items-center gap-3">
              <Crosshair className="text-accent" /> Model-Level Signal Summary
           </h2>
-          <p className="text-gray-400 mt-2 mb-8">Per-model metrics from one simulated agent architecture and hardened heuristic scoring.</p>
+	             <p className="text-gray-400 mt-2 mb-8">Per-model metrics from one representative agent architecture and heuristic scoring.</p>
         </div>
 
         <div className="space-y-4">
@@ -207,13 +234,14 @@ export default function ResultsPage({ data, expectedModels }: Props) {
                     </div>
                     <div>
                       <h3 className="font-mono text-sm text-gray-300 font-bold truncate max-w-[200px]" title={model}>{model.split('/').pop()}</h3>
-                      <p className="text-xs text-gray-500 uppercase tracking-widest mt-1">{model.split('/')[0]}</p>
+	                      <p className="text-xs text-gray-500 uppercase tracking-widest mt-1">{modelProvider(model)}</p>
+                        {modelCohort(model) && <p className="text-[10px] text-gray-600 uppercase tracking-widest mt-1">{modelCohort(model)?.replace(/-/g, " ")}</p>}
                     </div>
                  </div>
 
                  <div className="w-full md:flex-1 grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div>
-                      <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Vuln. Score</p>
+	                      <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Unsafe Signal</p>
                       <p className={`text-xl font-bold ${scoreClass}`}>{(m.overall_vulnerability_score * 100).toFixed(1)}%</p>
                     </div>
                     <div>
@@ -221,11 +249,11 @@ export default function ResultsPage({ data, expectedModels }: Props) {
                       <p className={`text-xl font-bold ${m.unsafe_instruction_adoption_rate > 0 ? "text-orange-400" : "text-gray-300"}`}>{(m.unsafe_instruction_adoption_rate * 100).toFixed(1)}%</p>
                     </div>
                     <div>
-                      <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Tool Abuse</p>
+	                      <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Unsafe Tools</p>
                       <p className={`text-xl font-bold ${m.unsafe_tool_proposal_rate > 0 ? "text-red-400" : "text-gray-300"}`}>{(m.unsafe_tool_proposal_rate * 100).toFixed(1)}%</p>
                     </div>
                     <div>
-                      <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Data Exfil.</p>
+	                      <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Disclosure</p>
                       <p className={`text-xl font-bold ${m.secret_disclosure_rate > 0 ? "text-purple-400" : "text-gray-300"}`}>{(m.secret_disclosure_rate * 100).toFixed(1)}%</p>
                     </div>
                  </div>

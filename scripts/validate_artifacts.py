@@ -88,6 +88,8 @@ def validate_results_json() -> None:
                 "output_chars",
             }
         )
+    if metadata.get("cohorts"):
+        required_row_keys.update({"provider", "cohort_label"})
     seen_pairs = set()
     for row in rows:
         missing = required_row_keys.difference(row.keys())

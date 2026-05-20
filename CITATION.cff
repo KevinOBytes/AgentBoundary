@@ -1,14 +1,14 @@
 cff-version: 1.2.0
 message: "If you use AgentKillChain in academic, policy, or safety evaluation work, please cite it using this metadata."
-title: "AgentKillChain: Persistent Compromise Evaluation for Autonomous AI Agents"
+title: "AgentKillChain: A Controlled Benchmark for Persistent Compromise in Autonomous AI Agents"
 authors:
   - family-names: "O'Connor"
     given-names: "Kevin"
 repository-code: "https://github.com/KevinOBytes/AgentKillChain"
 url: "https://github.com/KevinOBytes/AgentKillChain"
 license: "MIT"
-date-released: "2026-03-10"
-version: "0.1.0-prototype"
+date-released: "2026-05-20"
+version: "1.1.0"
 keywords:
   - "AI safety"
   - "agent evaluation"
@@ -17,7 +17,7 @@ keywords:
   - "tool use"
   - "frontier model evaluation"
 abstract: >-
-  AgentKillChain is an open prototype benchmark for evaluating persistent
-  compromise in simulated autonomous AI agents, including latent memory
-  poisoning, context drift, toolchain confusion, and delayed activation
-  behaviors relevant to frontier model safety evaluation.
+  AgentKillChain is an open, controlled benchmark for evaluating persistent
+  compromise in autonomous AI agents, including memory poisoning, context
+  drift, toolchain confusion, and delayed activation behaviors relevant to
+  agent security and frontier model safety evaluation.

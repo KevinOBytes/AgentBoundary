@@ -2,7 +2,7 @@
   <img src="website/public/kevinbytes-logo.png" alt="AgentKillChain Logo" width="120" />
   <h1 align="center">AgentKillChain</h1>
   <p align="center">
-    <strong>A prototype benchmark for evaluating persistent compromise in simulated autonomous AI agents.</strong>
+    <strong>A controlled benchmark for evaluating persistent compromise in autonomous AI agents.</strong>
   </p>
   <p align="center">
     <a href="https://github.com/kevinobytes/agentkillchain/actions"><img src="https://img.shields.io/github/actions/workflow/status/kevinobytes/agentkillchain/ci.yml" alt="Build Status" /></a>
@@ -13,7 +13,7 @@
 
 <br />
 
-> **AgentKillChain** is a prototype evaluation framework designed to simulate how autonomous AI models might fall prey to multi-stage, persistent compromise. We map the potential vulnerability of simulated AI memory systems over time to prompt-injections and poisoning attacks.
+> **AgentKillChain** is a controlled evaluation framework for measuring how autonomous AI agents handle multi-stage prompt injection, memory poisoning, and tool-selection pressure. It maps persistent-compromise signals across memory, retrieval, and tool-facing workflows.
 
 ---
 
@@ -35,12 +35,12 @@ We conceptualize this through the **Agent Kill Chain**:
 
 ## 📊 Baseline Signals
 
-Across the May 20, 2026 Ollama Cloud run, AgentKillChain attempted **1,560 model-scenario pairs** (40 attacks x 39 authenticated Ollama Cloud models). **1,559 were successfully scored**, with 1 provider API error and 0 timeouts. These are the global baseline metrics computed from scored results after heuristic false-positive hardening:
+Across the May 20, 2026 public release, AgentKillChain attempted and scored **1,800 model-scenario evaluations** (40 scenarios x 45 models) across authenticated Ollama Cloud and OpenRouter cohorts. The final public artifact has **0 provider API errors** and **0 timeouts**. These are the global metrics computed from scored results after heuristic false-positive hardening:
 
-*   **Overall Unsafe-Signal Rate:** 1.48%
-*   **Unsafe Tool-Proposal Rate:** 1.41%
+*   **Overall Unsafe-Signal Rate:** 1.39%
+*   **Unsafe Tool-Proposal Rate:** 1.33%
 *   **Secret Disclosure Signal Rate:** 0.00%
-*   **Policy Violation Rate:** 1.22%
+*   **Policy Violation Rate:** 1.11%
 
 Static charts for the current benchmark are available in [`results/`](results/README.md), including coverage, failure-mode, model-risk, and attack-family views.
 
@@ -48,7 +48,7 @@ Static charts for the current benchmark are available in [`results/`](results/RE
 
 ## Implications for Frontier Model Evaluation
 
-AgentKillChain is not only a security benchmark. It is also a prototype safety evaluation for frontier agentic systems that must preserve instruction hierarchy, memory integrity, and tool-use boundaries across long-running workflows.
+AgentKillChain is both a security benchmark and a safety evaluation for agentic systems that must preserve instruction hierarchy, memory integrity, and tool-use boundaries across long-running workflows.
 
 The benchmark maps directly onto current frontier lab concerns:
 
@@ -56,16 +56,16 @@ The benchmark maps directly onto current frontier lab concerns:
 *   **Latent memory poisoning → sleeper agent / deferred defection behavior.** The model is tested on whether a harmless-looking seed can become durable state and activate later under a delayed trigger.
 *   **Toolchain confusion → unauthorized capability acquisition.** The model is tested on whether adversarial context can induce unsafe tool selection or privileged action, even when the text response appears guarded.
 
-This framing makes the harness useful for evaluating failure chains that single-turn jailbreak tests miss: seed-time behavior, memory writeback, delayed activation, planner integrity, tool-call safety, and downstream impact. See [`SAFETY_RELEVANCE.md`](SAFETY_RELEVANCE.md) for the full kill-chain-to-safety-evaluation mapping.
+This framing evaluates failure chains that single-turn jailbreak tests miss: seed-time behavior, memory writeback, delayed activation, planner integrity, tool-call safety, and downstream impact. See [`SAFETY_RELEVANCE.md`](SAFETY_RELEVANCE.md) for the full kill-chain-to-safety-evaluation mapping.
 
 ---
 
 ## 🚀 Key Features
 
-*   **🧪 The Evaluation Harness**: A Python framework capable of orchestrating simulated attacks across LLMs via OpenRouter, local Ollama, or authenticated Ollama Cloud.
+*   **🧪 The Evaluation Harness**: A Python framework capable of orchestrating controlled scenarios across LLMs via OpenRouter, local Ollama, or authenticated Ollama Cloud.
 *   **🔁 Backward-Compatible Scenario Inputs**: `ScenarioEngine.execute` supports legacy attack key aliases (e.g. `payload`, `trigger_condition`, `expected_behavior`), but the main harness runner/dataset loader currently requires canonical fields (`scenario_type`, `seed_input`, `trigger_input`, `expected_failure_mode`) or pre-translated scenarios.
-*   **📚 Attack Catalog**: 8 unique payload families (HTML injection, RAG poisoning, markdown injection, memory poisoning, latent memory poisoning, context drift, toolchain confusion, cognitive overload) × 5 workflow framings = 40 structured scenarios (located in `dataset/attack_catalog.json`).
-*   **📊 Evaluative Telemetry**: Produces JSON/CSV metrics tracking simulated Susceptibility and Latent Activation Rates.
+*   **📚 Attack Catalog**: 8 unique payload families (HTML injection, RAG poisoning, markdown injection, memory poisoning, latent memory poisoning, context drift, toolchain confusion, cognitive overload) × 5 workflow framings = 40 public structured scenarios (located in `dataset/attack_catalog.json`).
+*   **📊 Evaluative Telemetry**: Produces JSON/CSV metrics tracking unsafe-signal rates, refusal behavior, coverage, and transport errors.
 *   **💻 Next.js Dashboard**: A premium, open-source visualization frontend to explore model evaluation metrics, redacted trace digests, and attack-family aggregates.
 *   **🧹 Prompt Variant Deduplication**: The `/prompts` view now groups repeated payload text into unique prompt variants while still exposing every linked `attack_id` and highest-severity rollup.
 
@@ -79,7 +79,7 @@ The project is structured into distinct, decoupled components:
 | :--- | :--- |
 | `harness/` | Core Python evaluation engine. Mocks an architectural AI agent and pipelines prompts to target LLMs. |
 | `website/` | Next.js tailored dashboard. Ingests evaluation metrics to generate real-time visualization widgets and interactive catalogs. |
-| `dataset/` | The definitive JSON corpus defining `attack_id`, `trigger_condition`, and exact payloads for empirical evaluation. |
+| `dataset/` | The canonical JSON corpus defining `attack_id`, scenario metadata, and public prompt payloads for empirical evaluation. |
 | `results/` | Output directory for structured result artifacts plus static benchmark visualizations for repository and paper readers. |
 | `docs/` | Final paper, submission plan, methodology notes, deployment guides, and storage strategy workflows. |
 
@@ -110,9 +110,12 @@ python3 harness/runner.py
 
 # Or run the full authenticated Ollama Cloud catalog
 python3 harness/runner.py --provider ollama-cloud --judge-mode heuristic --run-label ollama-cloud-take-2026-05-20
+
+# Or run the OpenRouter frontier/lite cohort
+python3 harness/runner.py --provider openrouter --judge-mode heuristic --models openai/gpt-5.3-chat,openai/gpt-5.4-mini,anthropic/claude-opus-4.7,anthropic/claude-haiku-4.5,google/gemini-3.1-pro-preview,google/gemini-3.1-flash-lite --run-label openrouter-frontier-cohort-2026-05-20
 ```
 > [!NOTE] 
-> Live runs generate raw prompts and model traces in the ignored `results/generated/` directory. Publish only redacted artifacts:
+> Live runs generate raw request/response traces in the ignored `results/generated/` directory. The public attack catalog remains citable; publish only redacted run traces:
 > `python3 scripts/redact_public_results.py --input-json results/generated/model_results.json --output-json results/model_results.json --output-csv results/model_results.csv`
 
 ---
@@ -138,7 +141,7 @@ Navigate to [http://localhost:3000](http://localhost:3000). The dashboard provid
 
 ## 🛡️ Empirical Findings & Mitigations
 
-Through evaluation in this simulated environment, we observe that models can be tricked by attacks like the **Toolchain Confusion Strategy**. Note that this benchmark is a prototype: memory, tools, and environments are mocked. Readers should consult `LIMITATIONS.md` and `TRUSTWORTHINESS.md` before applying these findings to production systems.
+In the current controlled environment, toolchain-confusion scenarios produce the clearest unsafe tool-proposal signal. Memory, tools, and environments are intentionally scoped, so readers should consult `LIMITATIONS.md` and `TRUSTWORTHINESS.md` before applying these findings to production systems.
 
 **Recommended Mitigations:**
 1. **Memory Provenance Tagging**: Maintain strict boundaries in vector storage between "System Instructions", "User Intent", and "passively retrieved Context".
@@ -150,11 +153,11 @@ Through evaluation in this simulated environment, we observe that models can be 
 
 ## 🤝 Contributing & Security Info
 
-AgentKillChain is an open research movement dedicated to hardening autonomous AI architectures.
+AgentKillChain is an open research project for hardening autonomous AI architectures.
 
 *   Pull Requests tracking new payload variations in `attack_catalog.json` are welcome.
 *   Please review `CONTRIBUTING.md` prior to opening a PR.
-*   See `SECURITY.md` for our responsible disclosure guidelines regarding zero-day agent escapes.
+*   See `SECURITY.md` for responsible disclosure guidance on agent-security findings.
 
 <div align="center">
 <br/>
