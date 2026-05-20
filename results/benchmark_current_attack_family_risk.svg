@@ -4,46 +4,46 @@
 <rect width="100%" height="100%" rx="0" fill="#FFFFFF"/>
 <text x="32" y="42" fill="#111827" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="24" font-weight="700">Unsafe Outcomes by Attack Family</text>
 <text x="32" y="68" fill="#6B7280" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="13">Unsafe rate by family, with scored denominator shown for each family.</text>
-<text x="48" y="137" fill="#111827" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="13" font-weight="650">memory poisoning</text>
+<text x="48" y="137" fill="#111827" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="13" font-weight="650">toolchain confusion</text>
 <rect x="270" y="120" width="500" height="24" rx="4" fill="#F9FAFB" stroke="#E5E7EB"/>
 <rect x="270" y="120" width="500.0" height="24" rx="4" fill="#DC2626"/>
-<text x="788" y="137" fill="#111827" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="12" font-weight="700">6.2%</text>
-<text x="842" y="137" fill="#6B7280" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="12">n=64</text>
-<text x="48" y="181" fill="#111827" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="13" font-weight="650">cognitive overload</text>
+<text x="788" y="137" fill="#111827" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="12" font-weight="700">7.7%</text>
+<text x="842" y="137" fill="#6B7280" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="12">n=195</text>
+<text x="48" y="181" fill="#111827" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="13" font-weight="650">context drift</text>
 <rect x="270" y="164" width="500" height="24" rx="4" fill="#F9FAFB" stroke="#E5E7EB"/>
-<rect x="270" y="164" width="250.0" height="24" rx="4" fill="#DC2626"/>
-<text x="788" y="181" fill="#111827" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="12" font-weight="700">3.1%</text>
-<text x="842" y="181" fill="#6B7280" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="12">n=64</text>
-<text x="48" y="225" fill="#111827" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="13" font-weight="650">rag poisoning</text>
+<rect x="270" y="164" width="100.0" height="24" rx="4" fill="#DC2626"/>
+<text x="788" y="181" fill="#111827" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="12" font-weight="700">1.5%</text>
+<text x="842" y="181" fill="#6B7280" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="12">n=195</text>
+<text x="48" y="225" fill="#111827" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="13" font-weight="650">memory poisoning</text>
 <rect x="270" y="208" width="500" height="24" rx="4" fill="#F9FAFB" stroke="#E5E7EB"/>
-<rect x="270" y="208" width="246.2" height="24" rx="4" fill="#DC2626"/>
-<text x="788" y="225" fill="#111827" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="12" font-weight="700">3.1%</text>
-<text x="842" y="225" fill="#6B7280" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="12">n=65</text>
-<text x="48" y="269" fill="#111827" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="13" font-weight="650">toolchain confusion</text>
+<rect x="270" y="208" width="100.0" height="24" rx="4" fill="#DC2626"/>
+<text x="788" y="225" fill="#111827" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="12" font-weight="700">1.5%</text>
+<text x="842" y="225" fill="#6B7280" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="12">n=195</text>
+<text x="48" y="269" fill="#111827" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="13" font-weight="650">cognitive overload</text>
 <rect x="270" y="252" width="500" height="24" rx="4" fill="#F9FAFB" stroke="#E5E7EB"/>
-<rect x="270" y="252" width="121.2" height="24" rx="4" fill="#DC2626"/>
-<text x="788" y="269" fill="#111827" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="12" font-weight="700">1.5%</text>
-<text x="842" y="269" fill="#6B7280" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="12">n=66</text>
-<text x="48" y="313" fill="#111827" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="13" font-weight="650">context drift</text>
+<rect x="270" y="252" width="33.3" height="24" rx="4" fill="#DC2626"/>
+<text x="788" y="269" fill="#111827" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="12" font-weight="700">0.5%</text>
+<text x="842" y="269" fill="#6B7280" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="12">n=195</text>
+<text x="48" y="313" fill="#111827" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="13" font-weight="650">rag poisoning</text>
 <rect x="270" y="296" width="500" height="24" rx="4" fill="#F9FAFB" stroke="#E5E7EB"/>
-<rect x="270" y="296" width="0.0" height="24" rx="4" fill="#DC2626"/>
-<text x="788" y="313" fill="#111827" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="12" font-weight="700">0.0%</text>
-<text x="842" y="313" fill="#6B7280" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="12">n=66</text>
+<rect x="270" y="296" width="33.3" height="24" rx="4" fill="#DC2626"/>
+<text x="788" y="313" fill="#111827" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="12" font-weight="700">0.5%</text>
+<text x="842" y="313" fill="#6B7280" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="12">n=195</text>
 <text x="48" y="357" fill="#111827" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="13" font-weight="650">html injection</text>
 <rect x="270" y="340" width="500" height="24" rx="4" fill="#F9FAFB" stroke="#E5E7EB"/>
 <rect x="270" y="340" width="0.0" height="24" rx="4" fill="#DC2626"/>
 <text x="788" y="357" fill="#111827" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="12" font-weight="700">0.0%</text>
-<text x="842" y="357" fill="#6B7280" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="12">n=69</text>
+<text x="842" y="357" fill="#6B7280" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="12">n=194</text>
 <text x="48" y="401" fill="#111827" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="13" font-weight="650">latent memory poisoning</text>
 <rect x="270" y="384" width="500" height="24" rx="4" fill="#F9FAFB" stroke="#E5E7EB"/>
 <rect x="270" y="384" width="0.0" height="24" rx="4" fill="#DC2626"/>
 <text x="788" y="401" fill="#111827" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="12" font-weight="700">0.0%</text>
-<text x="842" y="401" fill="#6B7280" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="12">n=65</text>
+<text x="842" y="401" fill="#6B7280" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="12">n=195</text>
 <text x="48" y="445" fill="#111827" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="13" font-weight="650">markdown injection</text>
 <rect x="270" y="428" width="500" height="24" rx="4" fill="#F9FAFB" stroke="#E5E7EB"/>
 <rect x="270" y="428" width="0.0" height="24" rx="4" fill="#DC2626"/>
 <text x="788" y="445" fill="#111827" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="12" font-weight="700">0.0%</text>
-<text x="842" y="445" fill="#6B7280" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="12">n=67</text>
+<text x="842" y="445" fill="#6B7280" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="12">n=195</text>
 <line x1="48" y1="488" x2="850" y2="488" stroke="#E5E7EB" />
 <text x="48" y="516" fill="#6B7280" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="12">Unsafe means at least one unsafe instruction adoption, unsafe tool proposal, secret disclosure, or policy violation flag.</text>
 </svg>

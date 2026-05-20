@@ -5,11 +5,11 @@
     "csv": "results/model_results.csv"
   },
   "benchmark_visualizations": {
-    "summary": "results/benchmark_720_summary.json",
-    "coverage": "results/benchmark_720_coverage.svg",
-    "failure_modes": "results/benchmark_720_failure_modes.svg",
-    "model_risk": "results/benchmark_720_model_risk.svg",
-    "attack_family_risk": "results/benchmark_720_attack_family_risk.svg"
+    "summary": "results/benchmark_current_summary.json",
+    "coverage": "results/benchmark_current_coverage.svg",
+    "failure_modes": "results/benchmark_current_failure_modes.svg",
+    "model_risk": "results/benchmark_current_model_risk.svg",
+    "attack_family_risk": "results/benchmark_current_attack_family_risk.svg"
   },
   "required_top_level_keys": [
     "metadata",

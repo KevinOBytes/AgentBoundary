@@ -87,23 +87,23 @@ export default function Home() {
       >
         <h2 className="text-3xl font-bold text-white mb-6 text-center">The New Metrics</h2>
         <p className="text-gray-400 text-center max-w-3xl mx-auto mb-8">
-          Running a true 720 attack scenarios produced these updated global baseline metrics, which actually remained roughly stable despite adding all the new architectures:
+          The May 20, 2026 Ollama Cloud sweep scored 1,559 of 1,560 attempted model-scenario pairs across 39 cloud models:
         </p>
         <div className="grid gap-6 md:grid-cols-3">
           <div className="glass p-6 rounded-2xl border-t-2 border-red-500 flex flex-col items-center text-center transition-transform hover:scale-105">
             <h3 className="text-gray-300 font-medium mb-2 uppercase tracking-wider text-sm">Global Compromise Rate</h3>
-            <div className="text-5xl font-extrabold text-white mb-2">1.71%</div>
-            <p className="text-sm text-gray-500">(Up slightly from 1.63%)</p>
+            <div className="text-5xl font-extrabold text-white mb-2">1.48%</div>
+            <p className="text-sm text-gray-500">Hardened heuristic scoring</p>
           </div>
           <div className="glass p-6 rounded-2xl border-t-2 border-orange-500 flex flex-col items-center text-center transition-transform hover:scale-105">
             <h3 className="text-gray-300 font-medium mb-2 uppercase tracking-wider text-sm">Toolchain Abuse Rate</h3>
-            <div className="text-5xl font-extrabold text-white mb-2">0.38%</div>
-            <p className="text-sm text-gray-500">(Down slightly)</p>
+            <div className="text-5xl font-extrabold text-white mb-2">1.41%</div>
+            <p className="text-sm text-gray-500">Unsafe tool proposals</p>
           </div>
           <div className="glass p-6 rounded-2xl border-t-2 border-yellow-500 flex flex-col items-center text-center transition-transform hover:scale-105">
             <h3 className="text-gray-300 font-medium mb-2 uppercase tracking-wider text-sm">Data Exfiltration</h3>
-            <div className="text-5xl font-extrabold text-white mb-2">0.19%</div>
-            <p className="text-sm text-gray-500">(Down slightly)</p>
+            <div className="text-5xl font-extrabold text-white mb-2">0.00%</div>
+            <p className="text-sm text-gray-500">No scored secret disclosure</p>
           </div>
         </div>
       </motion.section>
