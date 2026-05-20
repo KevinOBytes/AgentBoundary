@@ -144,6 +144,25 @@ def parse_models(provider: str = "openrouter", cli_models: str | None = None) ->
     return [m.strip() for m in value.split(",") if m.strip()]
 
 
+def parse_attack_ids(cli_attack_ids: str | None = None) -> set[str] | None:
+    if not cli_attack_ids:
+        return None
+    attack_ids = {attack_id.strip() for attack_id in cli_attack_ids.split(",") if attack_id.strip()}
+    return attack_ids or None
+
+
+def filter_attacks(attacks: List[dict], attack_ids: set[str] | None = None) -> List[dict]:
+    if not attack_ids:
+        return attacks
+
+    available_ids = {attack["attack_id"] for attack in attacks}
+    missing_ids = sorted(attack_ids.difference(available_ids))
+    if missing_ids:
+        raise ValueError(f"Unknown attack_id values: {', '.join(missing_ids)}")
+
+    return [attack for attack in attacks if attack["attack_id"] in attack_ids]
+
+
 def write_csv(rows: List[dict], csv_path: Path) -> None:
     csv_path.parent.mkdir(parents=True, exist_ok=True)
     fieldnames = [
@@ -153,6 +172,8 @@ def write_csv(rows: List[dict], csv_path: Path) -> None:
         "phase",
         "scenario_type",
         "model",
+        "provider",
+        "cohort_label",
         "status",
         "error_type",
         "refusal_detected",
@@ -175,6 +196,8 @@ def write_csv(rows: List[dict], csv_path: Path) -> None:
                     "phase": row["phase"],
                     "scenario_type": row["scenario_type"],
                     "model": row["model"],
+                    "provider": row.get("provider"),
+                    "cohort_label": row.get("cohort_label"),
                     "status": row["status"],
                     "error_type": row["error_type"],
                     "prompt": row["prompt"],
@@ -184,7 +207,15 @@ def write_csv(rows: List[dict], csv_path: Path) -> None:
             )
 
 
-def _base_error_row(attack: dict, model: str, status: str, error_type: str, output: str) -> dict:
+def _base_error_row(
+    attack: dict,
+    model: str,
+    status: str,
+    error_type: str,
+    output: str,
+    provider: str | None = None,
+    cohort_label: str | None = None,
+) -> dict:
     return {
         "attack_id": attack.get("attack_id"),
         "campaign_id": attack.get("campaign_id"),
@@ -192,6 +223,8 @@ def _base_error_row(attack: dict, model: str, status: str, error_type: str, outp
         "phase": attack.get("phase"),
         "scenario_type": attack.get("scenario_type"),
         "model": model,
+        "provider": provider,
+        "cohort_label": cohort_label,
         "status": status,
         "error_type": error_type,
         "prompt": "",
@@ -240,6 +273,8 @@ def _run_attack_single(attack: dict, model: str, engine: ScenarioEngine, adapter
             "phase": attack.get("phase"),
             "scenario_type": attack.get("scenario_type"),
             "model": result.model,
+            "provider": args.provider,
+            "cohort_label": args.run_label,
             "status": "scored",
             "error_type": None,
             "prompt": result.prompt,
@@ -254,10 +289,12 @@ def _run_attack_single(attack: dict, model: str, engine: ScenarioEngine, adapter
             "timed_out",
             "TimeoutError",
             f"API Error: Timeout after {args.per_attack_timeout} seconds",
+            args.provider,
+            args.run_label,
         )
     except Exception as e:
         print(f"[{model}] Failed to process attack {attack.get('attack_id')}: {e}", flush=True)
-        return _base_error_row(attack, model, "api_error", type(e).__name__, f"API Error: {e}")
+        return _base_error_row(attack, model, "api_error", type(e).__name__, f"API Error: {e}", args.provider, args.run_label)
 
 
 def campaign_groups(attacks: List[dict]) -> "OrderedDict[str, List[dict]]":
@@ -300,6 +337,7 @@ def main() -> None:
     parser.add_argument("--dry-run", action="store_true", help="Skip API calls and use deterministic outputs")
     parser.add_argument("--provider", choices=["openrouter", "ollama", "ollama-cloud"], default=os.getenv("AKC_PROVIDER", "openrouter"))
     parser.add_argument("--models", help="Comma-separated model list. Overrides MODELS/OLLAMA_MODELS/defaults.")
+    parser.add_argument("--attack-ids", help="Comma-separated attack_id filter for targeted reruns.")
     parser.add_argument("--judge-mode", choices=["llm", "heuristic"], default=None)
     parser.add_argument("--system-prompt", default=None)
     parser.add_argument("--max-workers", type=int, default=None)
@@ -310,7 +348,7 @@ def main() -> None:
     args = parser.parse_args()
 
     load_env(ROOT / ".env")
-    attacks = load_attacks()
+    attacks = filter_attacks(load_attacks(), parse_attack_ids(args.attack_ids))
     models = parse_models(args.provider, args.models)
     if args.judge_mode is None:
         args.judge_mode = "heuristic" if args.provider in {"ollama", "ollama-cloud"} or args.dry_run else "llm"

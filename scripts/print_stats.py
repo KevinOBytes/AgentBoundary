@@ -51,7 +51,7 @@ def main():
             print(f"Models Requested: {', '.join(meta.get('models_requested', []))}")
             print(f"Scored: {meta.get('scored_count', 0)}, Timeouts: {meta.get('timeout_count', 0)}, Errors: {meta.get('error_count', 0)}")
             
-            print("\nVulnerability Scores by Model:")
+            print("\nUnsafe-Signal Scores by Model:")
             metrics_by_model = results.get("metrics_by_model", {})
             for model, metrics in metrics_by_model.items():
                 score = metrics.get('overall_vulnerability_score', 0) * 100

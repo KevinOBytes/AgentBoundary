@@ -38,6 +38,7 @@ results/*trace*
 *.sqlite
 *.sqlite3
 *.db
+.playwright-mcp/
 
 # OS
 .DS_Store

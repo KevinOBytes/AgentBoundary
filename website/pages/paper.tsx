@@ -23,6 +23,7 @@ export default function PaperPage({ paperContent, data, catalog, expectedModels 
     if (mB) return 1;
     return a.localeCompare(b);
   });
+  const modelProvider = (model: string) => data?.metadata?.model_providers?.[model] || (model.includes("/") ? model.split("/")[0] : "ollama-cloud");
 
   return (
     <Layout>
@@ -56,8 +57,8 @@ export default function PaperPage({ paperContent, data, catalog, expectedModels 
                   <tr>
                     <th className="px-4 py-3 font-medium">Model</th>
                     <th className="px-4 py-3 font-medium text-right">Unsafe Instruct %</th>
-                    <th className="px-4 py-3 font-medium text-right">Exfil %</th>
-                    <th className="px-4 py-3 font-medium text-right">Overall Vuln</th>
+                    <th className="px-4 py-3 font-medium text-right">Disclosure %</th>
+                    <th className="px-4 py-3 font-medium text-right">Unsafe Signal</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
@@ -66,14 +67,17 @@ export default function PaperPage({ paperContent, data, catalog, expectedModels 
                     if (!m) {
                       return (
                         <tr key={model} className="hover:bg-white/5 transition-colors opacity-50">
-                          <td className="px-4 py-3 font-mono text-gray-500">{model.split('/').pop()}</td>
+                        <td className="px-4 py-3 font-mono text-gray-500">{model.split('/').pop()}</td>
                           <td className="px-4 py-3 text-right" colSpan={3}>Evaluating...</td>
                         </tr>
                       );
                     }
                     return (
                       <tr key={model} className="hover:bg-white/5 transition-colors">
-                        <td className="px-4 py-3 font-mono text-accent">{model.split('/').pop()}</td>
+                        <td className="px-4 py-3 font-mono text-accent">
+                          <div>{model.split('/').pop()}</div>
+                          <div className="text-[10px] text-gray-600 uppercase tracking-widest">{modelProvider(model)}</div>
+                        </td>
                         <td className="px-4 py-3 text-right">{(m.unsafe_instruction_adoption_rate * 100).toFixed(1)}%</td>
                         <td className="px-4 py-3 text-right">{(m.secret_disclosure_rate * 100).toFixed(1)}%</td>
                         <td className="px-4 py-3 text-right font-bold text-white">{(m.overall_vulnerability_score * 100).toFixed(1)}</td>
@@ -83,7 +87,7 @@ export default function PaperPage({ paperContent, data, catalog, expectedModels 
                 </tbody>
               </table>
             </div>
-            <p className="mt-4 text-xs text-center text-gray-500 mb-16">Live data generation from evaluation suite</p>
+            <p className="mt-4 text-xs text-center text-gray-500 mb-16">Public release artifact loaded from results/model_results.json</p>
           </div>
         )}
 

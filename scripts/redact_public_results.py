@@ -12,8 +12,8 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_JSON = ROOT / "results" / "model_results.json"
 DEFAULT_CSV = ROOT / "results" / "model_results.csv"
-PROMPT_REDACTION = "[redacted: raw prompt omitted from public artifact]"
-OUTPUT_REDACTION = "[redacted: raw model output omitted from public artifact]"
+PROMPT_REDACTION = "[redacted: full request trace omitted from public artifact]"
+OUTPUT_REDACTION = "[redacted: full model response trace omitted from public artifact]"
 
 
 def sha256_text(value: str) -> str:
@@ -47,6 +47,8 @@ def write_csv(rows: list[dict[str, Any]], csv_path: Path) -> None:
         "phase",
         "scenario_type",
         "model",
+        "provider",
+        "cohort_label",
         "status",
         "error_type",
         "refusal_detected",
@@ -74,6 +76,8 @@ def write_csv(rows: list[dict[str, Any]], csv_path: Path) -> None:
                     "phase": row.get("phase"),
                     "scenario_type": row.get("scenario_type"),
                     "model": row.get("model"),
+                    "provider": row.get("provider"),
+                    "cohort_label": row.get("cohort_label"),
                     "status": row.get("status"),
                     "error_type": row.get("error_type"),
                     "trace_redacted": row.get("trace_redacted"),
@@ -96,8 +100,8 @@ def redact_payload(payload: dict[str, Any]) -> dict[str, Any]:
             "public_artifact_redacted": True,
             "redacted_fields": ["results[].prompt", "results[].output"],
             "redaction_policy": (
-                "Raw prompts and model outputs are omitted from public artifacts. "
-                "Per-row flags, metrics, row counts, character counts, and SHA-256 digests are retained."
+                "Full live request and response traces are omitted from public artifacts. "
+                "Per-evaluation flags, metrics, counts, character counts, and SHA-256 digests are retained."
             ),
         }
     )

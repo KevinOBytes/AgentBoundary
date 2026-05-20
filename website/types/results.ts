@@ -11,6 +11,9 @@ export type ResultEntry = {
   attack_id: string;
   campaign_id: string;
   model: string;
+  provider?: string;
+  cohort_label?: string;
+  status?: string;
   prompt?: string;
   output?: string;
   trace_redacted?: boolean;
@@ -33,6 +36,22 @@ export type ResultsFile = {
     run_timestamp: string;
     dry_run: boolean;
     models_requested: string[];
+    provider?: string;
+    providers?: string[];
+    cohorts?: Array<{
+      label: string;
+      provider: string;
+      run_label: string;
+      models_requested: string[];
+      attempted_count: number;
+      scored_count: number;
+      timeout_count: number;
+      error_count: number;
+      metrics: MetricSet;
+    }>;
+    model_providers?: Record<string, string>;
+    model_cohorts?: Record<string, string>;
+    result_grain?: string;
     public_artifact_redacted?: boolean;
     redacted_fields?: string[];
     redaction_policy?: string;

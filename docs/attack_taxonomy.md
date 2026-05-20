@@ -17,7 +17,7 @@ flowchart LR
   B --> C[Persistence]
   C --> D[Latent Activation]
   D --> E[Escalation]
-  E --> F[Exfiltration]
+  E --> F[Impact / Disclosure]
 ```
 
 ## Diagram: latent timeline

@@ -1,15 +1,15 @@
 # Benchmark Visualizations
 
 This directory contains public benchmark outputs and static visualizations for
-the current AgentKillChain benchmark run. Public result artifacts redact raw
-request prompts and raw model outputs while retaining metrics, flags, row
-counts, character counts, and SHA-256 digests.
+the current AgentKillChain benchmark release. Public result artifacts keep the
+attack catalog public while redacting full live request/response traces. They
+retain metrics, flags, evaluation counts, character counts, and SHA-256 digests.
 
-The current artifact is the Ollama Cloud run from May 20, 2026: 40 attack
-scenarios across 39 authenticated Ollama Cloud models, for 1,560 attempted
-model-scenario pairs. The run produced 1,559 scored rows, 1 API error row, and
-0 timeouts. Rates are computed over scored scenarios unless explicitly labeled
-as attempted-rate metrics.
+The current artifact is the May 20, 2026 multi-provider release: 40 attack
+scenarios across 45 models from authenticated Ollama Cloud and OpenRouter
+cohorts, for 1,800 scored model-scenario evaluations. The final artifact has
+0 API errors and 0 timeouts. Rates are computed over scored evaluations unless
+explicitly labeled as attempted-rate metrics.
 
 ## Coverage
 
@@ -21,7 +21,7 @@ as attempted-rate metrics.
 
 ## Model-Level Risk
 
-![Model-level vulnerability and refusal rates](benchmark_current_model_risk.svg)
+![Model-level unsafe-signal and refusal rates](benchmark_current_model_risk.svg)
 
 ## Attack Family Risk
 

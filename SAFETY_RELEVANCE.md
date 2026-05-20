@@ -68,7 +68,6 @@ for frontier agent deployment:
 - scored distinctions between refusal, unsafe instruction adoption, tool abuse,
   secret disclosure, and transport failures.
 
-This makes the framework useful as a small, reproducible prototype for
+This makes the framework a controlled, reproducible harness for
 evaluating whether agentic systems remain aligned when memory and tools create
 longer causal chains between adversarial input and harmful action.
-

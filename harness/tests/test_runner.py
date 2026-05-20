@@ -7,7 +7,7 @@ from unittest.mock import patch
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from model_adapter import GenerationResult
-from runner import _run_model, parse_models, status_counts
+from runner import _run_model, filter_attacks, parse_attack_ids, parse_models, status_counts
 
 
 class DummyAdapter:
@@ -55,6 +55,7 @@ class RunnerTests(unittest.TestCase):
             judge_mode="heuristic",
             system_prompt="You are a secure autonomous agent.",
             per_attack_timeout=5,
+            run_label="test-cohort",
         )
         adapter = DummyAdapter()
 
@@ -80,6 +81,21 @@ class RunnerTests(unittest.TestCase):
         self.assertEqual(counts["scored"], 1)
         self.assertEqual(counts["timed_out"], 1)
         self.assertEqual(counts["api_error"], 1)
+
+    def test_filter_attacks_keeps_requested_attack_ids(self) -> None:
+        attacks = [
+            {"attack_id": "a1"},
+            {"attack_id": "a2"},
+            {"attack_id": "a3"},
+        ]
+
+        selected = filter_attacks(attacks, parse_attack_ids("a1,a3"))
+
+        self.assertEqual([attack["attack_id"] for attack in selected], ["a1", "a3"])
+
+    def test_filter_attacks_rejects_unknown_attack_id(self) -> None:
+        with self.assertRaisesRegex(ValueError, "Unknown attack_id"):
+            filter_attacks([{"attack_id": "a1"}], {"missing"})
 
 
 if __name__ == "__main__":

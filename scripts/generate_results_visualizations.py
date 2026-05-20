@@ -76,7 +76,7 @@ def matrix_label(results: dict[str, Any]) -> str:
     attempted = status_summary(results)["attempted"]
     models = int(metadata.get("models_total") or len(metadata.get("models_requested", [])))
     attacks = int(metadata.get("attacks_total", 0))
-    return f"{attempted:,} attempts: {attacks} scenarios x {models} models"
+    return f"{attempted:,} evaluations: {attacks} scenarios x {models} models"
 
 
 def family_summary(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -132,7 +132,7 @@ def write_summary(results: dict[str, Any], source: str, output: Path) -> None:
         "benchmark_version": metadata.get("benchmark_version"),
         "models_requested": metadata.get("models_requested", []),
         "attacks_total": metadata.get("attacks_total"),
-        "attempted_scenarios": status_summary(results)["attempted"],
+        "attempted_evaluations": status_summary(results)["attempted"],
         "outcomes": status_summary(results),
         "global_metrics": results["metrics"],
         "metrics_by_model": results["metrics_by_model"],
@@ -167,7 +167,7 @@ def write_outcome_chart(results: dict[str, Any], output: Path) -> None:
     ]
     width, height = 920, 430
     parts = svg_header(
-        f"{attempted:,}-Attempt Benchmark Coverage",
+        f"{attempted:,}-Evaluation Benchmark Coverage",
         f"Outcome mix across {matrix_label(results)}.",
         width,
         height,
@@ -189,7 +189,7 @@ def write_outcome_chart(results: dict[str, Any], output: Path) -> None:
                 f'<rect x="{x}" y="{label_y - 48}" width="14" height="14" rx="2" fill="{color}"/>',
                 f'<text x="{x + 24}" y="{label_y - 36}" fill="{PALETTE["ink"]}" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="15" font-weight="700">{html.escape(label)}</text>',
                 f'<text x="{x}" y="{label_y}" fill="{PALETTE["ink"]}" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="38" font-weight="800">{count}</text>',
-                f'<text x="{x}" y="{label_y + 26}" fill="{PALETTE["muted"]}" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="13">{count / attempted * 100:.1f}% of attempts</text>',
+                f'<text x="{x}" y="{label_y + 26}" fill="{PALETTE["muted"]}" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="13">{count / attempted * 100:.1f}% of evaluations</text>',
             ]
         )
 
@@ -207,14 +207,14 @@ def write_global_metrics_chart(results: dict[str, Any], output: Path) -> None:
     summary = status_summary(results)
     metrics = [
         ("Unsafe instruction adoption", results["metrics"]["unsafe_instruction_adoption_rate"], PALETTE["risk"]),
-        ("Toolchain abuse", results["metrics"]["unsafe_tool_proposal_rate"], PALETTE["warn"]),
-        ("Data exfiltration", results["metrics"]["secret_disclosure_rate"], PALETTE["accent"]),
+        ("Unsafe tool proposal", results["metrics"]["unsafe_tool_proposal_rate"], PALETTE["warn"]),
+        ("Secret disclosure signal", results["metrics"]["secret_disclosure_rate"], PALETTE["accent"]),
         ("Policy violation", results["metrics"]["policy_violation_rate"], PALETTE["muted"]),
     ]
     width, height = 920, 450
     parts = svg_header(
         "Safety-Relevant Failure Modes",
-        f"Rates over {summary['scored']:,} scored scenarios from the {summary['attempted']:,}-attempt benchmark.",
+        f"Rates over {summary['scored']:,} scored evaluations from the {summary['attempted']:,}-evaluation benchmark.",
         width,
         height,
     )
@@ -240,7 +240,7 @@ def write_global_metrics_chart(results: dict[str, Any], output: Path) -> None:
 
     parts.extend(
         [
-            f'<text x="72" y="418" fill="{PALETTE["muted"]}" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="12">Interpretation: low absolute rates still matter because these are latent, tool-mediated agent failures under a mocked harness.</text>',
+            f'<text x="72" y="418" fill="{PALETTE["muted"]}" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="12">Interpretation: low absolute rates still matter because these are latent, tool-mediated agent failures under a controlled harness.</text>',
         ]
     )
     output.write_text(svg_footer(parts))
@@ -257,7 +257,7 @@ def write_model_chart(results: dict[str, Any], output: Path) -> None:
     height = max(height, 150 + len(rows) * 34)
     parts = svg_header(
         "Model-Level Risk and Refusal Rates",
-        "Overall vulnerability score and refusal behavior among scored scenarios.",
+        "Overall unsafe-signal score and refusal behavior among scored evaluations.",
         width,
         height,
     )
@@ -267,7 +267,7 @@ def write_model_chart(results: dict[str, Any], output: Path) -> None:
 
     parts.extend(
         [
-            f'<text x="{left}" y="94" fill="{PALETTE["risk"]}" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="12" font-weight="700">Vulnerability</text>',
+            f'<text x="{left}" y="94" fill="{PALETTE["risk"]}" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="12" font-weight="700">Unsafe signal</text>',
             f'<text x="{left + risk_w + 82}" y="94" fill="{PALETTE["scored"]}" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="12" font-weight="700">Refusal</text>',
         ]
     )
