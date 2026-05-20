@@ -41,5 +41,6 @@ The generator writes:
 - `results/benchmark_current_model_risk.svg`
 - `results/benchmark_current_attack_family_risk.svg`
 
-Raw live-run traces should stay outside the public repository, preferably under
-the ignored `results/generated/` directory or in private archival storage.
+Raw live-run and dry-run traces should stay outside the public repository,
+preferably under the ignored `results/generated/` directory or in private
+archival storage.

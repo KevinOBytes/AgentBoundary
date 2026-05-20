@@ -1,0 +1,21 @@
+*.pdf binary
+*.png binary
+
+# Keep private/local artifacts out of git-archive release bundles.
+.env export-ignore
+.env.* export-ignore
+results/generated/ export-ignore
+results/raw/ export-ignore
+results/private/ export-ignore
+results/archive/ export-ignore
+results/dry_run_results.* export-ignore
+results/*raw* export-ignore
+results/*trace* export-ignore
+*.raw.json export-ignore
+*.raw.csv export-ignore
+*.trace.json export-ignore
+*.trace.jsonl export-ignore
+*.log export-ignore
+*.sqlite export-ignore
+*.sqlite3 export-ignore
+*.db export-ignore
