@@ -63,14 +63,14 @@ export default function Home() {
           <span className="text-accent font-mono text-sm tracking-widest uppercase font-semibold">Security Research Benchmark</span>
         </div>
         <h1 className="relative z-10 max-w-4xl text-5xl md:text-6xl font-extrabold tracking-tight mb-6 bg-gradient-to-br from-white via-white to-gray-500 bg-clip-text text-transparent pb-1">
-          Evaluating Persistent Compromise in Autonomous AI Squads
+          Evaluating Persistent Compromise in Autonomous AI Agents
         </h1>
         <p className="relative z-10 mt-4 max-w-2xl text-xl leading-relaxed text-gray-400">
-          AgentKillChain is an open, reproducible framework for stress-testing AI agents against latent prompt injection and memory poisoning attacks.
+          AgentKillChain is an open, reproducible prototype benchmark for stress-testing AI agents against latent prompt injection, memory poisoning, and toolchain confusion.
         </p>
         <div className="mt-8 flex gap-4 relative z-10">
           <a href="/paper" className="inline-flex items-center gap-2 rounded-lg bg-accent px-6 py-3 font-semibold text-black transition-transform hover:scale-105 hover:bg-green-400">
-            Read Whitepaper
+            Read Paper
           </a>
           <a href="https://github.com/KevinOBytes/agentkillchain" target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 px-6 py-3 font-semibold text-white transition-all hover:scale-105">
             <Cpu size={18} />
@@ -86,20 +86,20 @@ export default function Home() {
         transition={{ duration: 0.6 }}
         className="mb-16 relative z-10"
       >
-        <h2 className="text-3xl font-bold text-white mb-6 text-center">The New Metrics</h2>
+        <h2 className="text-3xl font-bold text-white mb-6 text-center">Baseline Signals</h2>
         <p className="text-gray-400 text-center max-w-3xl mx-auto mb-8">
           The May 20, 2026 Ollama Cloud sweep scored 1,559 of 1,560 attempted model-scenario pairs across 39 cloud models:
         </p>
         <div className="grid gap-6 md:grid-cols-3">
           <div className="glass p-6 rounded-2xl border-t-2 border-red-500 flex flex-col items-center text-center transition-transform hover:scale-105">
-            <h3 className="text-gray-300 font-medium mb-2 uppercase tracking-wider text-sm">Global Compromise Rate</h3>
+            <h3 className="text-gray-300 font-medium mb-2 uppercase tracking-wider text-sm">Overall Unsafe Signal</h3>
             <div className="text-5xl font-extrabold text-white mb-2">1.48%</div>
             <p className="text-sm text-gray-500">Hardened heuristic scoring</p>
           </div>
           <div className="glass p-6 rounded-2xl border-t-2 border-orange-500 flex flex-col items-center text-center transition-transform hover:scale-105">
             <h3 className="text-gray-300 font-medium mb-2 uppercase tracking-wider text-sm">Toolchain Abuse Rate</h3>
             <div className="text-5xl font-extrabold text-white mb-2">1.41%</div>
-            <p className="text-sm text-gray-500">Unsafe tool proposals</p>
+            <p className="text-sm text-gray-500">Unsafe tool-proposal signals</p>
           </div>
           <div className="glass p-6 rounded-2xl border-t-2 border-yellow-500 flex flex-col items-center text-center transition-transform hover:scale-105">
             <h3 className="text-gray-300 font-medium mb-2 uppercase tracking-wider text-sm">Data Exfiltration</h3>

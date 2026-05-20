@@ -93,7 +93,7 @@ export default function ResultsPage({ data, expectedModels }: Props) {
             </div>
             <div>
               <h1 className="text-4xl font-bold tracking-tight text-white mb-2">Aggregate Results Dashboard</h1>
-              <p className="text-gray-400">Diagnostic telemetry from {metadata.attacks_total || 0} orchestrated attacks across {totalModelsCount} sovereign models.</p>
+              <p className="text-gray-400">Diagnostic telemetry from {metadata.attacks_total || 0} simulated attack scenarios across {totalModelsCount} evaluated models.</p>
             </div>
           </div>
         </div>
@@ -102,13 +102,13 @@ export default function ResultsPage({ data, expectedModels }: Props) {
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-16">
           <div className="glass p-6 rounded-2xl border-t-2 border-t-accent shadow-[0_0_30px_-10px_rgba(var(--accent-glow),0.3)]">
              <div className="flex items-center justify-between mb-4">
-               <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Global Vulnerability</h3>
+               <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Overall Unsafe Signal</h3>
                <Target className="text-accent/50" size={20} />
              </div>
              <div className="flex items-end gap-2">
                <span className="text-5xl font-bold text-white">{(metrics.overall_vulnerability_score * 100).toFixed(1)}%</span>
              </div>
-             <p className="text-xs text-gray-500 mt-4 leading-relaxed">Percentage of all cross-model attacks that achieved any exploitation objective securely.</p>
+             <p className="text-xs text-gray-500 mt-4 leading-relaxed">Share of scored simulated interactions with at least one unsafe behavior flag.</p>
           </div>
 
           <div className="glass p-6 rounded-2xl border-t-2 border-t-orange-500">
@@ -119,7 +119,7 @@ export default function ResultsPage({ data, expectedModels }: Props) {
              <div className="flex items-end gap-2">
                <span className="text-5xl font-bold text-orange-400">{(metrics.unsafe_instruction_adoption_rate * 100).toFixed(1)}%</span>
              </div>
-             <p className="text-xs text-gray-500 mt-4 leading-relaxed">Rate at which malicious tokens successfully replaced core agent instructions.</p>
+             <p className="text-xs text-gray-500 mt-4 leading-relaxed">Rate at which the hardened heuristic marked unsafe instruction adoption.</p>
           </div>
 
           <div className="glass p-6 rounded-2xl border-t-2 border-t-red-500">
@@ -130,7 +130,7 @@ export default function ResultsPage({ data, expectedModels }: Props) {
              <div className="flex items-end gap-2">
                <span className="text-5xl font-bold text-red-500">{(metrics.secret_disclosure_rate * 100).toFixed(1)}%</span>
              </div>
-             <p className="text-xs text-gray-500 mt-4 leading-relaxed">Percentage of attacks that successfully leaked memory contexts or secrets.</p>
+             <p className="text-xs text-gray-500 mt-4 leading-relaxed">Share of scored rows marked as secret-disclosure signals.</p>
           </div>
         </div>
 
@@ -166,9 +166,9 @@ export default function ResultsPage({ data, expectedModels }: Props) {
         {/* Model Efficacy Leaderboard */}
         <div className="mb-6">
           <h2 className="text-2xl font-bold text-white flex items-center gap-3">
-             <Crosshair className="text-accent" /> Resilience Leaderboard
+             <Crosshair className="text-accent" /> Model-Level Signal Summary
           </h2>
-          <p className="text-gray-400 mt-2 mb-8">Isolated metrics and relative scoring per top-tier provider architecture.</p>
+          <p className="text-gray-400 mt-2 mb-8">Per-model metrics from one simulated agent architecture and hardened heuristic scoring.</p>
         </div>
 
         <div className="space-y-4">

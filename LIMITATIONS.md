@@ -12,4 +12,7 @@ True stateful agent behavior (e.g., long-term memory across sessions using vecto
 The current dataset comprises 40 varied scenarios encompassing HTML injection, markdown injection, RAG poisoning, and tool chain abuse. However, the exact phrasing of the malicious payloads might not adapt to the safety alignment eccentricities of every model on the market. Real adversaries often brute-force injection payloads to bypass specific vendor filters.
 
 ### 4. Definition of "Success"
-Exploit success is evaluated using an LLM-as-a-Judge heuristic. While deterministic and prompt-based, this assumes the judge LLM perfectly interprets the attacking intent. It may yield marginal false positives if an agent quotes the payload innocuously without intent to execute it, though the updated scoring layer heavily penalizes benign reproduction.
+The May 20, 2026 Ollama Cloud baseline uses hardened deterministic heuristics over captured prompts, outputs, and tool-call markers. These scores are best read as unsafe behavior signals, not confirmed real-world exploitation. The heuristic may still produce false positives or false negatives, especially when a model summarizes an unsafe payload without acting on it or produces an obfuscated unsafe action the parser misses.
+
+### 5. Public Artifact Redaction
+The public `results/model_results.json` and `results/model_results.csv` files redact raw prompts and model outputs. They retain flags, metrics, counts, character lengths, and SHA-256 digests, but they cannot independently replay every behavioral judgment without access to the private raw traces.
