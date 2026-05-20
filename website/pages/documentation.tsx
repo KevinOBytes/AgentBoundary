@@ -1,7 +1,7 @@
 import Layout from "../components/Layout";
 
 const docs = [
-  ["Preprint Paper", "../../docs/whitepaper.md"],
+  ["Paper", "../../docs/whitepaper.md"],
   ["Submission Plan", "../../docs/preprint_submission.md"],
   ["Methodology", "../../docs/methodology.md"],
   ["Taxonomy", "../../docs/attack_taxonomy.md"],

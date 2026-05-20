@@ -81,7 +81,7 @@ The project is structured into distinct, decoupled components:
 | `website/` | Next.js tailored dashboard. Ingests evaluation metrics to generate real-time visualization widgets and interactive catalogs. |
 | `dataset/` | The definitive JSON corpus defining `attack_id`, `trigger_condition`, and exact payloads for empirical evaluation. |
 | `results/` | Output directory for structured result artifacts plus static benchmark visualizations for repository and paper readers. |
-| `docs/` | Preprint manuscript, submission plan, methodology notes, deployment guides, and storage strategy workflows. |
+| `docs/` | Final paper, submission plan, methodology notes, deployment guides, and storage strategy workflows. |
 
 ---
 
@@ -144,7 +144,7 @@ Through evaluation in this simulated environment, we observe that models can be 
 1. **Memory Provenance Tagging**: Maintain strict boundaries in vector storage between "System Instructions", "User Intent", and "passively retrieved Context".
 2. **Policy-Constrained Routing**: Never implicitly trust LLM parsing routing logic for privileged tool access; introduce classical deterministic middleboxes.
 
-*See the preprint manuscript at [docs/whitepaper.md](docs/whitepaper.md), the upload-ready PDF at [docs/agentkillchain-preprint.pdf](docs/agentkillchain-preprint.pdf), and the non-arXiv submission plan at [docs/preprint_submission.md](docs/preprint_submission.md).*
+*See the final paper source at [docs/whitepaper.md](docs/whitepaper.md), the upload-ready PDF at [docs/agentkillchain-paper.pdf](docs/agentkillchain-paper.pdf), and the non-arXiv submission plan at [docs/preprint_submission.md](docs/preprint_submission.md).*
 
 ---
 

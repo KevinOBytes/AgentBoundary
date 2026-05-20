@@ -7,7 +7,7 @@ import remarkGfm from "remark-gfm";
 
 const root = path.resolve(process.cwd(), "..");
 const source = path.join(root, "docs", "whitepaper.md");
-const output = path.join(root, "docs", "agentkillchain-preprint.html");
+const output = path.join(root, "docs", "agentkillchain-paper.html");
 
 const markdown = fs.readFileSync(source, "utf8");
 const body = renderToStaticMarkup(
@@ -19,7 +19,7 @@ const html = `<!doctype html>
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>AgentKillChain Preprint</title>
+  <title>AgentKillChain Paper</title>
   <style>
     @page { margin: 0.75in; }
     :root {
