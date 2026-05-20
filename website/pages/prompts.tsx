@@ -263,7 +263,7 @@ export default function PromptsPage({ attacks }: Props) {
           </div>
           <div>
             <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-white mb-2">Adversarial Catalog</h1>
-            <p className="text-gray-400 text-sm md:text-lg max-w-3xl">An exhaustive taxonomy of prompt configurations, logic bombs, and boundary exploits leveraged during empirical simulation.</p>
+            <p className="text-gray-400 text-sm md:text-lg max-w-3xl">The current taxonomy of prompt configurations, logic bombs, and boundary exploits used in the simulated benchmark.</p>
           </div>
         </div>
 

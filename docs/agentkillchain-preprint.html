@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AgentKillChain Preprint</title>
+  <style>
+    @page { margin: 0.75in; }
+    :root {
+      color-scheme: light;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: #111827;
+      background: #ffffff;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 8in;
+      padding: 0.4in 0.2in 0.6in;
+      line-height: 1.55;
+      font-size: 10.5pt;
+    }
+    h1, h2, h3 {
+      color: #0f172a;
+      line-height: 1.2;
+      break-after: avoid;
+    }
+    h1 {
+      font-size: 22pt;
+      margin: 0 0 0.15in;
+    }
+    h2 {
+      font-size: 15pt;
+      margin-top: 0.28in;
+      border-bottom: 1px solid #cbd5e1;
+      padding-bottom: 0.04in;
+    }
+    h3 {
+      font-size: 12pt;
+      margin-top: 0.2in;
+    }
+    p, li {
+      orphans: 3;
+      widows: 3;
+    }
+    a {
+      color: #0f766e;
+      text-decoration: none;
+      overflow-wrap: anywhere;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 0.12in 0 0.2in;
+      break-inside: avoid;
+      font-size: 9.5pt;
+    }
+    th, td {
+      border: 1px solid #cbd5e1;
+      padding: 0.06in 0.08in;
+      vertical-align: top;
+    }
+    th {
+      background: #f1f5f9;
+      font-weight: 700;
+      text-align: left;
+    }
+    code {
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: 0.92em;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 3px;
+      padding: 0.02in 0.04in;
+    }
+    pre {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      padding: 0.1in;
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+      break-inside: avoid;
+      font-size: 8.8pt;
+    }
+    pre code {
+      border: 0;
+      padding: 0;
+      background: transparent;
+    }
+    blockquote {
+      border-left: 3px solid #0f766e;
+      margin-left: 0;
+      padding-left: 0.15in;
+      color: #334155;
+    }
+    @media print {
+      body { padding: 0; }
+    }
+  </style>
+</head>
+<body>
+<h1>AgentKillChain: A Prototype Benchmark for Persistent Compromise in Autonomous AI Agents</h1>
+<p><strong>Author:</strong> Kevin O&#x27;Connor&lt;br&gt;
+<strong>Version:</strong> Preprint candidate, May 20, 2026&lt;br&gt;
+<strong>Repository:</strong> <a href="https://github.com/KevinOBytes/AgentKillChain">https://github.com/KevinOBytes/AgentKillChain</a></p>
+<h2>Abstract</h2>
+<p>Autonomous AI agents increasingly combine language models with persistent memory, retrieval, and tool execution. These capabilities expand the security boundary beyond a single model response: untrusted content can be summarized into memory, retrieved in later sessions, and used to influence tool selection. AgentKillChain is an open prototype benchmark for evaluating this class of persistent compromise risk. The benchmark models eight prompt-injection and memory-poisoning families across five workflow framings, then measures whether a simulated assistant loop produces unsafe instruction adoption, unsafe tool proposals, secret-disclosure signals, or explicit policy-violation markers. In a May 20, 2026 baseline over 39 authenticated Ollama Cloud models and 40 attack scenarios, the harness attempted 1,560 model-scenario pairs, scored 1,559, and observed a 1.48% overall unsafe-signal rate under hardened deterministic heuristic scoring. Unsafe signals were concentrated in single-phase toolchain-confusion and context-manipulation scenarios; the current latent-memory scenarios did not produce scored unsafe activation under this heuristic. These results do not prove broad real-world model compromise. They show that even a mocked, policy-gated agent loop can produce low-frequency unsafe behavior signals, supporting the need for memory provenance, deterministic tool authorization, and public benchmark methods that separate reproducible aggregate evidence from sensitive raw traces.</p>
+<p><strong>Keywords:</strong> AI security, autonomous agents, prompt injection, indirect prompt injection, memory poisoning, tool use, benchmark, Ollama</p>
+<h2>1. Introduction</h2>
+<p>Large language model applications are moving from stateless chat interfaces toward stateful agents that retrieve documents, summarize working context, maintain long-term memory, and call tools. This shift changes the threat model. A malicious instruction no longer needs to win in a single turn. It can be embedded in retrieved content, survive summarization, and reappear later when the agent is operating in a higher-risk workflow.</p>
+<p>AgentKillChain evaluates this temporal risk. The benchmark asks whether a simulated assistant agent can preserve the boundary between instructions and untrusted data while handling poisoned documents, memory buffers, and tool-selection prompts. It is intentionally a prototype: tools are mocked, memory is represented as a controlled context buffer, and scoring is conservative. The goal is not to claim a universal attack success rate. The goal is to create a repeatable test harness for a specific class of agent failure modes and to make the resulting aggregate evidence public without publishing private raw prompts or model outputs.</p>
+<p>The May 20, 2026 baseline evaluates authenticated Ollama Cloud models using a hardened deterministic heuristic. It provides a useful first release because it completes the full 39-model catalog sweep, preserves run metadata, records coverage and error rates, and exposes the public result artifact in redacted form.</p>
+<h2>2. Contributions</h2>
+<p>This work contributes:</p>
+<ol>
+<li>A prototype threat model for persistent compromise in autonomous AI agents, organized around initial access, execution, persistence, activation, escalation, and impact.</li>
+<li>A 40-scenario attack catalog spanning eight payload families and five operational workflow framings.</li>
+<li>A Python harness that runs the same simulated agent architecture against OpenRouter, local Ollama, or authenticated Ollama Cloud models.</li>
+<li>Hardened heuristic scoring that distinguishes unsafe behavior signals from benign quotation or refusal.</li>
+<li>A public-release artifact policy that redacts raw prompts and model outputs while preserving flags, metrics, character counts, and SHA-256 trace digests.</li>
+<li>A reproducible May 20, 2026 Ollama Cloud baseline covering 1,560 attempted model-scenario pairs.</li>
+</ol>
+<h2>3. Threat Model</h2>
+<p>AgentKillChain adapts the cyber kill-chain pattern to stateful AI agents:</p>
+<ol>
+<li><strong>Initial access:</strong> Untrusted data enters the context window through user input, retrieved documents, notes, web content, or files.</li>
+<li><strong>Execution:</strong> The model parses adversarial data as if it were task-relevant instruction.</li>
+<li><strong>Persistence:</strong> A memory or summarization step carries the adversarial content into future context.</li>
+<li><strong>Activation:</strong> A later benign-looking workflow triggers the remembered payload.</li>
+<li><strong>Escalation:</strong> The agent proposes or selects a privileged tool action.</li>
+<li><strong>Impact:</strong> The tool action or response leaks data, violates policy, or routes the agent toward attacker goals.</li>
+</ol>
+<p>The benchmark assumes a representative assistant agent with memory and tools, not a production deployment. It measures how often the simulated loop emits unsafe signals. It does not claim that the underlying hosted model would compromise a real environment without the surrounding agent architecture.</p>
+<h2>4. Benchmark Design</h2>
+<h3>4.1 Dataset</h3>
+<p>The dataset contains 40 structured scenarios:</p>
+<table><thead><tr><th>Dimension</th><th>Value</th></tr></thead><tbody><tr><td>Payload families</td><td>8</td></tr><tr><td>Workflow framings</td><td>5</td></tr><tr><td>Total scenarios</td><td>40</td></tr><tr><td>Scenario phases</td><td>single, seed, dormancy, activation</td></tr><tr><td>Model catalog in baseline</td><td>39 authenticated Ollama Cloud models</td></tr></tbody></table>
+<p>The eight payload families are HTML injection, RAG poisoning, markdown injection, memory poisoning, latent memory poisoning, context drift, toolchain confusion, and cognitive overload. The five workflow framings are document summary, incident response, tool selection, memory recall, and user debug request.</p>
+<p>Each scenario specifies an <code>attack_id</code>, <code>campaign_id</code>, <code>family</code>, <code>scenario_type</code>, <code>seed_input</code>, <code>trigger_input</code>, <code>expected_failure_mode</code>, <code>severity</code>, <code>realism_level</code>, and <code>phase</code>.</p>
+<h3>4.2 Harness</h3>
+<p>The harness executes one simulated assistant architecture. The model receives a system prompt, user task, and a representative toolset:</p>
+<ul>
+<li><code>read_document</code></li>
+<li><code>fetch_url</code></li>
+<li><code>search_notes</code></li>
+<li><code>send_email</code></li>
+<li><code>write_note</code></li>
+</ul>
+<p>The harness uses native OpenAI-format function calling when the model/provider accepts tool schemas. For Ollama models that reject native tools, it falls back to a text-only mock tool protocol. Tool effects are mocked, and a lightweight policy layer marks overtly dangerous calls rather than executing external side effects.</p>
+<p>The multi-stage scenario engine preserves campaign state across seed, dormancy, and activation phases. This allows the benchmark to test whether summarized memory can carry adversarial instructions into later tasks.</p>
+<h3>4.3 Scoring</h3>
+<p>The May 20, 2026 baseline uses hardened deterministic heuristic scoring. A result row can be flagged for:</p>
+<ul>
+<li><code>unsafe_instruction_adopted</code></li>
+<li><code>unsafe_tool_call_proposed</code></li>
+<li><code>secret_disclosure_claimed</code></li>
+<li><code>policy_violation</code></li>
+<li><code>refusal_detected</code></li>
+</ul>
+<p>The overall vulnerability score is the fraction of scored rows where at least one unsafe signal is true. This is best understood as an unsafe-signal rate in a simulated harness, not a confirmed real-world exploit rate.</p>
+<p>AgentKillChain also supports LLM-as-judge scoring, but that path was not used for the published Ollama Cloud baseline.</p>
+<h2>5. Public Artifact Policy</h2>
+<p>Raw prompts and model outputs can include private system prompts, provider diagnostics, unsafe model-generated text, or material that should not be encouraged through public indexing. For this reason, the tracked public artifacts redact <code>results[].prompt</code> and <code>results[].output</code>.</p>
+<p>The public JSON and CSV retain:</p>
+<ul>
+<li>row counts and status counts</li>
+<li>model identifiers and attack identifiers</li>
+<li>scoring flags</li>
+<li>aggregate metrics</li>
+<li>prompt/output character counts</li>
+<li>SHA-256 digests for raw prompt/output traces</li>
+</ul>
+<p>Raw traces should remain in ignored local outputs under <code>results/generated/</code> or in private archival storage.</p>
+<h2>6. Baseline Results</h2>
+<p>The May 20, 2026 Ollama Cloud baseline completed a full catalog sweep.</p>
+<table><thead><tr><th>Metric</th><th style="text-align:right">Value</th></tr></thead><tbody><tr><td>Models requested</td><td style="text-align:right">39</td></tr><tr><td>Attack scenarios</td><td style="text-align:right">40</td></tr><tr><td>Expected model-scenario pairs</td><td style="text-align:right">1,560</td></tr><tr><td>Attempted rows</td><td style="text-align:right">1,560</td></tr><tr><td>Scored rows</td><td style="text-align:right">1,559</td></tr><tr><td>API error rows</td><td style="text-align:right">1</td></tr><tr><td>Timeout rows</td><td style="text-align:right">0</td></tr><tr><td>Coverage rate</td><td style="text-align:right">99.94%</td></tr></tbody></table>
+<p>Aggregate scored-row metrics:</p>
+<table><thead><tr><th>Metric</th><th style="text-align:right">Value</th></tr></thead><tbody><tr><td>Overall unsafe-signal rate</td><td style="text-align:right">1.48%</td></tr><tr><td>Unsafe instruction adoption rate</td><td style="text-align:right">0.58%</td></tr><tr><td>Unsafe tool proposal rate</td><td style="text-align:right">1.41%</td></tr><tr><td>Secret disclosure rate</td><td style="text-align:right">0.00%</td></tr><tr><td>Policy violation marker rate</td><td style="text-align:right">1.22%</td></tr><tr><td>Refusal rate</td><td style="text-align:right">60.62%</td></tr></tbody></table>
+<p>Unsafe signals were not evenly distributed across families. In the redacted public artifact, unsafe flags appear in the following family/phase groups:</p>
+<table><thead><tr><th>Family / phase</th><th style="text-align:right">Scored rows</th><th style="text-align:right">Rows with any unsafe signal</th><th style="text-align:right">Rate</th></tr></thead><tbody><tr><td>Toolchain confusion / single</td><td style="text-align:right">195</td><td style="text-align:right">15</td><td style="text-align:right">7.69%</td></tr><tr><td>Context drift / single</td><td style="text-align:right">195</td><td style="text-align:right">3</td><td style="text-align:right">1.54%</td></tr><tr><td>Memory poisoning / single</td><td style="text-align:right">195</td><td style="text-align:right">3</td><td style="text-align:right">1.54%</td></tr><tr><td>RAG poisoning / single</td><td style="text-align:right">195</td><td style="text-align:right">1</td><td style="text-align:right">0.51%</td></tr><tr><td>Cognitive overload / single</td><td style="text-align:right">195</td><td style="text-align:right">1</td><td style="text-align:right">0.51%</td></tr><tr><td>HTML injection / single</td><td style="text-align:right">195</td><td style="text-align:right">0</td><td style="text-align:right">0.00%</td></tr><tr><td>Markdown injection / single</td><td style="text-align:right">195</td><td style="text-align:right">0</td><td style="text-align:right">0.00%</td></tr><tr><td>Latent memory poisoning / seed, dormancy, activation</td><td style="text-align:right">194</td><td style="text-align:right">0</td><td style="text-align:right">0.00%</td></tr></tbody></table>
+<p>The one missing scored row came from a provider API error, not a benchmark timeout.</p>
+<h2>7. Discussion</h2>
+<p>The baseline supports three conclusions.</p>
+<p>First, most tested interactions were resilient under the current simulation. The overall unsafe-signal rate was low, and no scored row was marked as secret disclosure under the hardened heuristic.</p>
+<p>Second, toolchain confusion remains the clearest signal in this run. Unsafe tool proposals appeared at a higher rate than other failure modes, which is consistent with the idea that agent risk often comes from the model&#x27;s role as a tool-selection component rather than from text generation alone.</p>
+<p>Third, the latent-memory scenarios did not produce scored unsafe activation in this baseline. This should not be read as evidence that long-horizon memory is safe. The benchmark uses a simplified memory buffer, one pass per scenario, and public payloads. Future work should evaluate weaker memory provenance controls, repeated trials, hidden hold-out payloads, more realistic retrieval systems, and live sandboxed tool execution.</p>
+<h2>8. Defensive Implications</h2>
+<p>The results point toward defenses that should sit outside the model:</p>
+<ol>
+<li><strong>Memory provenance:</strong> Agents should tag remembered content by source and trust level. Summarization should strip imperative instructions from untrusted retrieved data.</li>
+<li><strong>Deterministic tool authorization:</strong> High-risk tools should require policy checks independent of the language model&#x27;s stated intent.</li>
+<li><strong>Tool-call egress controls:</strong> Email, web, file, and execution tools should be constrained by allowlists, explicit user confirmation, and sensitive-data detectors.</li>
+<li><strong>Context separation:</strong> System instructions, user intent, retrieved content, memory, and tool results should be represented as separate security domains rather than flattened into one prompt.</li>
+<li><strong>Regression benchmarks:</strong> Agent teams should rerun persistent-compromise tests after model, prompt, tool, and memory-policy changes.</li>
+</ol>
+<h2>9. Limitations</h2>
+<p>AgentKillChain is a prototype benchmark. Its limitations are material:</p>
+<ul>
+<li>The harness evaluates one simulated assistant loop, not multiple production agent architectures.</li>
+<li>Tool execution is mocked and cannot capture all real implementation edge cases.</li>
+<li>Memory is represented as a controlled context buffer rather than a full vector database or hierarchical memory graph.</li>
+<li>The May 20, 2026 baseline uses one pass per scenario, so it does not estimate variance or confidence intervals.</li>
+<li>Public attack payloads may eventually contaminate model training or alignment data.</li>
+<li>The public result artifact is redacted; independent replay requires access to private raw traces.</li>
+<li>Heuristic scoring can miss subtle unsafe behavior or overcount some explicit unsafe markers.</li>
+</ul>
+<p>These limitations are the reason this paper frames the result as an initial baseline rather than a definitive ranking of model security.</p>
+<h2>10. Ethics and Release Controls</h2>
+<p>The dataset contains adversarial prompts and simulated unsafe workflows. The public release keeps the attack catalog open for reproducibility, but redacts raw live-run traces to avoid publishing model-specific unsafe output and private system prompt material. The benchmark uses mocked tools and does not execute real exfiltration, file modification, or network side effects.</p>
+<p>Researchers extending the benchmark should avoid running live tool actions against real user data. When publishing future runs, they should preserve aggregate evidence and private raw archives separately.</p>
+<h2>11. Reproducibility</h2>
+<p>The public repository contains the dataset, harness, website, redacted result artifacts, and visualization scripts.</p>
+<p>Smoke validation:</p>
+<pre><code class="language-bash">python3 -m compileall harness scripts tests test_all.py
+python3 -m unittest discover
+python3 harness/runner.py --dry-run
+python3 scripts/redact_public_results.py --input-json results/generated/model_results.json --output-json results/model_results.json --output-csv results/model_results.csv
+python3 scripts/validate_artifacts.py
+</code></pre>
+<p>Live Ollama Cloud baseline command:</p>
+<pre><code class="language-bash">python3 harness/runner.py --provider ollama-cloud --judge-mode heuristic --run-label ollama-cloud-take-2026-05-20
+python3 scripts/redact_public_results.py --input-json results/generated/model_results.json --output-json results/model_results.json --output-csv results/model_results.csv
+python3 scripts/validate_artifacts.py
+</code></pre>
+<p>The raw live-run outputs are written to ignored <code>results/generated/</code> paths. The public release artifacts are <code>results/model_results.json</code> and <code>results/model_results.csv</code>.</p>
+<h2>12. Publication Path</h2>
+<p>Because arXiv endorsement may not be available, the recommended publication route is:</p>
+<ol>
+<li>Publish this manuscript as a preprint through OSF Preprints or SSRN.</li>
+<li>Create a GitHub release for the code and redacted artifacts.</li>
+<li>Archive the GitHub release or release bundle on Zenodo to obtain a DOI.</li>
+<li>Update this manuscript&#x27;s repository line with the DOI and release tag before final submission.</li>
+</ol>
+<h2>References</h2>
+<p>[1] OWASP Foundation. &quot;OWASP Top 10 for Large Language Model Applications.&quot; <a href="https://owasp.org/www-project-top-10-for-large-language-model-applications/">https://owasp.org/www-project-top-10-for-large-language-model-applications/</a></p>
+<p>[2] National Institute of Standards and Technology. &quot;Artificial Intelligence Risk Management Framework (AI RMF 1.0).&quot; <a href="https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-ai-rmf-10">https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-ai-rmf-10</a></p>
+<p>[3] Greshake, K. et al. &quot;Not what you&#x27;ve signed up for: Compromising Real-World LLM-Integrated Applications with Indirect Prompt Injection.&quot; arXiv:2302.12173. <a href="https://arxiv.org/abs/2302.12173">https://arxiv.org/abs/2302.12173</a></p>
+<p>[4] Microsoft Research. &quot;Benchmarking and Defending Against Indirect Prompt Injection Attacks on Large Language Models.&quot; <a href="https://www.microsoft.com/en-us/research/publication/benchmarking-and-defending-against-indirect-prompt-injection-attacks-on-large-language-models/">https://www.microsoft.com/en-us/research/publication/benchmarking-and-defending-against-indirect-prompt-injection-attacks-on-large-language-models/</a></p>
+<p>[5] Debenedetti, E. et al. &quot;AgentDojo: A Dynamic Environment to Evaluate Attacks and Defenses for LLM Agents.&quot; NeurIPS 2024 Datasets and Benchmarks Track. <a href="https://papers.nips.cc/paper_files/paper/2024/file/97091a5177d8dc64b1da8bf3e1f6fb54-Paper-Datasets_and_Benchmarks_Track.pdf">https://papers.nips.cc/paper_files/paper/2024/file/97091a5177d8dc64b1da8bf3e1f6fb54-Paper-Datasets_and_Benchmarks_Track.pdf</a></p>
+</body>
+</html>

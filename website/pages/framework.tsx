@@ -35,9 +35,9 @@ export default function FrameworkPage() {
               <Cpu className="text-accent" size={28} />
             </div>
             <div>
-              <h3 className="text-xl font-bold text-white mb-2">Multi-Agent Testing Environment</h3>
+              <h3 className="text-xl font-bold text-white mb-2">Agent Testing Environment</h3>
               <p className="text-gray-300 leading-relaxed mb-4">
-                The framework supports evaluating arbitrary agent architectures (e.g., ReAct, Plan-and-Solve) by providing a uniform harness that acts as the user, the environment, and the target. It manages LLM interactions through OpenRouter, local Ollama, or authenticated Ollama Cloud to run tests across model catalogs.
+                The current framework evaluates one representative assistant loop while keeping the provider interface flexible. It manages LLM interactions through OpenRouter, local Ollama, or authenticated Ollama Cloud to run tests across model catalogs.
               </p>
             </div>
           </motion.div>
@@ -61,7 +61,7 @@ export default function FrameworkPage() {
             <div>
               <h3 className="text-xl font-bold text-white mb-2">Automated Grading & Heuristics</h3>
               <p className="text-gray-300 leading-relaxed">
-                After an agent responds or executes a tool, the framework uses an LLM-as-a-judge (or deterministic string matching for known payloads) to assess whether the attack was successful. This yields a deterministic Compromise Rate (CR) per model and architecture permutation.
+                After an agent responds or proposes a tool call, the framework scores unsafe behavior signals. The May 20, 2026 Ollama Cloud baseline uses hardened deterministic heuristics; LLM-as-judge scoring remains available for configurations that explicitly enable it.
               </p>
             </div>
           </motion.div>
@@ -73,7 +73,7 @@ export default function FrameworkPage() {
             <div>
               <h3 className="text-xl font-bold text-white mb-2">Reproducible Reporting</h3>
               <p className="text-gray-300 leading-relaxed">
-                The harness automatically emits structured JSON output and CSV aggregations at the end of every testing run. This guarantees that all metrics are reproducible and can be independently verified by other researchers evaluating the same LLM or cognitive architecture.
+                The harness emits structured JSON and CSV artifacts at the end of every run. Public artifacts redact raw prompts and outputs while retaining metrics, flags, counts, character lengths, and SHA-256 digests for traceability.
               </p>
             </div>
           </motion.div>

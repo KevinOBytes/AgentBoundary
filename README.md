@@ -33,13 +33,13 @@ We conceptualize this through the **Agent Kill Chain**:
 
 ---
 
-## 📊 The New Metrics
+## 📊 Baseline Signals
 
 Across the May 20, 2026 Ollama Cloud run, AgentKillChain attempted **1,560 model-scenario pairs** (40 attacks x 39 authenticated Ollama Cloud models). **1,559 were successfully scored**, with 1 provider API error and 0 timeouts. These are the global baseline metrics computed from scored results after heuristic false-positive hardening:
 
-*   **Global Compromise Rate:** 1.48%
-*   **Toolchain Abuse Rate:** 1.41%
-*   **Data Exfiltration:** 0.00%
+*   **Overall Unsafe-Signal Rate:** 1.48%
+*   **Unsafe Tool-Proposal Rate:** 1.41%
+*   **Secret Disclosure Signal Rate:** 0.00%
 *   **Policy Violation Rate:** 1.22%
 
 Static charts for the current benchmark are available in [`results/`](results/README.md), including coverage, failure-mode, model-risk, and attack-family views.
@@ -66,7 +66,7 @@ This framing makes the harness useful for evaluating failure chains that single-
 *   **🔁 Backward-Compatible Scenario Inputs**: `ScenarioEngine.execute` supports legacy attack key aliases (e.g. `payload`, `trigger_condition`, `expected_behavior`), but the main harness runner/dataset loader currently requires canonical fields (`scenario_type`, `seed_input`, `trigger_input`, `expected_failure_mode`) or pre-translated scenarios.
 *   **📚 Attack Catalog**: 8 unique payload families (HTML injection, RAG poisoning, markdown injection, memory poisoning, latent memory poisoning, context drift, toolchain confusion, cognitive overload) × 5 workflow framings = 40 structured scenarios (located in `dataset/attack_catalog.json`).
 *   **📊 Evaluative Telemetry**: Produces JSON/CSV metrics tracking simulated Susceptibility and Latent Activation Rates.
-*   **💻 Next.js Dashboard**: A premium, open-source visualization frontend to interactively explore model evaluation metrics, trace logs, and execution diffs.
+*   **💻 Next.js Dashboard**: A premium, open-source visualization frontend to explore model evaluation metrics, redacted trace digests, and attack-family aggregates.
 *   **🧹 Prompt Variant Deduplication**: The `/prompts` view now groups repeated payload text into unique prompt variants while still exposing every linked `attack_id` and highest-severity rollup.
 
 ---
@@ -81,7 +81,7 @@ The project is structured into distinct, decoupled components:
 | `website/` | Next.js tailored dashboard. Ingests evaluation metrics to generate real-time visualization widgets and interactive catalogs. |
 | `dataset/` | The definitive JSON corpus defining `attack_id`, `trigger_condition`, and exact payloads for empirical evaluation. |
 | `results/` | Output directory for structured result artifacts plus static benchmark visualizations for repository and paper readers. |
-| `docs/` | Deep-dive research papers, architectural deployment guides, and storage strategy workflows. |
+| `docs/` | Preprint manuscript, submission plan, methodology notes, deployment guides, and storage strategy workflows. |
 
 ---
 
@@ -129,8 +129,8 @@ npm install
 npm run dev
 ```
 Navigate to [http://localhost:3000](http://localhost:3000). The dashboard provides paths to:
-* `/results` - Overview of resilient and vulnerable models.
-* `/dataset` - Granular inspection of execution traces and modal payloads.
+* `/results` - Overview of model-level unsafe-signal metrics.
+* `/dataset` - Granular inspection of result records and redacted trace digests.
 * `/prompts` - The comprehensive taxonomy of the attack catalog, grouped by unique prompt payload to avoid repeated cards.
 
 ---
@@ -143,7 +143,7 @@ Through evaluation in this simulated environment, we observe that models can be 
 1. **Memory Provenance Tagging**: Maintain strict boundaries in vector storage between "System Instructions", "User Intent", and "passively retrieved Context".
 2. **Policy-Constrained Routing**: Never implicitly trust LLM parsing routing logic for privileged tool access; introduce classical deterministic middleboxes.
 
-*See the formal Whitepaper at [docs/whitepaper.md](docs/whitepaper.md) for deeper strategic analysis.*
+*See the preprint manuscript at [docs/whitepaper.md](docs/whitepaper.md), the upload-ready PDF at [docs/agentkillchain-preprint.pdf](docs/agentkillchain-preprint.pdf), and the non-arXiv submission plan at [docs/preprint_submission.md](docs/preprint_submission.md).*
 
 ---
 
