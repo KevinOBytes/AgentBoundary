@@ -25,8 +25,8 @@ AgentKillChain does not need arXiv as the first public venue. The practical rout
 ## Submission Package
 
 - Manuscript source: `docs/whitepaper.md`
-- Upload-ready PDF: `docs/agentkillchain-preprint.pdf`
-- Print HTML: `docs/agentkillchain-preprint.html`
+- Upload-ready PDF: `docs/agentkillchain-paper.pdf`
+- Print HTML: `docs/agentkillchain-paper.html`
 - Public result artifacts: `results/model_results.json`, `results/model_results.csv`
 - Visualizations: `results/benchmark_current_*.svg`
 - Reproducibility notes: `docs/methodology.md`, `TRUSTWORTHINESS.md`, `LIMITATIONS.md`
@@ -44,8 +44,8 @@ Use `git archive` or a GitHub release archive for the software bundle so only tr
 
 ## Before Upload
 
-1. Create a GitHub release tag, for example `v1.0-preprint`.
+1. Create a GitHub release tag, for example `v1.0-paper`.
 2. Archive the release on Zenodo and capture the DOI.
 3. Replace the repository line in `docs/whitepaper.md` with both the GitHub release URL and Zenodo DOI.
-4. Regenerate the manuscript PDF with `cd website && npm run export:paper`, then print `docs/agentkillchain-preprint.html` to `docs/agentkillchain-preprint.pdf`.
+4. Regenerate the manuscript PDF with `cd website && npm run export:paper`, then print `docs/agentkillchain-paper.html` to `docs/agentkillchain-paper.pdf`.
 5. Include the redaction policy in the submission notes so reviewers understand why raw traces are not public.

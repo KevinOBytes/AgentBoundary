@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>AgentKillChain Preprint</title>
+  <title>AgentKillChain Paper</title>
   <style>
     @page { margin: 0.75in; }
     :root {
@@ -101,7 +101,7 @@
 <body>
 <h1>AgentKillChain: A Prototype Benchmark for Persistent Compromise in Autonomous AI Agents</h1>
 <p><strong>Author:</strong> Kevin O&#x27;Connor&lt;br&gt;
-<strong>Version:</strong> Preprint candidate, May 20, 2026&lt;br&gt;
+<strong>Version:</strong> Final public release, May 20, 2026&lt;br&gt;
 <strong>Repository:</strong> <a href="https://github.com/KevinOBytes/AgentKillChain">https://github.com/KevinOBytes/AgentKillChain</a></p>
 <h2>Abstract</h2>
 <p>Autonomous AI agents increasingly combine language models with persistent memory, retrieval, and tool execution. These capabilities expand the security boundary beyond a single model response: untrusted content can be summarized into memory, retrieved in later sessions, and used to influence tool selection. AgentKillChain is an open prototype benchmark for evaluating this class of persistent compromise risk. The benchmark models eight prompt-injection and memory-poisoning families across five workflow framings, then measures whether a simulated assistant loop produces unsafe instruction adoption, unsafe tool proposals, secret-disclosure signals, or explicit policy-violation markers. In a May 20, 2026 baseline over 39 authenticated Ollama Cloud models and 40 attack scenarios, the harness attempted 1,560 model-scenario pairs, scored 1,559, and observed a 1.48% overall unsafe-signal rate under hardened deterministic heuristic scoring. Unsafe signals were concentrated in single-phase toolchain-confusion and context-manipulation scenarios; the current latent-memory scenarios did not produce scored unsafe activation under this heuristic. These results do not prove broad real-world model compromise. They show that even a mocked, policy-gated agent loop can produce low-frequency unsafe behavior signals, supporting the need for memory provenance, deterministic tool authorization, and public benchmark methods that separate reproducible aggregate evidence from sensitive raw traces.</p>
@@ -223,14 +223,6 @@ python3 scripts/redact_public_results.py --input-json results/generated/model_re
 python3 scripts/validate_artifacts.py
 </code></pre>
 <p>The raw live-run outputs are written to ignored <code>results/generated/</code> paths. The public release artifacts are <code>results/model_results.json</code> and <code>results/model_results.csv</code>.</p>
-<h2>12. Publication Path</h2>
-<p>Because arXiv endorsement may not be available, the recommended publication route is:</p>
-<ol>
-<li>Publish this manuscript as a preprint through OSF Preprints or SSRN.</li>
-<li>Create a GitHub release for the code and redacted artifacts.</li>
-<li>Archive the GitHub release or release bundle on Zenodo to obtain a DOI.</li>
-<li>Update this manuscript&#x27;s repository line with the DOI and release tag before final submission.</li>
-</ol>
 <h2>References</h2>
 <p>[1] OWASP Foundation. &quot;OWASP Top 10 for Large Language Model Applications.&quot; <a href="https://owasp.org/www-project-top-10-for-large-language-model-applications/">https://owasp.org/www-project-top-10-for-large-language-model-applications/</a></p>
 <p>[2] National Institute of Standards and Technology. &quot;Artificial Intelligence Risk Management Framework (AI RMF 1.0).&quot; <a href="https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-ai-rmf-10">https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-ai-rmf-10</a></p>

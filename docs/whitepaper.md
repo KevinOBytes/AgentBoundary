@@ -1,7 +1,7 @@
 # AgentKillChain: A Prototype Benchmark for Persistent Compromise in Autonomous AI Agents
 
 **Author:** Kevin O'Connor<br>
-**Version:** Preprint candidate, May 20, 2026<br>
+**Version:** Final public release, May 20, 2026<br>
 **Repository:** https://github.com/KevinOBytes/AgentKillChain
 
 ## Abstract
@@ -207,15 +207,6 @@ python3 scripts/validate_artifacts.py
 ```
 
 The raw live-run outputs are written to ignored `results/generated/` paths. The public release artifacts are `results/model_results.json` and `results/model_results.csv`.
-
-## 12. Publication Path
-
-Because arXiv endorsement may not be available, the recommended publication route is:
-
-1. Publish this manuscript as a preprint through OSF Preprints or SSRN.
-2. Create a GitHub release for the code and redacted artifacts.
-3. Archive the GitHub release or release bundle on Zenodo to obtain a DOI.
-4. Update this manuscript's repository line with the DOI and release tag before final submission.
 
 ## References
 
