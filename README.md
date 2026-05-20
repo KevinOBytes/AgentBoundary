@@ -35,13 +35,14 @@ We conceptualize this through the **Agent Kill Chain**:
 
 ## 📊 The New Metrics
 
-Across 720 attempted scenarios (40 attacks × 18 models), **526 were successfully scored** (the remainder lost to API errors and timeouts). These are the global baseline metrics computed from scored results:
+Across the May 20, 2026 Ollama Cloud run, AgentKillChain attempted **1,560 model-scenario pairs** (40 attacks x 39 authenticated Ollama Cloud models). **1,559 were successfully scored**, with 1 provider API error and 0 timeouts. These are the global baseline metrics computed from scored results after heuristic false-positive hardening:
 
-*   **Global Compromise Rate:** 1.71%
-*   **Toolchain Abuse Rate:** 0.38%
-*   **Data Exfiltration:** 0.19%
+*   **Global Compromise Rate:** 1.48%
+*   **Toolchain Abuse Rate:** 1.41%
+*   **Data Exfiltration:** 0.00%
+*   **Policy Violation Rate:** 1.22%
 
-Static charts for the 720-scenario benchmark are available in [`results/`](results/README.md), including coverage, failure-mode, model-risk, and attack-family views.
+Static charts for the current benchmark are available in [`results/`](results/README.md), including coverage, failure-mode, model-risk, and attack-family views.
 
 ---
 
@@ -61,7 +62,7 @@ This framing makes the harness useful for evaluating failure chains that single-
 
 ## 🚀 Key Features
 
-*   **🧪 The Evaluation Harness**: A Python framework capable of orchestrating simulated attacks across LLMs via the OpenRouter API.
+*   **🧪 The Evaluation Harness**: A Python framework capable of orchestrating simulated attacks across LLMs via OpenRouter, local Ollama, or authenticated Ollama Cloud.
 *   **🔁 Backward-Compatible Scenario Inputs**: `ScenarioEngine.execute` supports legacy attack key aliases (e.g. `payload`, `trigger_condition`, `expected_behavior`), but the main harness runner/dataset loader currently requires canonical fields (`scenario_type`, `seed_input`, `trigger_input`, `expected_failure_mode`) or pre-translated scenarios.
 *   **📚 Attack Catalog**: 8 unique payload families (HTML injection, RAG poisoning, markdown injection, memory poisoning, latent memory poisoning, context drift, toolchain confusion, cognitive overload) × 5 workflow framings = 40 structured scenarios (located in `dataset/attack_catalog.json`).
 *   **📊 Evaluative Telemetry**: Produces JSON/CSV metrics tracking simulated Susceptibility and Latent Activation Rates.
@@ -93,16 +94,20 @@ To run the evaluation harness against top-tier models, configure your environmen
 # 1. Setup environment
 cp .env.example .env
 
-# Edit .env to add your OPENROUTER_API_KEY
+# Edit .env to add your OPENROUTER_API_KEY or OLLAMA_API_KEY
 # OPENROUTER_API_KEY=sk-or-v1-...
+# OLLAMA_API_KEY=...
 
 # 2. (Optional) Run deterministic tests & validation scripts
 python3 -m unittest discover -s harness/tests
 python3 harness/runner.py --dry-run
 python3 scripts/validate_artifacts.py
 
-# 3. Execute liveruns against target LLMs
+# 3. Execute live runs against target LLMs
 python3 harness/runner.py
+
+# Or run the full authenticated Ollama Cloud catalog
+python3 harness/runner.py --provider ollama-cloud --judge-mode heuristic --run-label ollama-cloud-take-2026-05-20
 ```
 > [!NOTE] 
 > This will generate fresh evaluation data at `results/model_results.json`.

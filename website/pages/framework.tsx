@@ -37,7 +37,7 @@ export default function FrameworkPage() {
             <div>
               <h3 className="text-xl font-bold text-white mb-2">Multi-Agent Testing Environment</h3>
               <p className="text-gray-300 leading-relaxed mb-4">
-                The framework supports evaluating arbitrary agent architectures (e.g., ReAct, Plan-and-Solve) by providing a uniform harness that acts as the user, the environment, and the target. It manages LLM interactions via API providers like OpenRouter to run tests across frontier models simultaneously.
+                The framework supports evaluating arbitrary agent architectures (e.g., ReAct, Plan-and-Solve) by providing a uniform harness that acts as the user, the environment, and the target. It manages LLM interactions through OpenRouter, local Ollama, or authenticated Ollama Cloud to run tests across model catalogs.
               </p>
             </div>
           </motion.div>

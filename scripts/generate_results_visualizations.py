@@ -19,6 +19,7 @@ from typing import Any
 ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_RESULTS = ROOT / "results" / "model_results.json"
 RESULTS_DIR = ROOT / "results"
+BENCHMARK_PREFIX = "benchmark_current"
 
 PALETTE = {
     "ink": "#111827",
@@ -57,13 +58,25 @@ def model_label(model: str) -> str:
 
 def status_summary(results: dict[str, Any]) -> dict[str, int]:
     metadata = results["metadata"]
-    attempted = len(metadata["models_requested"]) * metadata["attacks_total"]
+    attempted = int(
+        metadata.get("attempted_count")
+        or metadata.get("expected_count")
+        or len(metadata.get("models_requested", [])) * metadata["attacks_total"]
+    )
     return {
         "scored": int(metadata.get("scored_count", 0)),
         "timed_out": int(metadata.get("timeout_count", 0)),
         "api_error": int(metadata.get("error_count", 0)),
         "attempted": attempted,
     }
+
+
+def matrix_label(results: dict[str, Any]) -> str:
+    metadata = results["metadata"]
+    attempted = status_summary(results)["attempted"]
+    models = int(metadata.get("models_total") or len(metadata.get("models_requested", [])))
+    attacks = int(metadata.get("attacks_total", 0))
+    return f"{attempted:,} attempts: {attacks} scenarios x {models} models"
 
 
 def family_summary(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -119,7 +132,7 @@ def write_summary(results: dict[str, Any], source: str, output: Path) -> None:
         "benchmark_version": metadata.get("benchmark_version"),
         "models_requested": metadata.get("models_requested", []),
         "attacks_total": metadata.get("attacks_total"),
-        "attempted_scenarios": len(metadata.get("models_requested", [])) * metadata.get("attacks_total", 0),
+        "attempted_scenarios": status_summary(results)["attempted"],
         "outcomes": status_summary(results),
         "global_metrics": results["metrics"],
         "metrics_by_model": results["metrics_by_model"],
@@ -154,8 +167,8 @@ def write_outcome_chart(results: dict[str, Any], output: Path) -> None:
     ]
     width, height = 920, 430
     parts = svg_header(
-        "720-Scenario Benchmark Coverage",
-        "Outcome mix across 40 scenarios x 18 requested models.",
+        f"{attempted:,}-Attempt Benchmark Coverage",
+        f"Outcome mix across {matrix_label(results)}.",
         width,
         height,
     )
@@ -191,6 +204,7 @@ def write_outcome_chart(results: dict[str, Any], output: Path) -> None:
 
 
 def write_global_metrics_chart(results: dict[str, Any], output: Path) -> None:
+    summary = status_summary(results)
     metrics = [
         ("Unsafe instruction adoption", results["metrics"]["unsafe_instruction_adoption_rate"], PALETTE["risk"]),
         ("Toolchain abuse", results["metrics"]["unsafe_tool_proposal_rate"], PALETTE["warn"]),
@@ -200,7 +214,7 @@ def write_global_metrics_chart(results: dict[str, Any], output: Path) -> None:
     width, height = 920, 450
     parts = svg_header(
         "Safety-Relevant Failure Modes",
-        "Rates over 526 scored scenarios from the 720-attempt benchmark.",
+        f"Rates over {summary['scored']:,} scored scenarios from the {summary['attempted']:,}-attempt benchmark.",
         width,
         height,
     )
@@ -240,6 +254,7 @@ def write_model_chart(results: dict[str, Any], output: Path) -> None:
         reverse=True,
     )
     width, height = 1080, 760
+    height = max(height, 150 + len(rows) * 34)
     parts = svg_header(
         "Model-Level Risk and Refusal Rates",
         "Overall vulnerability score and refusal behavior among scored scenarios.",
@@ -322,11 +337,11 @@ def main() -> None:
 
     results, source = load_results(args.input, args.git_ref)
     RESULTS_DIR.mkdir(exist_ok=True)
-    write_summary(results, source, RESULTS_DIR / "benchmark_720_summary.json")
-    write_outcome_chart(results, RESULTS_DIR / "benchmark_720_coverage.svg")
-    write_global_metrics_chart(results, RESULTS_DIR / "benchmark_720_failure_modes.svg")
-    write_model_chart(results, RESULTS_DIR / "benchmark_720_model_risk.svg")
-    write_family_chart(results, RESULTS_DIR / "benchmark_720_attack_family_risk.svg")
+    write_summary(results, source, RESULTS_DIR / f"{BENCHMARK_PREFIX}_summary.json")
+    write_outcome_chart(results, RESULTS_DIR / f"{BENCHMARK_PREFIX}_coverage.svg")
+    write_global_metrics_chart(results, RESULTS_DIR / f"{BENCHMARK_PREFIX}_failure_modes.svg")
+    write_model_chart(results, RESULTS_DIR / f"{BENCHMARK_PREFIX}_model_risk.svg")
+    write_family_chart(results, RESULTS_DIR / f"{BENCHMARK_PREFIX}_attack_family_risk.svg")
     print(f"Wrote benchmark visualizations from {source}")
 
 
