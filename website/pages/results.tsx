@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { useEffect, useState } from "react";
 import Layout from "../components/Layout";
 import { motion } from "framer-motion";
 import { Activity, Shield, ShieldAlert, ShieldCheck, Database, Target, Skull, Cpu, Crosshair } from "lucide-react";
@@ -13,25 +14,19 @@ interface Props {
 
 export async function getStaticProps(): Promise<{ props: Props }> {
   const filePath = path.join(process.cwd(), "..", "results", "model_results.json");
-  const envPath = path.join(process.cwd(), "..", ".env");
   let data = null;
   let expectedModels: string[] = [];
 
   try {
-    if (fs.existsSync(envPath)) {
-      const envContent = fs.readFileSync(envPath, "utf8");
-      const modelsLine = envContent.split('\n').find(line => line.startsWith('MODELS='));
-      if (modelsLine) {
-        expectedModels = modelsLine.replace('MODELS=', '').replace(/"/g, '').replace(/'/g, '').split(',').map(m => m.trim());
-      }
-    }
-  } catch (e) {
-    console.error("Failed to load .env", e);
-  }
-
-  try {
     if (fs.existsSync(filePath)) {
-      data = JSON.parse(fs.readFileSync(filePath, "utf8"));
+      const parsed = JSON.parse(fs.readFileSync(filePath, "utf8"));
+      data = {
+        metadata: parsed.metadata,
+        metrics: parsed.metrics,
+        metrics_by_model: parsed.metrics_by_model,
+        results: [],
+      };
+      expectedModels = parsed?.metadata?.models_requested ?? [];
     }
   } catch (e) {
     console.error("Failed to load model results", e);
@@ -40,6 +35,12 @@ export async function getStaticProps(): Promise<{ props: Props }> {
 }
 
 export default function ResultsPage({ data, expectedModels }: Props) {
+  const [chartReady, setChartReady] = useState(false);
+
+  useEffect(() => {
+    setChartReady(true);
+  }, []);
+
   if (!data) {
     return (
       <Layout>
@@ -139,22 +140,26 @@ export default function ResultsPage({ data, expectedModels }: Props) {
              <Activity className="text-accent" /> Vulnerability Distribution
           </h2>
           <div className="glass p-6 rounded-2xl h-[400px] w-full border border-white/5">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData} margin={{ top: 20, right: 30, left: 0, bottom: 20 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#333" vertical={false} />
-                <XAxis dataKey="name" stroke="#888" tick={{fill: '#888', fontSize: 12}} />
-                <YAxis stroke="#888" tick={{fill: '#888'}} domain={[0, 'auto']} />
-                <Tooltip 
-                  contentStyle={{ backgroundColor: '#111', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}
-                  itemStyle={{ color: '#ccc' }}
-                  formatter={(value: any) => [`${value}%`]}
-                />
-                <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px' }} />
-                <Bar dataKey="Vulnerability" name="Overall Vulnerability" fill="#fb923c" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="ToolAbuse" name="Toolchain Abuse" fill="#f87171" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="Exfiltration" name="Data Exfiltration" fill="#c084fc" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+            {chartReady ? (
+              <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+                <BarChart data={chartData} margin={{ top: 20, right: 30, left: 0, bottom: 20 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#333" vertical={false} />
+                  <XAxis dataKey="name" stroke="#888" tick={{fill: '#888', fontSize: 12}} />
+                  <YAxis stroke="#888" tick={{fill: '#888'}} domain={[0, 'auto']} />
+                  <Tooltip
+                    contentStyle={{ backgroundColor: '#111', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}
+                    itemStyle={{ color: '#ccc' }}
+                    formatter={(value: any) => [`${value}%`]}
+                  />
+                  <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px' }} />
+                  <Bar dataKey="Vulnerability" name="Overall Vulnerability" fill="#fb923c" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="ToolAbuse" name="Toolchain Abuse" fill="#f87171" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="Exfiltration" name="Data Exfiltration" fill="#c084fc" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-full w-full" />
+            )}
           </div>
         </div>
 

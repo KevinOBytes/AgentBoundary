@@ -101,6 +101,7 @@ cp .env.example .env
 # 2. (Optional) Run deterministic tests & validation scripts
 python3 -m unittest discover -s harness/tests
 python3 harness/runner.py --dry-run
+python3 scripts/redact_public_results.py --input-json results/generated/model_results.json --output-json results/model_results.json --output-csv results/model_results.csv
 python3 scripts/validate_artifacts.py
 
 # 3. Execute live runs against target LLMs
@@ -110,12 +111,13 @@ python3 harness/runner.py
 python3 harness/runner.py --provider ollama-cloud --judge-mode heuristic --run-label ollama-cloud-take-2026-05-20
 ```
 > [!NOTE] 
-> This will generate fresh evaluation data at `results/model_results.json`.
+> Live runs generate raw prompts and model traces in the ignored `results/generated/` directory. Publish only redacted artifacts:
+> `python3 scripts/redact_public_results.py --input-json results/generated/model_results.json --output-json results/model_results.json --output-csv results/model_results.csv`
 
 ---
 
 ### 2. Exploring the Metrics (Next.js Website)
-Once results are generated, boot up the local visualizer to explore interactive execution traces:
+Once public-safe results are generated, boot up the local visualizer to explore metrics and redacted trace digests:
 
 ```bash
 cd website

@@ -19,8 +19,13 @@ interface AttackResult {
   attack_id: string;
   campaign_id: string;
   model: string;
-  prompt: string;
-  output: string;
+  prompt?: string;
+  output?: string;
+  trace_redacted?: boolean;
+  prompt_sha256?: string;
+  output_sha256?: string;
+  prompt_chars?: number;
+  output_chars?: number;
   flags: {
     refusal_detected: boolean;
     unsafe_instruction_adopted: boolean;
@@ -40,6 +45,9 @@ interface HarnessOutput {
     scored_count: number;
     timeout_count: number;
     error_count: number;
+    public_artifact_redacted?: boolean;
+    redacted_fields?: string[];
+    redaction_policy?: string;
   };
   metrics: ModelMetrics;
   metrics_by_model: Record<string, ModelMetrics>;
@@ -53,30 +61,42 @@ interface Props {
 
 export async function getStaticProps(): Promise<{ props: Props }> {
   const filePath = path.join(process.cwd(), "..", "results", "model_results.json");
-  const envPath = path.join(process.cwd(), "..", ".env");
   let data = null;
   let expectedModels: string[] = [];
 
   try {
-    if (fs.existsSync(envPath)) {
-      const envContent = fs.readFileSync(envPath, "utf8");
-      const modelsLine = envContent.split('\n').find(line => line.startsWith('MODELS='));
-      if (modelsLine) {
-        expectedModels = modelsLine.replace('MODELS=', '').replace(/"/g, '').replace(/'/g, '').split(',').map(m => m.trim());
-      }
-    }
-  } catch (e) {
-    console.error("Failed to load .env", e);
-  }
-
-  try {
     if (fs.existsSync(filePath)) {
-      data = JSON.parse(fs.readFileSync(filePath, "utf8"));
+      const parsed = JSON.parse(fs.readFileSync(filePath, "utf8"));
+      if (parsed?.metadata?.public_artifact_redacted && Array.isArray(parsed.results)) {
+        parsed.results = parsed.results.map(({ prompt, output, ...row }: AttackResult) => row);
+      }
+      data = parsed;
+      expectedModels = parsed?.metadata?.models_requested ?? [];
     }
   } catch (e) {
     console.error("Failed to load model results", e);
   }
   return { props: { data, expectedModels } };
+}
+
+function shortDigest(value?: string) {
+  return value ? `${value.slice(0, 12)}...` : "unavailable";
+}
+
+function traceText(value?: string) {
+  return value ?? "";
+}
+
+function TraceDigest({ label, hash, chars }: { label: string; hash?: string; chars?: number }) {
+  return (
+    <div className="bg-[#0f0f0f] p-4 rounded-xl font-mono text-xs text-gray-300 border border-white/5 shadow-inner">
+      <div className="text-[10px] uppercase text-gray-500 mb-2 font-bold tracking-widest">{label}</div>
+      <div className="flex flex-col gap-1">
+        <span>sha256: <span className="text-accent">{shortDigest(hash)}</span></span>
+        <span>chars: <span className="text-gray-200">{chars ?? "unknown"}</span></span>
+      </div>
+    </div>
+  );
 }
 
 export default function DatasetPage({ data, expectedModels }: Props) {
@@ -98,8 +118,9 @@ export default function DatasetPage({ data, expectedModels }: Props) {
   }
 
   const { metadata, metrics_by_model, results } = data;
+  const publicArtifactRedacted = Boolean(metadata.public_artifact_redacted);
   
-  // Create a combined list of expected models from .env and any models in the results
+  // Create a combined list of expected models from run metadata and any models in the results
   const evaluatedModels = Object.keys(metrics_by_model);
   const allModels = Array.from(new Set([...expectedModels, ...evaluatedModels]));
   
@@ -338,7 +359,7 @@ export default function DatasetPage({ data, expectedModels }: Props) {
                   <th className="px-6 py-4 font-medium border-b border-white/5 w-1/4">Model</th>
                   <th className="px-6 py-4 font-medium border-b border-white/5 w-1/4">Attack ID</th>
                   <th className="px-6 py-4 font-medium text-center border-b border-white/5 w-1/12">Injected?</th>
-                  <th className="px-6 py-4 font-medium border-b border-white/5">Sample Output</th>
+                  <th className="px-6 py-4 font-medium border-b border-white/5">Trace Availability</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
@@ -360,32 +381,46 @@ export default function DatasetPage({ data, expectedModels }: Props) {
                             {res.flags.unsafe_instruction_adopted ? 'YES' : 'NO'}
                           </span>
                         </td>
-                        <td className="px-6 py-4 truncate max-w-sm font-mono text-[11px] opacity-80 group-hover:opacity-100 transition-opacity" title={res.output}>
-                          {res.output.substring(0, 80)}{res.output.length > 80 ? '...' : ''}
+                        <td className="px-6 py-4 truncate max-w-sm font-mono text-[11px] opacity-80 group-hover:opacity-100 transition-opacity" title={res.trace_redacted ? "Raw trace redacted from public artifact" : traceText(res.output)}>
+                          {res.trace_redacted
+                            ? `redacted; output ${shortDigest(res.output_sha256)}`
+                            : `${traceText(res.output).substring(0, 80)}${traceText(res.output).length > 80 ? '...' : ''}`}
                         </td>
                       </tr>
                       {isExpanded && (
                         <tr className="bg-black/40 shadow-inner">
                           <td colSpan={4} className="px-8 py-6 border-b border-white/5">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {res.trace_redacted ? (
                               <div>
-                                <h4 className="text-[10px] uppercase text-gray-500 mb-2 font-bold tracking-widest flex items-center justify-between">
-                                  <span>Request Body / Prompt</span>
-                                </h4>
-                                <div className="bg-[#0f0f0f] p-4 rounded-xl font-mono text-xs text-blue-300/90 border border-white/5 whitespace-pre-wrap max-h-[300px] overflow-auto custom-scrollbar shadow-inner">
-                                  {res.prompt}
+                                <div className="mb-4 rounded-xl border border-accent/20 bg-accent/10 p-4 text-sm text-gray-300">
+                                  Raw request and response traces are withheld from the public artifact. Metrics, flags, row counts, character counts, and digests are retained for verification.
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                  <TraceDigest label="Prompt Digest" hash={res.prompt_sha256} chars={res.prompt_chars} />
+                                  <TraceDigest label="Output Digest" hash={res.output_sha256} chars={res.output_chars} />
                                 </div>
                               </div>
-                              <div>
-                                <h4 className="text-[10px] uppercase text-gray-500 mb-2 font-bold tracking-widest flex items-center justify-between">
-                                  <span>Model Output Payload</span>
-                                  {res.flags.unsafe_instruction_adopted && <span className="text-red-400 bg-red-400/10 px-2 py-0.5 rounded">Vulnerable Output</span>}
-                                </h4>
-                                <div className={`bg-[#0f0f0f] p-4 rounded-xl font-mono text-xs border whitespace-pre-wrap max-h-[300px] overflow-auto custom-scrollbar shadow-inner ${res.flags.unsafe_instruction_adopted ? 'border-red-500/20 text-red-300/90' : 'border-white/5 text-orange-300/90'}`}>
-                                  {res.output}
+                            ) : (
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                  <h4 className="text-[10px] uppercase text-gray-500 mb-2 font-bold tracking-widest flex items-center justify-between">
+                                    <span>Request Body / Prompt</span>
+                                  </h4>
+                                  <div className="bg-[#0f0f0f] p-4 rounded-xl font-mono text-xs text-blue-300/90 border border-white/5 whitespace-pre-wrap max-h-[300px] overflow-auto custom-scrollbar shadow-inner">
+                                    {traceText(res.prompt)}
+                                  </div>
+                                </div>
+                                <div>
+                                  <h4 className="text-[10px] uppercase text-gray-500 mb-2 font-bold tracking-widest flex items-center justify-between">
+                                    <span>Model Output Payload</span>
+                                    {res.flags.unsafe_instruction_adopted && <span className="text-red-400 bg-red-400/10 px-2 py-0.5 rounded">Vulnerable Output</span>}
+                                  </h4>
+                                  <div className={`bg-[#0f0f0f] p-4 rounded-xl font-mono text-xs border whitespace-pre-wrap max-h-[300px] overflow-auto custom-scrollbar shadow-inner ${res.flags.unsafe_instruction_adopted ? 'border-red-500/20 text-red-300/90' : 'border-white/5 text-orange-300/90'}`}>
+                                    {traceText(res.output)}
+                                  </div>
                                 </div>
                               </div>
-                            </div>
+                            )}
                           </td>
                         </tr>
                       )}
@@ -406,6 +441,11 @@ export default function DatasetPage({ data, expectedModels }: Props) {
             Showing {filteredResults.length} of {results.length} total records.
           </div>
         </div>
+        {publicArtifactRedacted && (
+          <div className="mt-4 text-center text-xs text-gray-500">
+            Public artifact redaction is active; raw request and response traces are not rendered.
+          </div>
+        )}
       </motion.div>
 
       {/* Model Detail Modal */}
@@ -451,15 +491,23 @@ export default function DatasetPage({ data, expectedModels }: Props) {
                         </div>
                         <div className="mb-4">
                           <h4 className="text-[10px] uppercase text-gray-500 mb-2 font-bold tracking-widest">Adversarial Prompt</h4>
-                          <div className="bg-[#0f0f0f] p-4 rounded-xl font-mono text-xs text-blue-300 border border-white/5 whitespace-pre-wrap max-h-64 overflow-auto custom-scrollbar">
-                            {res.prompt}
-                          </div>
+                          {res.trace_redacted ? (
+                            <TraceDigest label="Prompt Digest" hash={res.prompt_sha256} chars={res.prompt_chars} />
+                          ) : (
+                            <div className="bg-[#0f0f0f] p-4 rounded-xl font-mono text-xs text-blue-300 border border-white/5 whitespace-pre-wrap max-h-64 overflow-auto custom-scrollbar">
+                              {traceText(res.prompt)}
+                            </div>
+                          )}
                         </div>
                         <div>
                           <h4 className="text-[10px] uppercase text-gray-500 mb-2 font-bold tracking-widest">Model Output</h4>
-                          <div className="bg-[#0f0f0f] p-4 rounded-xl font-mono text-xs text-red-300 border border-red-500/20 whitespace-pre-wrap max-h-64 overflow-auto custom-scrollbar relative">
-                            {res.output}
-                          </div>
+                          {res.trace_redacted ? (
+                            <TraceDigest label="Output Digest" hash={res.output_sha256} chars={res.output_chars} />
+                          ) : (
+                            <div className="bg-[#0f0f0f] p-4 rounded-xl font-mono text-xs text-red-300 border border-red-500/20 whitespace-pre-wrap max-h-64 overflow-auto custom-scrollbar relative">
+                              {traceText(res.output)}
+                            </div>
+                          )}
                         </div>
                       </div>
                     ))}

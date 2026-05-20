@@ -1,5 +1,6 @@
 import Layout from "../components/Layout";
 import DiagramCard, { DiagramItem } from "../components/DiagramCard";
+import Image from "next/image";
 import { motion, Variants } from "framer-motion";
 import { ShieldAlert, Cpu, User } from "lucide-react";
 
@@ -139,7 +140,7 @@ export default function Home() {
           <User className="text-accent" /> About the Author
         </h2>
         <div className="glass p-8 rounded-2xl flex flex-col md:flex-row gap-8 items-center md:items-start">
-          <img src="/kevinbytes-logo.png" alt="Kevin O'Connor" className="w-24 h-24 rounded-full bg-white/5 p-2 object-contain" />
+          <Image src="/kevinbytes-logo.png" alt="Kevin O'Connor" width={96} height={96} className="w-24 h-24 rounded-full bg-white/5 p-2 object-contain" />
           <div>
             <h3 className="text-2xl font-bold text-white mb-2">Kevin O&apos;Connor</h3>
             <p className="text-accent font-mono text-sm mb-4">NSA Alum | Adlumin</p>

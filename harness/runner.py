@@ -17,8 +17,8 @@ from scenario_engine import DEFAULT_SYSTEM_PROMPT, ScenarioEngine
 
 ROOT = Path(__file__).resolve().parents[1]
 DATASET_PATH = ROOT / "dataset" / "attack_catalog.json"
-RESULTS_PATH = ROOT / "results" / "model_results.json"
-RESULTS_CSV_PATH = ROOT / "results" / "model_results.csv"
+RESULTS_PATH = ROOT / "results" / "generated" / "model_results.json"
+RESULTS_CSV_PATH = ROOT / "results" / "generated" / "model_results.csv"
 
 
 def load_env(path: Path) -> None:

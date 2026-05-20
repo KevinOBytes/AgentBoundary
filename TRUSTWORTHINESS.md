@@ -14,8 +14,11 @@ To eliminate the brittleness of traditional regex/substring matching, AgentKillC
 - **False Negatives:** An agent might execute a subtle, obfuscated attack that the judge misses.
 
 ## Versioning & Provenance
-Every evaluation run outputs exact cryptographic traceability points in `results/model_results.json`:
+Every public evaluation artifact outputs traceability points in `results/model_results.json` without publishing raw prompts or raw model outputs:
 - Run timestamps
 - Exact models requested vs. models invoked (via OpenRouter fallback routing)
 - Execution timeouts vs. API errors
 - Pass/fail flags per individual scenario phase
+- SHA-256 digests and character counts for redacted prompt/output traces
+
+Raw traces are retained only in ignored local outputs or private archives. This reduces accidental disclosure of private system prompts, provider diagnostics, and model-generated unsafe content while preserving enough structure to verify row counts and metric aggregation.
