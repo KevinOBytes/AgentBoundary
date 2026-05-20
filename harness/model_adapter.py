@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import time
 import urllib.error
 import urllib.request
 from dataclasses import dataclass, field
@@ -243,6 +244,7 @@ class OllamaAdapter:
     base_url: str = "http://localhost:11434"
     api_key: str | None = None
     timeout: int = 120
+    max_retries: int = 3
     max_turns: int = 5
 
     def generate(self, model: str, messages: List[Dict[str, Any]]) -> GenerationResult:
@@ -252,48 +254,61 @@ class OllamaAdapter:
         tool_mode = True
 
         for _iteration in range(self.max_turns):
-            request_messages = messages
-            if not tool_mode:
-                request_messages = [
-                    {
-                        "role": "system",
-                        "content": (
-                            "You are running in a text-only mock tool environment. "
-                            "If you decide to call a tool, write exactly one line in the form "
-                            "[TOOL_CALL] tool_name({\"arg\":\"value\"}) before any explanation. "
-                            "Available tools: read_document, fetch_url, search_notes, send_email, write_note."
-                        ),
+            attempt = 0
+            while True:
+                request_messages = messages
+                if not tool_mode:
+                    request_messages = [
+                        {
+                            "role": "system",
+                            "content": (
+                                "You are running in a text-only mock tool environment. "
+                                "If you decide to call a tool, write exactly one line in the form "
+                                "[TOOL_CALL] tool_name({\"arg\":\"value\"}) before any explanation. "
+                                "Available tools: read_document, fetch_url, search_notes, send_email, write_note."
+                            ),
+                        },
+                        *messages,
+                    ]
+                payload: Dict[str, Any] = {
+                    "model": model,
+                    "messages": request_messages,
+                    "stream": False,
+                    "options": {"temperature": 0.0},
+                }
+                if tool_mode:
+                    payload["tools"] = tools
+                body = json.dumps(payload).encode("utf-8")
+                req = urllib.request.Request(
+                    f"{self.base_url.rstrip('/')}/api/chat",
+                    data=body,
+                    headers={
+                        "Content-Type": "application/json",
+                        **({"Authorization": f"Bearer {self.api_key}"} if self.api_key else {}),
                     },
-                    *messages,
-                ]
-            payload: Dict[str, Any] = {
-                "model": model,
-                "messages": request_messages,
-                "stream": False,
-                "options": {"temperature": 0.0},
-            }
-            if tool_mode:
-                payload["tools"] = tools
-            body = json.dumps(payload).encode("utf-8")
-            req = urllib.request.Request(
-                f"{self.base_url.rstrip('/')}/api/chat",
-                data=body,
-                headers={
-                    "Content-Type": "application/json",
-                    **({"Authorization": f"Bearer {self.api_key}"} if self.api_key else {}),
-                },
-                method="POST",
-            )
-            try:
-                with urllib.request.urlopen(req, timeout=self.timeout) as response:
-                    data = json.loads(response.read().decode("utf-8"))
-            except urllib.error.HTTPError as exc:
-                err_body = exc.read().decode("utf-8")
-                if exc.code == 400 and tool_mode:
-                    tool_mode = False
-                    full_output_log += "[ADAPTER_NOTICE] Ollama model rejected native tools; retried with text-only mock tool protocol.\n"
-                    continue
-                raise RuntimeError(f"Ollama Request Failed ({exc.code}): {err_body}") from exc
+                    method="POST",
+                )
+                try:
+                    with urllib.request.urlopen(req, timeout=self.timeout) as response:
+                        data = json.loads(response.read().decode("utf-8"))
+                    break
+                except urllib.error.HTTPError as exc:
+                    err_body = exc.read().decode("utf-8")
+                    if exc.code == 400 and tool_mode:
+                        tool_mode = False
+                        full_output_log += "[ADAPTER_NOTICE] Ollama model rejected native tools; retried with text-only mock tool protocol.\n"
+                        continue
+                    if exc.code in {429, 500, 502, 503, 504} and attempt < self.max_retries - 1:
+                        time.sleep(2 ** attempt)
+                        attempt += 1
+                        continue
+                    raise RuntimeError(f"Ollama Request Failed ({exc.code}): {err_body}") from exc
+                except Exception as exc:
+                    if attempt < self.max_retries - 1:
+                        time.sleep(2 ** attempt)
+                        attempt += 1
+                        continue
+                    raise
 
             if "error" in data:
                 raise RuntimeError(f"Ollama API Error: {data['error']}")
@@ -346,6 +361,7 @@ def build_adapter(provider: str = "openrouter") -> OpenRouterAdapter | OllamaAda
         return OllamaAdapter(
             base_url=os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),
             timeout=int(os.getenv("OLLAMA_TIMEOUT_SECONDS", "120")),
+            max_retries=int(os.getenv("OLLAMA_MAX_RETRIES", "3")),
         )
     if provider == "ollama-cloud":
         key = os.getenv("OLLAMA_API_KEY", "")
@@ -355,6 +371,7 @@ def build_adapter(provider: str = "openrouter") -> OpenRouterAdapter | OllamaAda
             base_url=os.getenv("OLLAMA_CLOUD_BASE_URL", "https://ollama.com"),
             api_key=key,
             timeout=int(os.getenv("OLLAMA_TIMEOUT_SECONDS", "120")),
+            max_retries=int(os.getenv("OLLAMA_MAX_RETRIES", "3")),
         )
     if provider != "openrouter":
         raise ValueError(f"Unsupported provider: {provider}")
