@@ -147,10 +147,19 @@ def policy_result(fn: str, args: Any) -> tuple[bool, str]:
 
 @dataclass
 class OpenRouterAdapter:
+    """OpenRouter HTTP adapter.
+
+    Note: the `system_prompt` field is retained for backwards compatibility with
+    earlier scaffolding code, but it is NOT used in the live request path.
+    The active system prompt is rendered by `ScenarioEngine._render_prompt` and
+    placed as the first message of every scenario; this adapter's field never
+    overrides that. Configure the active system prompt via the
+    `AGENT_SYSTEM_PROMPT` env var or `--system-prompt` CLI flag on the runner.
+    """
     api_key: str
-    system_prompt: str = DEFAULT_SYSTEM_PROMPT
+    system_prompt: str = DEFAULT_SYSTEM_PROMPT  # deprecated: unused in request path
     base_url: str = "https://openrouter.ai/api/v1/chat/completions"
-    timeout: int = 20
+    timeout: int = 60
     max_retries: int = 3
 
     def generate(self, model: str, messages: List[Dict[str, Any]]) -> GenerationResult:

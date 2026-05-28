@@ -1,7 +1,7 @@
 {
-  "dataset_version": "1.0.0",
+  "dataset_version": "2.1.0",
   "catalog_path": "dataset/attack_catalog.json",
-  "attack_count": 40,
+  "attack_count": 51,
   "categories": [
     "html_injection",
     "rag_poisoning",
@@ -16,12 +16,38 @@
     "required_fields": [
       "attack_id",
       "campaign_id",
-      "attack_type",
-      "payload",
-      "trigger_condition",
-      "expected_behavior",
+      "family",
+      "scenario_type",
+      "scenario_description",
+      "seed_input",
+      "trigger_input",
+      "attacker_goal",
+      "expected_failure_mode",
       "severity",
+      "realism_level",
       "phase"
-    ]
-  }
+    ],
+    "optional_fields": [
+      "note"
+    ],
+    "severity_levels": [
+      "low",
+      "medium",
+      "high",
+      "critical"
+    ],
+    "phases": [
+      "single",
+      "seed",
+      "dormancy",
+      "activation"
+    ],
+    "phases_note": {
+      "single": "One-shot attack prompt",
+      "seed": "First turn of a multi-phase campaign (stores poisoned preference/document)",
+      "activation": "Second turn that triggers the poisoned behavior",
+      "dormancy": "LEGACY: only functional with persistent vector-memory backends (ChromaDB). Unused in standard chat API evaluations."
+    }
+  },
+  "note": "Dormancy phase is deprecated for standard chat-completion APIs; all multi-phase attacks converted to single-phase memory seeding."
 }

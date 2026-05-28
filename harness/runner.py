@@ -14,6 +14,8 @@ from typing import Any, Dict, List
 from evaluation import evaluate, summarize_by_model
 from model_adapter import build_adapter, GenerationResult
 from scenario_engine import DEFAULT_SYSTEM_PROMPT, ScenarioEngine
+from defense_variants import VARIANTS, get_variant, variant_provenance
+from utility_metrics import utility_score
 
 ROOT = Path(__file__).resolve().parents[1]
 DATASET_PATH = ROOT / "dataset" / "attack_catalog.json"
@@ -98,48 +100,24 @@ def parse_models(provider: str = "openrouter", cli_models: str | None = None) ->
     if env_value:
         return [m.strip() for m in env_value.split(",") if m.strip()]
 
-    # Updated 2026-04: Version pairs (latest + previous) for temporal regression analysis.
-    # Each provider has its newest flagship plus the prior version for comparison.
-    # Removed 4 models that produced 0/40 scored results in v0.1 run:
-    #   microsoft/phi-4, nousresearch/hermes-4-70b, liquid/lfm-2-24b-a2b, perplexity/sonar-reasoning-pro
+    # Default OpenRouter cohort matches the v1 whitepaper published cohort
+    # (6 frontier/lite models, May 20, 2026).
+    # This is the "openrouter-frontier-cohort" of 6 closed/proprietary frontier
+    # and lite models. If you need a broader sweep, override with --models or
+    # the MODELS env var. The runner does NOT silently roll forward to a new
+    # default cohort; bumping this list is a versioned release decision.
     value = ",".join([
         # --- OpenAI ---
-        "openai/gpt-5.4",                     # Latest flagship (2026)
-        "openai/gpt-5",                        # Previous flagship (v0.1 baseline)
+        "openai/gpt-5.3-chat",
+        "openai/gpt-5.4-mini",
 
         # --- Anthropic ---
-        "anthropic/claude-sonnet-4.6",         # Latest Sonnet (2026)
-        "anthropic/claude-sonnet-4.5",         # Previous Sonnet (v0.1 baseline)
+        "anthropic/claude-opus-4.7",
+        "anthropic/claude-haiku-4.5",
 
         # --- Google ---
-        "google/gemini-3.1-pro-preview",       # Latest Pro (2026)
-        "google/gemini-3.0-pro",               # Previous Pro (v0.1 baseline; was gemini-3.0-pro)
-
-        # --- Meta ---
-        "meta-llama/llama-4-maverick",         # Latest flagship (Llama 4)
-        "meta-llama/llama-3.3-70b-instruct",   # Previous (v0.1 baseline)
-
-        # --- Mistral ---
-        "mistralai/mistral-large-3-2512",      # Latest Large (Dec 2025)
-        "mistralai/mistral-large-2411",         # Previous Large (v0.1 baseline, 3 positives)
-
-        # --- Cohere ---
-        "cohere/command-r-plus-08-2024",       # Stable (no newer version on OpenRouter)
-
-        # --- Qwen ---
-        "qwen/qwen-2.5-72b-instruct",         # Stable (latest large instruct)
-
-        # --- xAI ---
-        "x-ai/grok-4.20",                     # Latest flagship (2026)
-        "x-ai/grok-4-fast",                    # Previous (v0.1 baseline)
-
-        # --- DeepSeek ---
-        "deepseek/deepseek-v3.2",              # Latest (2026)
-        "deepseek/deepseek-chat-v3.1",         # Previous
-
-        # --- Amazon ---
-        "amazon/nova-premier-v1",              # Stable
-
+        "google/gemini-3.1-pro-preview",
+        "google/gemini-3.1-flash-lite",
     ])
     return [m.strip() for m in value.split(",") if m.strip()]
 
@@ -240,8 +218,14 @@ def _base_error_row(
 
 
 def _model_alias(model: str) -> str:
+    """OpenRouter-side request name normalization.
+
+    Maps user-friendly model names to the exact OpenRouter slug used at the
+    HTTP layer. The original (pre-alias) name is restored on the result row
+    for logging and UI consistency.
+    """
     return {
-        "anthropic/claude-4.5-haiku": "anthropic/claude-opus-4.5",
+        "anthropic/claude-haiku-4.5": "anthropic/claude-haiku-4.5",
         "google/gemini-3.0-pro": "google/gemini-3-pro-preview",
         "google/gemini-3.1-pro": "google/gemini-3.1-pro-preview",
     }.get(model, model)
@@ -306,13 +290,28 @@ def campaign_groups(attacks: List[dict]) -> "OrderedDict[str, List[dict]]":
 
 def _run_model(attacks: List[dict], model: str, adapter, args) -> List[dict]:
     rows: List[dict] = []
+    # Resolve the active filter from the named defense variant, if any.
+    active_filter = None
+    if getattr(args, "defense_variant", None):
+        from defense_variants import get_variant as _gv
+        active_filter = _gv(args.defense_variant).untrusted_filter
     for _campaign_id, campaign_attacks in campaign_groups(attacks).items():
-        engine = ScenarioEngine(judge_mode=args.judge_mode, system_prompt=args.system_prompt)
+        engine = ScenarioEngine(
+            judge_mode=args.judge_mode,
+            system_prompt=args.system_prompt,
+            memory_backend=args.memory_backend,
+            untrusted_filter=active_filter,
+        )
         for attack in campaign_attacks:
             row = _run_attack_single(attack, model, engine, adapter, args)
             rows.append(row)
             if row["status"] != "scored":
-                engine = ScenarioEngine(judge_mode=args.judge_mode, system_prompt=args.system_prompt)
+                engine = ScenarioEngine(
+                    judge_mode=args.judge_mode,
+                    system_prompt=args.system_prompt,
+                    memory_backend=args.memory_backend,
+                    untrusted_filter=active_filter,
+                )
     return rows
 
 
@@ -339,7 +338,18 @@ def main() -> None:
     parser.add_argument("--models", help="Comma-separated model list. Overrides MODELS/OLLAMA_MODELS/defaults.")
     parser.add_argument("--attack-ids", help="Comma-separated attack_id filter for targeted reruns.")
     parser.add_argument("--judge-mode", choices=["llm", "heuristic"], default=None)
+    parser.add_argument("--memory-backend", choices=["flat", "vector"], default=os.getenv("AKC_MEMORY_BACKEND", "flat"))
     parser.add_argument("--system-prompt", default=None)
+    parser.add_argument(
+        "--defense-variant",
+        choices=sorted(VARIANTS.keys()),
+        default=os.getenv("AKC_DEFENSE_VARIANT"),
+        help=(
+            "Named defense variant: hardened | generic | generic_plus_memory_filter. "
+            "If set, overrides --system-prompt with the variant's prompt and enables "
+            "any associated untrusted-input filter. Recorded in artifact metadata."
+        ),
+    )
     parser.add_argument("--max-workers", type=int, default=None)
     parser.add_argument("--per-attack-timeout", type=int, default=int(os.getenv("AKC_PER_ATTACK_TIMEOUT", "120")))
     parser.add_argument("--run-label", default=os.getenv("AKC_RUN_LABEL", "first-local-release"))
@@ -352,7 +362,13 @@ def main() -> None:
     models = parse_models(args.provider, args.models)
     if args.judge_mode is None:
         args.judge_mode = "heuristic" if args.provider in {"ollama", "ollama-cloud"} or args.dry_run else "llm"
-    if args.system_prompt is None:
+
+    # Resolve defense variant: --defense-variant takes priority over --system-prompt.
+    variant_obj = None
+    if args.defense_variant:
+        variant_obj = get_variant(args.defense_variant)
+        args.system_prompt = variant_obj.system_prompt
+    elif args.system_prompt is None:
         args.system_prompt = os.getenv("AGENT_SYSTEM_PROMPT", DEFAULT_SYSTEM_PROMPT)
 
     adapter = None if args.dry_run else build_adapter(args.provider)
@@ -360,7 +376,9 @@ def main() -> None:
 
     max_workers = args.max_workers
     if max_workers is None:
-        if args.provider == "ollama":
+        if args.memory_backend == "vector":
+            max_workers = 1
+        elif args.provider == "ollama":
             max_workers = 1
         elif args.provider == "ollama-cloud":
             max_workers = min(4, len(models))
@@ -375,34 +393,45 @@ def main() -> None:
     # Do not use 'with' block to avoid hanging on shutdown if threads are deadlocked.
     executor.shutdown(wait=False)
 
-    metrics = evaluate(rows)
-    by_model = summarize_by_model(rows)
-    
+    expected_count = len(models) * len(attacks)
+    metrics = evaluate(rows, expected_count=expected_count)
+    by_model = summarize_by_model(rows, expected_per_model=len(attacks))
+    utility = utility_score(rows)
+
     import datetime
+    import hashlib
     run_timestamp = datetime.datetime.now(datetime.timezone.utc).isoformat()
     counts = status_counts(rows)
+    system_prompt_sha256 = hashlib.sha256(args.system_prompt.encode("utf-8")).hexdigest() if args.system_prompt else None
 
     output = {
         "metadata": {
-            "benchmark_version": "1.0.0-local" if args.provider != "ollama-cloud" else "1.0.0-ollama-cloud",
+            "benchmark_version": "1.2.0-multi-provider" if args.provider == "openrouter" else (
+                "1.2.0-local" if args.provider != "ollama-cloud" else "1.2.0-ollama-cloud"
+            ),
             "run_label": args.run_label,
             "run_timestamp": run_timestamp,
             "git_commit": git_commit(),
             "provider": args.provider,
             "judge_mode": args.judge_mode,
+            "memory_backend": args.memory_backend,
+            "defense_variant": variant_obj.name if variant_obj else "custom_or_default",
             "system_prompt_configured": bool(args.system_prompt),
+            "system_prompt_sha256": system_prompt_sha256,
+            "defense_variant_provenance": variant_provenance(),
             "dry_run": args.dry_run,
             "models_requested": models,
             "models_total": len(models),
             "attacks_total": len(attacks),
             "campaigns_total": len(campaign_groups(attacks)),
             "attempted_count": counts["attempted"],
-            "expected_count": len(models) * len(attacks),
+            "expected_count": expected_count,
             "scored_count": counts["scored"],
             "timeout_count": counts["timed_out"],
             "error_count": counts["api_error"],
         },
         "metrics": metrics,
+        "utility_metrics": utility,
         "metrics_by_model": by_model,
         "results": rows,
     }

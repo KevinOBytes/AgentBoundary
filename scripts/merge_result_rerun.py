@@ -36,7 +36,14 @@ def merge_payloads(base_payload: dict[str, Any], rerun_payload: dict[str, Any]) 
     replacements = []
     for rerun_result in rerun_results:
         key = result_key(rerun_result)
-        base_results[result_indexes[key]] = rerun_result
+        base_result = base_results[result_indexes[key]]
+        replacement = deepcopy(rerun_result)
+        for preserved_key in ("provider", "cohort_label"):
+            if base_result.get(preserved_key):
+                replacement[preserved_key] = base_result[preserved_key]
+            else:
+                replacement.pop(preserved_key, None)
+        base_results[result_indexes[key]] = replacement
         replacements.append(
             {
                 "model": key[0],
@@ -61,8 +68,10 @@ def merge_payloads(base_payload: dict[str, Any], rerun_payload: dict[str, Any]) 
     )
 
     merged_payload["results"] = base_results
-    merged_payload["metrics"] = evaluate(base_results)
-    merged_payload["metrics_by_model"] = summarize_by_model(base_results)
+    expected_count = metadata.get("expected_count")
+    attacks_total = metadata.get("attacks_total")
+    merged_payload["metrics"] = evaluate(base_results, expected_count=expected_count)
+    merged_payload["metrics_by_model"] = summarize_by_model(base_results, expected_per_model=attacks_total)
     return merged_payload
 
 

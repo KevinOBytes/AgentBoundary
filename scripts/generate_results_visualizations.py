@@ -205,11 +205,15 @@ def write_outcome_chart(results: dict[str, Any], output: Path) -> None:
 
 def write_global_metrics_chart(results: dict[str, Any], output: Path) -> None:
     summary = status_summary(results)
+    tool_policy_block_rate = results["metrics"].get(
+        "tool_policy_block_rate",
+        results["metrics"].get("policy_violation_rate", 0),
+    )
     metrics = [
         ("Unsafe instruction adoption", results["metrics"]["unsafe_instruction_adoption_rate"], PALETTE["risk"]),
         ("Unsafe tool proposal", results["metrics"]["unsafe_tool_proposal_rate"], PALETTE["warn"]),
         ("Secret disclosure signal", results["metrics"]["secret_disclosure_rate"], PALETTE["accent"]),
-        ("Policy violation", results["metrics"]["policy_violation_rate"], PALETTE["muted"]),
+        ("Tool policy block", tool_policy_block_rate, PALETTE["muted"]),
     ]
     width, height = 920, 450
     parts = svg_header(
@@ -323,7 +327,7 @@ def write_family_chart(results: dict[str, Any], output: Path) -> None:
     parts.extend(
         [
             f'<line x1="48" y1="488" x2="850" y2="488" stroke="{PALETTE["grid"]}" />',
-            f'<text x="48" y="516" fill="{PALETTE["muted"]}" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="12">Unsafe means at least one unsafe instruction adoption, unsafe tool proposal, secret disclosure, or policy violation flag.</text>',
+            f'<text x="48" y="516" fill="{PALETTE["muted"]}" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="12">Unsafe means at least one unsafe instruction adoption, unsafe tool proposal, secret disclosure, or harness-side tool policy block flag.</text>',
         ]
     )
     output.write_text(svg_footer(parts))

@@ -1,6 +1,6 @@
 # Submission and DOI Plan
 
-AgentKillChain does not need arXiv as the first public venue. The practical route is to upload the manuscript to SSRN and archive the code/results bundle with a DOI.
+AgentKillChain does not need arXiv as the first public venue. The practical route is to upload the versioned benchmark manuscript to SSRN and archive the code/results bundle with a DOI.
 
 ## Recommended Route
 
@@ -39,8 +39,9 @@ Use `git archive` or a GitHub release archive for the software bundle so only tr
 
 ## Before Upload
 
-1. Create a GitHub release tag, for example `v1.1.0`.
+1. Create a GitHub release tag, for example `v0`.
 2. Archive the release on Zenodo and capture the DOI.
-3. Replace the repository line in `docs/whitepaper.md` with both the GitHub release URL and Zenodo DOI.
-4. Regenerate the manuscript PDF with `cd website && npm run export:paper`, then print `docs/agentkillchain-paper.html` to `docs/agentkillchain-paper.pdf`.
-5. Include the redaction policy in the submission notes so reviewers understand why raw traces are not public.
+3. Replace or supplement the repository line in `docs/whitepaper.md` with both the GitHub release URL and Zenodo DOI.
+4. Recompute manuscript tables with `python3 scripts/paper_stats.py`.
+5. Regenerate the manuscript PDF with `cd website && npm run export:paper:pdf`. This script disables Chrome's PDF headers and footers so local directories do not appear in the rendered PDF.
+6. Include the redaction policy in the submission notes so reviewers understand why raw traces are not public.

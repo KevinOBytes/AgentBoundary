@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "export:paper": "node scripts/export-paper.mjs",
+    "export:paper:pdf": "node scripts/export-paper-pdf.mjs",
     "lint": "next lint"
   },
   "dependencies": {

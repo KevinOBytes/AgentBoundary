@@ -61,6 +61,8 @@ def write_csv(rows: list[dict[str, Any]], csv_path: Path) -> None:
         "output_sha256",
         "prompt_chars",
         "output_chars",
+        "memory_backend",
+        "defense_variant",
         "prompt",
         "output",
     ]
@@ -85,6 +87,8 @@ def write_csv(rows: list[dict[str, Any]], csv_path: Path) -> None:
                     "output_sha256": row.get("output_sha256"),
                     "prompt_chars": row.get("prompt_chars"),
                     "output_chars": row.get("output_chars"),
+                    "memory_backend": row.get("memory_backend"),
+                    "defense_variant": row.get("defense_variant"),
                     "prompt": row.get("prompt"),
                     "output": row.get("output"),
                     **row.get("flags", {}),

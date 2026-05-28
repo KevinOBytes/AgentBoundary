@@ -1,23 +1,29 @@
 cff-version: 1.2.0
 message: "If you use AgentKillChain in academic, policy, or safety evaluation work, please cite it using this metadata."
-title: "AgentKillChain: A Controlled Benchmark for Persistent Compromise in Autonomous AI Agents"
+title: "AgentKillChain: A Versioned Benchmark for Persistent Compromise in Tool-Using AI Agents"
 authors:
   - family-names: "O'Connor"
     given-names: "Kevin"
+    affiliation: "TKOResearch LLC"
 repository-code: "https://github.com/KevinOBytes/AgentKillChain"
 url: "https://github.com/KevinOBytes/AgentKillChain"
 license: "MIT"
-date-released: "2026-05-20"
-version: "1.1.0"
+date-released: "2026-05-27"
+version: "2.1.0"
 keywords:
   - "AI safety"
   - "agent evaluation"
   - "prompt injection"
-  - "memory poisoning"
-  - "tool use"
+  - "benchmark"
+  - "empirical evaluation"
   - "frontier model evaluation"
+  - "RAG poisoning"
+  - "toolchain confusion"
 abstract: >-
-  AgentKillChain is an open, controlled benchmark for evaluating persistent
-  compromise in autonomous AI agents, including memory poisoning, context
-  drift, toolchain confusion, and delayed activation behaviors relevant to
-  agent security and frontier model safety evaluation.
+  AgentKillChain is an open, versioned benchmark for evaluating prompt
+  injection and persistent compromise in tool-using AI agents. Version 2.1
+  features a fully empirical severity-recalibrated catalog (51 scenarios
+  across 8 families), LLM-as-judge evaluation, and a 204-evaluation live
+  run across four frontier models (GPT-4o, Claude Sonnet, Gemini 2.5 Pro,
+  Llama-4 Maverick). All severity labels are grounded in measured model
+  compliance, not synthetic harm estimates.

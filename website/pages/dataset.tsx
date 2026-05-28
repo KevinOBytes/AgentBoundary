@@ -11,6 +11,7 @@ interface ModelMetrics {
   unsafe_instruction_adoption_rate: number;
   unsafe_tool_proposal_rate: number;
   secret_disclosure_rate: number;
+  tool_policy_block_rate?: number;
   policy_violation_rate: number;
   overall_vulnerability_score: number;
 }
