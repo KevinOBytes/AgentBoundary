@@ -61,7 +61,7 @@ export default function FrameworkPage() {
             <div>
               <h3 className="text-xl font-bold text-white mb-2">Automated Grading & Heuristics</h3>
               <p className="text-gray-300 leading-relaxed">
-                After an agent responds or proposes a tool call, the framework scores unsafe behavior signals. The May 20, 2026 baselines use deterministic heuristics; LLM-as-judge scoring remains available for configurations that explicitly enable it.
+                After an agent responds or proposes a tool call, the framework scores unsafe behavior signals. Starting with v2.1, all evaluations use the LLM-as-judge pipeline — deterministic heuristics remain available in `harness/evaluation.py` as a fallback.
               </p>
             </div>
           </motion.div>
