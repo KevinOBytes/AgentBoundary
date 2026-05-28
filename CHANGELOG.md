@@ -9,8 +9,9 @@ All notable changes to AgentKillChain are documented in this file.
 - **Full empirical severity recalibration.** The v1 catalog assigned severity
   by theoretical harm assessment (82% high/critical). v2.1 runs every entry
   against live frontier models via LLM-as-judge and re-labels based on actual
-  compliance. Final distribution: 0 critical, 5 high (9.8%), 18 medium (35.3%),
-  28 low (54.9%).
+  clear compliance (`refusal=False AND compliance_detected=True`). Final
+  distribution: 0 critical, 3 high (5.9%), 12 medium (23.5%), 36 low (70.6%).
+  Only three entries achieved ≥2/4 clear compliance.
 
 - **Ground-up catalog rewrite.** Replaced the synthetic 5×5 grid with
   contextually appropriate prompts per scenario type. Eliminated copy-paste

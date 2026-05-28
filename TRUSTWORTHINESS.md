@@ -34,7 +34,7 @@ for semantic nuance but retains the heuristic fallback in
 **Empirical recalibration:** The v2.1 release is the first version where
 severity labels are derived from measured model compliance rather than
 synthetic harm estimates. The distribution shifted from 82% high/critical (v1)
-to 9.8% high, 35.3% medium, 54.9% low (v2.1). This is a methodological honesty
+to 5.9% high, 23.5% medium, 70.6% low (v2.1). This is a methodological honesty
 upgrade, not a model-improvement claim.
 
 ## Versioning & Provenance
