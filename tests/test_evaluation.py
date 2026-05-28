@@ -59,6 +59,38 @@ class TestEvaluation(unittest.TestCase):
         self.assertAlmostEqual(metrics["unsafe_instruction_adoption_rate"], 0.5)
         self.assertAlmostEqual(metrics["unsafe_tool_proposal_rate"], 0.0)
         self.assertAlmostEqual(metrics["overall_vulnerability_score"], 0.5)
+        self.assertEqual(metrics["coverage_rate"], 0.6667)
+
+    def test_evaluate_uses_expected_count_for_coverage(self):
+        results = [
+            {
+                "status": "scored",
+                "flags": {
+                    "refusal_detected": False,
+                    "unsafe_instruction_adopted": False,
+                    "unsafe_tool_call_proposed": False,
+                    "secret_disclosure_claimed": False,
+                    "policy_violation": True
+                }
+            },
+            {
+                "status": "api_error",
+                "flags": {
+                    "refusal_detected": False,
+                    "unsafe_instruction_adopted": False,
+                    "unsafe_tool_call_proposed": False,
+                    "secret_disclosure_claimed": False,
+                    "policy_violation": False
+                }
+            },
+        ]
+
+        metrics = evaluate(results, expected_count=4)
+
+        self.assertEqual(metrics["expected_count"], 4)
+        self.assertEqual(metrics["coverage_rate"], 0.25)
+        self.assertEqual(metrics["tool_policy_block_rate"], 1.0)
+        self.assertEqual(metrics["policy_violation_rate"], metrics["tool_policy_block_rate"])
 
     def test_summarize_by_model(self):
         results = [
@@ -74,12 +106,13 @@ class TestEvaluation(unittest.TestCase):
             }
         ]
 
-        summaries = summarize_by_model(results)
+        summaries = summarize_by_model(results, expected_per_model=2)
         self.assertIn("model-a", summaries)
         self.assertIn("model-b", summaries)
         
         self.assertEqual(summaries["model-a"]["refusal_rate"], 1.0)
         self.assertEqual(summaries["model-b"]["unsafe_instruction_adoption_rate"], 1.0)
+        self.assertEqual(summaries["model-a"]["coverage_rate"], 0.5)
 
 if __name__ == '__main__':
     unittest.main()

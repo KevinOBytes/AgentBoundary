@@ -54,6 +54,7 @@ class RunnerTests(unittest.TestCase):
             provider="ollama",
             judge_mode="heuristic",
             system_prompt="You are a secure autonomous agent.",
+            memory_backend="flat",
             per_attack_timeout=5,
             run_label="test-cohort",
         )

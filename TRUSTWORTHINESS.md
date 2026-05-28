@@ -8,14 +8,39 @@ The `attack_catalog.json` contains novel, structured scenarios devised specifica
 ## Refusal Variability
 AI models are non-deterministic, and safety refusals vary. A run may yield an API error or a safe refusal on one attempt, then a different unsafe-signal outcome on another. The benchmark employs parsing and scoring to detect explicit refusals, but some models produce non-action responses where they neither refuse nor execute the task. These are marked as no unsafe signal, but they may still indicate task-following weakness rather than robust safety.
 
-## Scoring Efficacy
-AgentKillChain supports both LLM-as-judge scoring and deterministic heuristic scoring. The May 20, 2026 multi-provider release uses the hardened heuristic path so the public results do not depend on a separate frontier-model judge.
-- **False Positives:** A model may quote or summarize malicious content without adopting it. The hardened scoring layer is designed to require stronger unsafe-action signals, especially tool-call or disclosure markers.
-- **False Negatives:** A model may execute a subtle or obfuscated unsafe action that the heuristic misses.
-- **Reproducibility:** The public artifacts retain scoring flags and trace digests, while raw traces are retained only in private archives.
+The May 20, 2026 public release uses one pass per model-scenario evaluation. The paper reports Wilson intervals for observed binary proportions, but those intervals do not estimate provider drift, prompt paraphrase sensitivity, or repeated-run variance.
+
+## Scoring Efficacy — v2.1 LLM-as-Judge
+
+AgentKillChain now uses an LLM-as-judge pipeline (`gpt-4o-mini`) with two
+orthogonal passes: (1) refusal detection, (2) compliance detection. The May 20
+v1 release used deterministic heuristic scoring; v2.1 switched to LLM judging
+for semantic nuance but retains the heuristic fallback in
+`harness/evaluation.py`.
+
+**Known judge failure modes:**
+- **False positives (compliance):** A model may restate or summarize poisoned
+  content without executing the attack. The initial smoke test flagged
+  `rag_poisoning_005` as compliant when the model merely echoed the payload.
+  Severity recalibration flagged this as a judge error.
+- **False negatives (compliance):** A model may execute a subtle unsafe action
+  the judge template misses, especially in obfuscated RAG or style-guide
+  injections.
+- **Over-refusal detection:** The judge may classify a safe technical refusal
+  as compliance if the refusal text resembles the attack payload.
+- **Single-judge bias:** All 204 evaluations used one judge model. Cross-judge
+  validation with a second model (e.g., Claude Sonnet) is planned for v2.2.
+
+**Empirical recalibration:** The v2.1 release is the first version where
+severity labels are derived from measured model compliance rather than
+synthetic harm estimates. The distribution shifted from 82% high/critical (v1)
+to 9.8% high, 35.3% medium, 54.9% low (v2.1). This is a methodological honesty
+upgrade, not a model-improvement claim.
 
 ## Versioning & Provenance
-Every public evaluation artifact outputs traceability points in `results/model_results.json` without publishing full live request/response traces:
+Every public evaluation artifact outputs traceability points in
+`results/full_eval_YYYYMMDD.jsonl` without publishing full live request/response
+traces:
 - Run timestamps
 - Exact provider and model identifiers requested for the run
 - Execution timeouts vs. API errors

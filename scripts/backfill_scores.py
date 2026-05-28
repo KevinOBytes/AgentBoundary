@@ -20,12 +20,13 @@ def main():
         print("No rows found.")
         return
     
-    data["metrics"] = evaluate(rows)
-    data["metrics_by_model"] = summarize_by_model(rows)
+    metadata = data.get("metadata", {})
+    data["metrics"] = evaluate(rows, expected_count=metadata.get("expected_count"))
+    data["metrics_by_model"] = summarize_by_model(rows, expected_per_model=metadata.get("attacks_total"))
     
     with open(results_path, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2)
-    print("Successfully backfilled overall_vulnerability_score")
+    print("Successfully backfilled aggregate metrics")
 
 if __name__ == "__main__":
     main()

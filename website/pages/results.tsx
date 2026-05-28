@@ -54,6 +54,7 @@ export default function ResultsPage({ data, expectedModels }: Props) {
   }
 
   const { metadata, metrics, metrics_by_model } = data;
+  const toolPolicyBlockRate = metrics.tool_policy_block_rate ?? metrics.policy_violation_rate ?? 0;
   
   const evaluatedModels = Object.keys(metrics_by_model);
   const allModels = Array.from(new Set([...expectedModels, ...evaluatedModels]));
@@ -128,7 +129,7 @@ export default function ResultsPage({ data, expectedModels }: Props) {
         )}
 
         {/* Global Aggregate Highlights */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-16">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-16">
           <div className="glass p-6 rounded-2xl border-t-2 border-t-accent shadow-[0_0_30px_-10px_rgba(var(--accent-glow),0.3)]">
              <div className="flex items-center justify-between mb-4">
                <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Overall Unsafe Signal</h3>
@@ -160,6 +161,17 @@ export default function ResultsPage({ data, expectedModels }: Props) {
                <span className="text-5xl font-bold text-red-500">{(metrics.secret_disclosure_rate * 100).toFixed(1)}%</span>
              </div>
 	             <p className="text-xs text-gray-500 mt-4 leading-relaxed">Share of scored evaluations marked as secret-disclosure signals.</p>
+          </div>
+
+          <div className="glass p-6 rounded-2xl border-t-2 border-t-gray-500">
+             <div className="flex items-center justify-between mb-4">
+               <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Tool Policy Block</h3>
+               <Shield className="text-gray-400/60" size={20} />
+             </div>
+             <div className="flex items-end gap-2">
+               <span className="text-5xl font-bold text-gray-200">{(toolPolicyBlockRate * 100).toFixed(1)}%</span>
+             </div>
+             <p className="text-xs text-gray-500 mt-4 leading-relaxed">Harness-side mock tool policy blocks, not semantic model-text policy violations.</p>
           </div>
         </div>
 
@@ -219,6 +231,7 @@ export default function ResultsPage({ data, expectedModels }: Props) {
 
              const isClean = m.overall_vulnerability_score === 0;
              const scoreClass = isClean ? "text-green-400" : (m.overall_vulnerability_score > 0.05 ? "text-red-400" : "text-orange-400");
+             const modelToolPolicyBlockRate = m.tool_policy_block_rate ?? m.policy_violation_rate ?? 0;
              
              return (
                <motion.div 
@@ -239,7 +252,7 @@ export default function ResultsPage({ data, expectedModels }: Props) {
                     </div>
                  </div>
 
-                 <div className="w-full md:flex-1 grid grid-cols-2 md:grid-cols-4 gap-4">
+                 <div className="w-full md:flex-1 grid grid-cols-2 md:grid-cols-5 gap-4">
                     <div>
 	                      <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Unsafe Signal</p>
                       <p className={`text-xl font-bold ${scoreClass}`}>{(m.overall_vulnerability_score * 100).toFixed(1)}%</p>
@@ -255,6 +268,10 @@ export default function ResultsPage({ data, expectedModels }: Props) {
                     <div>
 	                      <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Disclosure</p>
                       <p className={`text-xl font-bold ${m.secret_disclosure_rate > 0 ? "text-purple-400" : "text-gray-300"}`}>{(m.secret_disclosure_rate * 100).toFixed(1)}%</p>
+                    </div>
+                    <div>
+	                      <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Tool Policy Block</p>
+                      <p className={`text-xl font-bold ${modelToolPolicyBlockRate > 0 ? "text-gray-200" : "text-gray-300"}`}>{(modelToolPolicyBlockRate * 100).toFixed(1)}%</p>
                     </div>
                  </div>
                </motion.div>

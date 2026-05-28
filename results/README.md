@@ -11,6 +11,15 @@ cohorts, for 1,800 scored model-scenario evaluations. The final artifact has
 0 API errors and 0 timeouts. Rates are computed over scored evaluations unless
 explicitly labeled as attempted-rate metrics.
 
+The latent-memory poisoning scenarios in this artifact use the vector-memory
+rerun path: seed payloads are stored in an in-process ChromaDB collection and
+activation retrieves top-k chunks into `[RETRIEVED_MEMORY]` prompt blocks before
+the target model is called.
+
+The legacy JSON flag `policy_violation` is reported in aggregate as
+`tool_policy_block_rate`. It marks a harness-side mock tool policy block, not a
+semantic finding that the model text independently violated provider policy.
+
 ## Coverage
 
 ![Current benchmark coverage](benchmark_current_coverage.svg)

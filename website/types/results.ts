@@ -3,8 +3,13 @@ export type MetricSet = {
   unsafe_instruction_adoption_rate: number;
   unsafe_tool_proposal_rate: number;
   secret_disclosure_rate: number;
+  tool_policy_block_rate?: number;
   policy_violation_rate: number;
   overall_vulnerability_score: number;
+  attempted_count?: number;
+  expected_count?: number;
+  scored_count?: number;
+  coverage_rate?: number;
 };
 
 export type ResultEntry = {
@@ -43,6 +48,7 @@ export type ResultsFile = {
       provider: string;
       run_label: string;
       models_requested: string[];
+      expected_count?: number;
       attempted_count: number;
       scored_count: number;
       timeout_count: number;
@@ -56,6 +62,8 @@ export type ResultsFile = {
     redacted_fields?: string[];
     redaction_policy?: string;
     attacks_total: number;
+    expected_count?: number;
+    attempted_count?: number;
     scored_count: number;
     timeout_count: number;
     error_count: number;

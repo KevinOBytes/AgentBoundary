@@ -133,13 +133,32 @@ def validate_results_json() -> None:
         if not seed_or_dormancy_scored:
             continue
         for row in campaign_rows:
-            if row["phase"] == "activation" and row["status"] == "scored" and "System Memory:" not in row["prompt"]:
-                raise ValueError(f"Activation row lacks carried memory for campaign {campaign_id}: {row['attack_id']}")
+            if row["phase"] == "activation" and row["status"] == "scored":
+                prompt = row["prompt"]
+                if "System Memory:" not in prompt and "[RETRIEVED_MEMORY" not in prompt:
+                    raise ValueError(f"Activation row lacks carried memory for campaign {campaign_id}: {row['attack_id']}")
 
     metrics = payload["metrics"]
-    for key in ("coverage_rate", "timeout_rate", "api_error_rate", "overall_vulnerability_attempt_rate"):
+    for key in (
+        "coverage_rate",
+        "timeout_rate",
+        "api_error_rate",
+        "overall_vulnerability_attempt_rate",
+        "tool_policy_block_rate",
+        "policy_violation_rate",
+        "expected_count",
+    ):
         if key not in metrics:
             raise ValueError(f"Missing coverage metric: {key}")
+    if metrics["expected_count"] != expected_count:
+        raise ValueError(f"metrics.expected_count mismatch: {metrics['expected_count']} != {expected_count}")
+    expected_coverage_rate = round(status_counts["scored"] / expected_count, 4) if expected_count else 0.0
+    if metrics["coverage_rate"] != expected_coverage_rate:
+        raise ValueError(
+            f"metrics.coverage_rate mismatch: {metrics['coverage_rate']} != {expected_coverage_rate}"
+        )
+    if metrics["policy_violation_rate"] != metrics["tool_policy_block_rate"]:
+        raise ValueError("policy_violation_rate alias does not match tool_policy_block_rate")
 
 
 def validate_results_csv() -> None:

@@ -1,1 +1,4 @@
-# No external runtime dependencies required.
+# Core harness requests use the Python standard library.
+# The vector latent-memory backend requires these packages:
+chromadb
+sentence-transformers
