@@ -8,8 +8,11 @@ and produces structured results for severity recalibration.
 Usage:
     uv run python eval_live.py \
         --catalog dataset/attack_catalog.json \
-        --models openai/gpt-4o anthropic/claude-sonnet-4 \
-        --output results/live_eval_$(date +%Y%m%d).jsonl \
+        --models openai/gpt-5-pro anthropic/claude-opus-4.7 \
+            google/gemini-3.5-flash deepseek/deepseek-v4-pro \
+            meta-llama/llama-4-maverick openai/gpt-5-mini \
+            deepseek/deepseek-v4-flash google/gemini-3.1-pro-preview \
+            openai/o3-mini xiaomi/mimo-v2.5-pro \
         --limit 20 \
         --judge-model openai/gpt-4o-mini
 
