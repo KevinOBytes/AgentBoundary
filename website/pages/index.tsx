@@ -60,7 +60,7 @@ export default function Home() {
         <div className="absolute -inset-x-20 -top-20 z-0 h-[300px] w-full bg-accent/10 blur-[100px] pointer-events-none rounded-full" />
         <div className="relative z-10 flex items-center mb-4 gap-3">
           <ShieldAlert className="text-accent" size={32} />
-          <span className="text-accent font-mono text-sm tracking-widest uppercase font-semibold">AgentKillChain v2.1</span>
+          <span className="text-accent font-mono text-sm tracking-widest uppercase font-semibold">AgentKillChain v2.2</span>
         </div>
         <h1 className="relative z-10 max-w-4xl text-5xl md:text-6xl font-extrabold tracking-tight mb-6 bg-gradient-to-br from-white via-white to-gray-500 bg-clip-text text-transparent pb-1">
           Evaluating Persistent Compromise in Autonomous AI Agents
