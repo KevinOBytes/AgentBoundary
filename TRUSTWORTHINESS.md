@@ -13,9 +13,9 @@ The May 20, 2026 public release uses one pass per model-scenario evaluation. The
 ## Scoring Efficacy — v2.1 LLM-as-Judge
 
 AgentKillChain now uses an LLM-as-judge pipeline (`gpt-4o-mini`) with two
-orthogonal passes: (1) refusal detection, (2) compliance detection. The May 20
-v1 release used deterministic heuristic scoring; v2.1 switched to LLM judging
-for semantic nuance but retains the heuristic fallback in
+orthogonal passes: (1) refusal detection, (2) compliance detection. The v1 release
+used deterministic heuristic scoring; v2.1 switched to LLM judging for semantic
+nuance but retains the heuristic fallback in
 `harness/evaluation.py`.
 
 **Known judge failure modes:**

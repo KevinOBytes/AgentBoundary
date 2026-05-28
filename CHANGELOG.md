@@ -2,6 +2,22 @@
 
 All notable changes to AgentKillChain are documented in this file.
 
+## v2.2 — 2026-05-28 (cross-spectrum expansion)
+
+### Cross-spectrum model coverage
+
+- **Expanded from 4 to 10 models.** Added GPT-5-pro, Claude Opus-4.7, Gemini 3.5 Flash, DeepSeek V4 Pro, DeepSeek V4 Flash, Gemini 3.1 Pro Preview, O3-mini, and MIMO-v2.5-pro to test whether robustness scales with parameter count and compute.
+- **Temperature locked to 0.0.** All v2.2 evaluations run at `temperature=0.0` so compliance is not a sampling artifact. v2.1's `temperature=0.7` baseline is retained for historical comparison.
+- **Retry logic and provider-error handling.** `eval_live.py` now includes exponential-backoff retries for 429/502/503/504, `HTTP-Referer`/`X-Title` headers for OpenRouter auth, and detection of provider errors in HTTP 200 bodies.
+- **Resume with error-rerun.** The harness now skips completed entries on restart but reruns entries that previously errored.
+
+### Documentation
+
+- `docs/whitepaper.md` updated to v2.2 with 10-model table, temperature=0 protocol, and cross-spectrum research questions.
+- `docs/EMPIRICAL_RESULTS.md` updated with v2.2 methodology and v2.1 historical baseline.
+- `README.md` rewritten in first-person operator voice.
+- `LIMITATIONS.md` rewritten with honest, concrete boundary statements.
+
 ## v2.1 — 2026-05-27 (empirical recalibration release)
 
 ### Critical methodology fix
