@@ -345,8 +345,8 @@ def main(argv: list[str] | None = None) -> int:
         "openai/gpt-5-mini",
         "deepseek/deepseek-v4-flash",
         "google/gemini-3.1-pro-preview",
-        "x-ai/grok-4.3",
-        "mistralai/mistral-medium-3-5",
+        "openai/o3-mini",
+        "xiaomi/mimo-v2.5-pro",
     ])
     p.add_argument("--output", default=f"results/live_eval_{time.strftime('%Y%m%d')}.jsonl")
     p.add_argument("--limit", type=int, default=None, help="Only evaluate first N catalog entries")
