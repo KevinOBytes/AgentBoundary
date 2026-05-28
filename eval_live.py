@@ -102,18 +102,41 @@ class OpenRouterClient:
             headers={
                 "Authorization": f"Bearer {self.api_key}",
                 "Content-Type": "application/json",
+                "HTTP-Referer": "https://agentkillchain.dev",
+                "X-Title": "AgentKillChain Eval",
             },
             method="POST",
         )
-        try:
-            with urllib.request.urlopen(req, timeout=120) as resp:
-                return json.loads(resp.read().decode("utf-8"))
-        except urllib.error.HTTPError as e:
-            body = e.read().decode("utf-8", errors="ignore")
-            raise RuntimeError(f"OpenRouter HTTP {e.code}: {body}") from e
+        last_err = None
+        for attempt in range(3):
+            try:
+                with urllib.request.urlopen(req, timeout=120) as resp:
+                    return json.loads(resp.read().decode("utf-8"))
+            except urllib.error.HTTPError as e:
+                body = e.read().decode("utf-8", errors="ignore")
+                # Retry 429/502/503/504
+                if e.code in (429, 502, 503, 504):
+                    wait = 2 ** attempt
+                    print(f"    [Retry {attempt+1}/3] {model} HTTP {e.code}; waiting {wait}s")
+                    time.sleep(wait)
+                    last_err = f"HTTP {e.code}: {body[:200]}"
+                    continue
+                raise RuntimeError(f"OpenRouter HTTP {e.code}: {body}") from e
+            except Exception as e:
+                if attempt < 2:
+                    wait = 2 ** attempt
+                    print(f"    [Retry {attempt+1}/3] {model} {type(e).__name__}; waiting {wait}s")
+                    time.sleep(wait)
+                    last_err = str(e)
+                    continue
+                raise
+        raise RuntimeError(f"OpenRouter gave up after 3 attempts: {last_err}")
 
     def complete(self, model: str, messages: list[dict[str, str]], **kwargs: Any) -> str:
         resp = self._call(model, messages, **kwargs)
+        # OpenRouter may return HTTP 200 with {"error": {...}} embedded
+        if "error" in resp:
+            raise RuntimeError(f"OpenRouter provider error: {resp['error']}")
         try:
             return resp["choices"][0]["message"]["content"]
         except (KeyError, IndexError) as exc:
@@ -220,6 +243,7 @@ def run_eval(
         catalog = json.load(f)
 
     # Resume support: skip already-evaluated attack_id+model pairs
+    # If --rerun-errors is set, entries with non-null error ARE considered incomplete
     completed: set[str] = set()
     if out_file.exists():
         with open(out_file) as f:
@@ -227,8 +251,11 @@ def run_eval(
                 if not line.strip():
                     continue
                 obj = json.loads(line)
-                completed.add(f"{obj['attack_id']}::{obj['model']}")
-        print(f"[Resume] Found {len(completed)} existing results in {output_path}")
+                # Only skip entries that succeeded (error null/empty)
+                if not obj.get("error"):
+                    completed.add(f"{obj['attack_id']}::{obj['model']}")
+        print(f"[Resume] Found {len(completed)} completed results in {output_path}")
+        # Any ERROR entries in the file are left as-is but not in 'completed', so they'll rerun
 
     # Filter to first N if limit set
     if limit:
@@ -248,7 +275,7 @@ def run_eval(
 
             start = time.perf_counter()
             try:
-                response = client.complete(model, prompt_msgs, temperature=0.7, max_tokens=2048)
+                response = client.complete(model, prompt_msgs, temperature=0.0, max_tokens=2048)
                 error = None
             except Exception as e:
                 response = ""
@@ -309,7 +336,18 @@ def run_eval(
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(description="AgentKillChain live evaluation harness")
     p.add_argument("--catalog", default="dataset/attack_catalog.json")
-    p.add_argument("--models", nargs="+", default=["openai/gpt-4o", "anthropic/claude-sonnet-4"])
+    p.add_argument("--models", nargs="+", default=[
+        "openai/gpt-5-pro",
+        "anthropic/claude-opus-4.7",
+        "google/gemini-3.5-flash",
+        "deepseek/deepseek-v4-pro",
+        "meta-llama/llama-4-maverick",
+        "openai/gpt-5-mini",
+        "deepseek/deepseek-v4-flash",
+        "google/gemini-3.1-pro-preview",
+        "x-ai/grok-4.3",
+        "mistralai/mistral-medium-3-5",
+    ])
     p.add_argument("--output", default=f"results/live_eval_{time.strftime('%Y%m%d')}.jsonl")
     p.add_argument("--limit", type=int, default=None, help="Only evaluate first N catalog entries")
     p.add_argument("--judge-model", default=DEFAULT_JUDGE_MODEL)
