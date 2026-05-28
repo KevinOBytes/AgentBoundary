@@ -93,18 +93,18 @@ export default function Home() {
         <div className="grid gap-6 md:grid-cols-3">
           <div className="glass p-6 rounded-2xl border-t-2 border-red-500 flex flex-col items-center text-center transition-transform hover:scale-105">
             <h3 className="text-gray-300 font-medium mb-2 uppercase tracking-wider text-sm">RAG Poisoning Compliance</h3>
-            <div className="text-5xl font-extrabold text-white mb-2">21.9%</div>
+            <div className="text-5xl font-extrabold text-white mb-2">17.5%</div>
             <p className="text-sm text-gray-500">Highest family-level clear compliance</p>
           </div>
           <div className="glass p-6 rounded-2xl border-t-2 border-orange-500 flex flex-col items-center text-center transition-transform hover:scale-105">
             <h3 className="text-gray-300 font-medium mb-2 uppercase tracking-wider text-sm">High-Severity Entries</h3>
-            <div className="text-5xl font-extrabold text-white mb-2">5.9%</div>
-            <p className="text-sm text-gray-500">3 of 51, down from 82% in v1</p>
+            <div className="text-5xl font-extrabold text-white mb-2">3.9%</div>
+            <p className="text-sm text-gray-500">2 of 51, down from 82% in v1</p>
           </div>
           <div className="glass p-6 rounded-2xl border-t-2 border-green-500 flex flex-col items-center text-center transition-transform hover:scale-105">
-            <h3 className="text-gray-300 font-medium mb-2 uppercase tracking-wider text-sm">Toolchain Confusion</h3>
+            <h3 className="text-gray-300 font-medium mb-2 uppercase tracking-wider text-sm">Claude Opus-4.7</h3>
             <div className="text-5xl font-extrabold text-white mb-2">0.0%</div>
-            <p className="text-sm text-gray-500">Direct tool misuse: uniformly refused</p>
+            <p className="text-sm text-gray-500">Zero clear compliance across 51 entries</p>
           </div>
         </div>
       </motion.section>
