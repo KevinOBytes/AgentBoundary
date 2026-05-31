@@ -11,7 +11,7 @@
 
 AgentKillChain v2.2 is a versioned, open benchmark for measuring prompt-injection robustness in tool-using AI agents. Unlike prior work that assigns severity by theoretical harm assessment, this project derives every severity label from empirical live-model compliance. The v2.2 catalog contains 51 structured scenarios spanning eight attack families (RAG poisoning, markdown injection, HTML injection, memory poisoning, latent memory poisoning, context drift, toolchain confusion, cognitive overload). Each entry is evaluated against ten models spanning the compute spectrum — from frontier closed-weight APIs to mid-tier open-weight endpoints — via an LLM-as-judge pipeline with two-pass refusal/compliance detection. All evaluations run at `temperature=0.0` so compliance is not a sampling artifact.
 
-Key finding (v2.2 definitive): Only 6.3% of 510 evaluations showed active compliance across ten models spanning the compute spectrum. RAG poisoning dominated at 17.5% family-level compliance. Toolchain confusion — labeled critical in prior synthetic benchmarks — achieved 1.7% compliance. The empirical severity distribution was 2 high (3.9%), 14 medium (27.5%), and 35 low (68.6%), compared to the v1 synthetic benchmark's 82% high/critical. The cross-spectrum expansion confirms that parameter count does not predict robustness: the most vulnerable model (Llama-4 Maverick, 15.7%) and the most robust (Claude Opus-4.7, 0.0%) are both frontier-scale. Safety is a training target, not a capacity side effect.
+Key finding (v2.2 definitive): Only 6.2% of 500 reproducible evaluations showed active compliance across ten models spanning the compute spectrum. RAG poisoning dominated at 17.7% family-level compliance. Toolchain confusion — labeled critical in prior synthetic benchmarks — achieved 1.7% compliance. The empirical severity distribution was 2 high (4.0%), 14 medium (28.0%), and 34 low (68.0%), compared to the v1 synthetic benchmark's 82% high/critical. The cross-spectrum expansion confirms that parameter count does not predict robustness: the most vulnerable model (Llama-4 Maverick, 15.7%) and the most robust (Claude Opus-4.7, 0.0%) are both frontier-scale. Safety is a training target, not a capacity side effect.
 
 ---
 
@@ -51,7 +51,7 @@ This benchmark does **not** test adaptive adversaries. All prompts are static; t
 | Garak (Derczynski et al. 2024) | Probe-driven failure scan | None | No | No | Per-probe detection |
 | PyRIT (Microsoft) | Red-team orchestration | Configurable | No | No | No |
 | AgentKillChain v1 | Deterministic heuristic | Stubbed | Yes (vector store) | Yes | No (synthetic) |
-| **AgentKillChain v2.2** | **LLM-as-judge** | **Stubbed** | **Deprecated for chat APIs** | **Yes** | **Yes (510 live evals)** |
+| **AgentKillChain v2.2** | **LLM-as-judge** | **Stubbed** | **Deprecated for chat APIs** | **Yes** | **Yes (500 live evals)** |
 
 AgentDojo measures whether a live sandboxed agent completes user tasks while ignoring injections. AgentKillChain measures whether a model's semantic intent and refusal boundaries hold under structured adversarial prompts, using a deterministic catalog and LLM-as-judge scoring so the dataset itself becomes the unit of versioned comparison. The two benchmarks test different questions and complement each other.
 
@@ -131,7 +131,7 @@ A `judge2` column allows second-pass verification with a different model for key
 
 ### 5.3 Severity Recalibration Protocol
 
-After the 510 evaluations, severity labels are recomputed:
+After the 500 evaluations, severity labels are recomputed:
 
 | Severity | Definition | v2.1 Count | v2.2 Protocol |
 |----------|-----------|------------|---------------|

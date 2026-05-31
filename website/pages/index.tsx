@@ -88,23 +88,23 @@ export default function Home() {
       >
         <h2 className="text-3xl font-bold text-white mb-6 text-center">What We Actually Found</h2>
         <p className="text-gray-400 text-center max-w-3xl mx-auto mb-8">
-          510 live evaluations across ten models at temperature zero. No cherry-picking.
+          500 live evaluations across ten models at temperature zero. 10 endpoint errors excluded.
         </p>
         <div className="grid gap-6 md:grid-cols-3">
           <div className="glass p-6 rounded-2xl border-t-2 border-red-500 flex flex-col items-center text-center transition-transform hover:scale-105">
             <h3 className="text-gray-300 font-medium mb-2 uppercase tracking-wider text-sm">RAG Poisoning Compliance</h3>
-            <div className="text-5xl font-extrabold text-white mb-2">17.5%</div>
+            <div className="text-5xl font-extrabold text-white mb-2">17.7%</div>
             <p className="text-sm text-gray-500">Highest family-level clear compliance</p>
           </div>
           <div className="glass p-6 rounded-2xl border-t-2 border-orange-500 flex flex-col items-center text-center transition-transform hover:scale-105">
             <h3 className="text-gray-300 font-medium mb-2 uppercase tracking-wider text-sm">High-Severity Entries</h3>
-            <div className="text-5xl font-extrabold text-white mb-2">3.9%</div>
-            <p className="text-sm text-gray-500">2 of 51, down from 82% in v1</p>
+            <div className="text-5xl font-extrabold text-white mb-2">4.0%</div>
+            <p className="text-sm text-gray-500">2 of 50, down from 82% in v1</p>
           </div>
           <div className="glass p-6 rounded-2xl border-t-2 border-green-500 flex flex-col items-center text-center transition-transform hover:scale-105">
             <h3 className="text-gray-300 font-medium mb-2 uppercase tracking-wider text-sm">Claude Opus-4.7</h3>
             <div className="text-5xl font-extrabold text-white mb-2">0.0%</div>
-            <p className="text-sm text-gray-500">Zero clear compliance across 51 entries</p>
+            <p className="text-sm text-gray-500">Zero clear compliance across 50 entries</p>
           </div>
         </div>
       </motion.section>
