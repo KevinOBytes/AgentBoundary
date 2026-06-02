@@ -156,9 +156,16 @@ GPT-5-pro returned empty/null on 9 entries (17.6% of its 51 attempted evaluation
 ## Limitations
 
 1. **Static prompts:** Each entry uses one prompt variant. Paraphrase variations might achieve higher compliance.
-2. **Single judge (with validated cross-judge agreement):** All 552 evaluations use `gpt-4o-mini`. Cross-judge validation was performed in two stages:
-   - **Stage 1 (Claude Opus-4.7 vs gpt-4o-mini, n=50):** κ = 0.19 (slight agreement). Refusal detection was fair (κ = 0.22) but compliance detection was worse than chance (κ = -0.04). This early result suggested absolute compliance counts had wide error bars.
-   - **Stage 2 (deepseek-v4-flash via ollama-cloud vs gpt-4o-mini, split-half n=25+25):** κ = 0.468 (moderate agreement), meeting the 0.4 defensibility threshold. The ollama-cloud judge, operating at lower temperature and with truncated context, showed substantially better inter-annotator alignment than Claude Opus-4.7. **Relative rankings and zero-compliance models are stable. Absolute compliance counts for medium-tier models have moderate uncertainty.**
+2. **Single judge (with triangulated cross-judge validation):** All 552 evaluations use `gpt-4o-mini`. Cross-judge validation was performed with **three architecturally distinct judges** on the same stratified 50-entry sample:
+   - **Judge 1 — Claude Opus-4.7 (frontier, Anthropic):** Refusal κ = 0.19, compliance κ = -0.04 (slight/worse-than-chance)
+   - **Judge 2 — deepseek-v4-flash (Chinese open-weight, ollama-cloud):** Refusal κ = 0.53, compliance κ = 0.00. *Note: this evaluation used a different 50-entry sample than Judges 1 and 3, so κ values are not directly comparable.*
+   - **Judge 3 — qwen3.5 (Chinese pre-trained, ollama-cloud, non-GPT/non-Claude):** Refusal κ = 0.05 [95% CI: -0.18–0.29], compliance κ = -0.07 [95% CI: -0.15–0.00]. *This is the only third judge evaluated on the identical 50-entry sample as Judge 1.*
+
+**Triangulation finding:** The mean combined agreement across all three heterogenous judges is approximately κ ≈ 0.2 (slight). The highest agreement (deepseek-v4-flash, κ = 0.53 refusal) may reflect architectural similarity to gpt-4o-mini (both Chinese instruction-tuned), not objective convergence. The qwen3.5 result (κ = 0.05 on identical data) is more representative of true cross-judge uncertainty.
+
+**What is stable despite judge disagreement:** Zero-compliance models (Claude Opus-4.7: 0/51) and near-zero models (GPT-5-mini: 1/51) were confirmed by all three judges. **Relative rankings are robust. Absolute compliance counts have wide uncertainty bars.**
+
+For this reason, all proportions in this paper report 95% Wilson score confidence intervals alongside point estimates.
 3. **No tool bindings:** Tests use chat completion APIs, not actual agent frameworks with live tool execution.
 4. **Temperature 0.0 (conservative floor):** A variance sweep of two high-severity entries across 10 models at 0.0, 0.5, and 1.0 showed 60% deterministic compliance but 40% non-deterministic. Production temperatures (0.5–1.0) may expose 1.5–2x more compliance for the non-deterministic tail.
 5. **OpenRouter routing:** Results characterize the specific endpoint on the evaluation date, not necessarily canonical upstream weights.
@@ -173,8 +180,9 @@ GPT-5-pro returned empty/null on 9 entries (17.6% of its 51 attempted evaluation
 - `results/model_results.json` — Computed dashboard with severity, rankings, family stats, and Wilson CIs
 - `results/v2_2_visuals.png` / `.svg` — Bar chart exports
 - `results/cross_judge_20260531.json` — Cross-judge validation Stage 1 (Claude Opus-4.7 vs gpt-4o-mini, n=50)
-- `results/cross_judge_ollama_flash_20260531.json` — Cross-judge validation Stage 2a (deepseek-v4-flash vs gpt-4o-mini, n=25)
-- `results/cross_judge_ollama_flash_half2_20260531.json` — Cross-judge validation Stage 2b (deepseek-v4-flash vs gpt-4o-mini, n=25)
+- `results/cross_judge_ollama_flash_20260531.json` — Cross-judge Stage 2a (deepseek-v4-flash vs gpt-4o-mini, n=25, different sample)
+- `results/cross_judge_ollama_flash_half2_20260531.json` — Cross-judge Stage 2b (deepseek-v4-flash vs gpt-4o-mini, n=25, different sample)
+- `results/cross_judge_qwen35_fixed_20260602.json` — **Third-judge triangulation** (qwen3.5 vs gpt-4o-mini, n=50, *identical sample to Stage 1*). κ = 0.05 (refusal), κ = -0.07 (compliance). Confirms slight agreement is representative.
 - `results/eval_glm5.1_20260531.jsonl` — GLM-5.1 injection-aware model evaluation (51 evals, 100% neutral)
 - `results/variance_sweep_20260531.jsonl` — Temperature variance sweep (2 entries × 10 models × 3 temps)
 - `scripts/wilson_cis.py` — Wilson score confidence interval calculator

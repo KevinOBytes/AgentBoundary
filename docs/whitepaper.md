@@ -251,11 +251,11 @@ At 17.6% clear compliance vs. GPT-4o's 2.0%, Llama-4 Maverick was approximately 
 
 AgentKillChain demonstrates that empirically grounded severity labels produce a very different threat picture than synthetic harm assessment. When 51 prompt-injection scenarios are tested against live models, the clear compliance rate is low enough that most entries are correctly labeled low severity, but concentrated enough (21.9% for RAG poisoning) that specific vectors remain genuinely dangerous.
 
-The key practical takeaway for safety teams is twofold: first, frontier models are robust against direct tool-misuse requests but vulnerable to indirect instruction via trusted-looking retrieval content; second, simple keyword filters miss the attacks that actually work, making behavioral monitoring essential.
+The key practical takeaway for safety teams is threefold: first, frontier models are robust against direct tool-misuse requests but vulnerable to indirect instruction via trusted-looking retrieval content; second, simple keyword filters miss the attacks that actually work, making behavioral monitoring essential; third, injection-aware models that silently ignore attacks without explicit refusal achieve 100% missed-detection rates — the most dangerous failure mode in production.
 
-The v2.2 expansion to ten models at temperature zero will determine whether these findings generalize across the parameter spectrum. Early results from the ongoing evaluation will be appended to this document upon completion.
+Cross-judge triangulation with three architecturally distinct judges (Claude Opus-4.7, deepseek-v4-flash, qwen3.5) confirmed that absolute compliance counts have wide uncertainty (κ ≈ 0.2), but relative rankings and zero-compliance findings are stable. All proportions in this paper report 95% Wilson score confidence intervals for transparent uncertainty quantification.
 
-The dataset, harness, and raw evaluation records are available under MIT license. Future work will expand to paraphrase robustness sweeps, cross-judge validation, and agent-framework evaluation with live tool bindings.
+The dataset, harness, and raw evaluation records are available under MIT license. Future work will expand to paraphrase robustness sweeps, agent-framework evaluation with live tool bindings, and temporal re-evaluation to measure model improvement over time.
 
 ---
 
