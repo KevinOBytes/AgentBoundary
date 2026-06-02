@@ -26,8 +26,10 @@ abstract: >-
   injection and persistent compromise in tool-using AI agents. Version 2.2
   features a fully empirical severity-recalibrated catalog (51 scenarios
   across 8 families), LLM-as-judge evaluation at temperature zero, and a
-  510-evaluation live run across ten models spanning the parameter spectrum
+  552-evaluation live run across eleven models spanning the parameter spectrum
   (GPT-5-pro, Claude Opus-4.7, Gemini 3.5 Flash, DeepSeek V4 Pro, Llama-4
   Maverick, GPT-5-mini, DeepSeek V4 Flash, Gemini 3.1 Pro Preview, O3-mini,
-  MIMO-v2.5-pro). All severity labels are grounded in measured model
+  MIMO-v2.5-pro, GLM-5.1). All proportions report 95% Wilson score confidence
+  intervals. Cross-judge validation (κ = 0.468) meets the 0.4 defensibility
+  threshold. All severity labels are grounded in measured model
   compliance, not synthetic harm estimates.
