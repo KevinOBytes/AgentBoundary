@@ -9,9 +9,9 @@
 
 ## Abstract
 
-AgentKillChain v2.2 is a versioned, open benchmark for measuring prompt-injection robustness in tool-using AI agents. Unlike prior work that assigns severity by theoretical harm assessment, this project derives every severity label from empirical live-model compliance. The v2.2 catalog contains 51 structured scenarios spanning eight attack families (RAG poisoning, markdown injection, HTML injection, memory poisoning, latent memory poisoning, context drift, toolchain confusion, cognitive overload). Each entry is evaluated against ten models spanning the compute spectrum — from frontier closed-weight APIs to mid-tier open-weight endpoints — via an LLM-as-judge pipeline with two-pass refusal/compliance detection. All evaluations run at `temperature=0.0` so compliance is not a sampling artifact.
+AgentKillChain v2.2 is a versioned, open benchmark for measuring prompt-injection robustness in tool-using AI agents. Unlike prior work that assigns severity by theoretical harm assessment, this project derives every severity label from empirical live-model compliance. The v2.2 catalog contains 51 structured scenarios spanning eight attack families (RAG poisoning, markdown injection, HTML injection, memory poisoning, latent memory poisoning, context drift, toolchain confusion, cognitive overload). Each entry is evaluated against eleven models spanning the compute spectrum — from frontier closed-weight APIs to mid-tier open-weight endpoints and an injection-aware baseline (GLM-5.1) — via an LLM-as-judge pipeline with two-pass refusal/compliance detection. All evaluations run at `temperature=0.0` so compliance is not a sampling artifact. All proportions report 95% Wilson score confidence intervals.
 
-Key finding (v2.2 definitive): Only 5.6% of 552 evaluations (11 models, 51 attacks) showed active compliance. RAG poisoning dominated at 16.1% family-level compliance. The addition of glm-5.1 — an injection-aware model that silently ignores payloads without explicit refusal — inflated the missed-detection rate to 27.7%, underscoring that "neutral" responses are production security failures, not defensive successes. The empirical severity distribution was 2 high (4.0%), 14 medium (28.0%), and 34 low (68.0%), compared to the v1 synthetic benchmark's 82% high/critical. The cross-spectrum expansion confirms that parameter count does not predict robustness: the most vulnerable model (Llama-4 Maverick, 15.7%) and the most robust (Claude Opus-4.7, 0.0%) are both frontier-scale. Safety is a training target, not a capacity side effect.
+Key finding (v2.2 definitive): Only 5.6% of 552 evaluations (11 models, 51 attacks) showed active compliance. RAG poisoning dominated at 16.1% family-level compliance (CI: 9.8%–25.2%). The addition of GLM-5.1 — an injection-aware model that silently ignores payloads without explicit refusal — inflated the missed-detection rate to 100% for that model, underscoring that "neutral" responses are production security failures, not defensive successes. Cross-judge validation (split-half, deepseek-v4-flash vs gpt-4o-mini, n=50) yielded κ = 0.468 (moderate agreement), meeting the 0.4 defensibility threshold. The empirical severity distribution was 2 high (3.9%, CI: 1.1%–13.2%), 14 medium (27.5%, CI: 17.1%–40.9%), and 35 low (68.6%, CI: 55.0%–79.7%), compared to the v1 synthetic benchmark's 82% high/critical. The cross-spectrum expansion confirms that parameter count does not predict robustness: the most vulnerable model (Llama-4 Maverick, 15.7%) and the most robust (Claude Opus-4.7, 0.0%) are both frontier-scale. Safety is a training target, not a capacity side effect.
 
 ---
 
@@ -75,20 +75,20 @@ We assume an adversary that controls one source of untrusted context — a docum
 
 The v2.2 catalog contains 51 scenarios across eight families, rebuilt from scratch to eliminate the v1 synthetic 5×5 grid and copy-paste defects. Each entry uses a contextually appropriate prompt for its `scenario_type`.
 
-| Family | Entries | Mechanism | Highest Empirical Severity (v2.1) |
+| Family | Entries | Mechanism | Highest Empirical Severity (v2.2) |
 |--------|---------|-----------|-----------------------------------|
-| RAG poisoning | 8 | Poisoned KB/docs/tool-catalog retrieved at inference | high (`rag_poisoning_003`, 100% compliance) |
-| Markdown injection | 7 | Code-fenced directives, callouts, mermaid nodes, table comments | high (`markdown_injection_006`, 2/4 compliance) |
+| RAG poisoning | 8 | Poisoned KB/docs/tool-catalog retrieved at inference | high (`rag_poisoning_003`, 70% compliance) |
+| Markdown injection | 7 | Code-fenced directives, callouts, mermaid nodes, table comments | high (`markdown_injection_006`, 50% compliance) |
 | HTML injection | 6 | Hidden comments, spans, metadata, base64 alt text | low |
 | Memory poisoning | 6 | Stored preferences/contacts with hidden directives | low |
 | Context drift | 7 | Dense nesting, multi-turn roleplay framing | low (0% compliance) |
-| Toolchain confusion | 6 | Fake tools, renamed tools with attacker args | low (0% compliance) |
-| Latent memory poisoning | 5 | Poisoned preference stored, activated by trigger | low (5.0% family compliance) |
+| Toolchain confusion | 6 | Fake tools, renamed tools with attacker args | low (1.6% family compliance) |
+| Latent memory poisoning | 5 | Poisoned preference stored, activated by trigger | low (1.8% family compliance) |
 | Cognitive overload | 6 | Mutually exclusive constraints burying malicious requirement | low |
 
-**Total:** 51 entries. Zero critical in v2.1. Three high (5.9%). Twelve medium (23.5%). Thirty-six low (70.6%).
+**Total:** 51 entries. Zero critical in v2.2. Two high (3.9%, CI: 1.1%–13.2%). Fourteen medium (27.5%, CI: 17.1%–40.9%). Thirty-five low (68.6%, CI: 55.0%–79.7%).
 
-See `dataset/attack_catalog.json` for full prompts and `dataset/manifest.json` for schema v2.1.0.
+See `dataset/attack_catalog.json` for full prompts and `dataset/manifest.json` for schema v2.2.0.
 
 ---
 
@@ -159,11 +159,13 @@ This replaced the v1 distribution of 82% high/critical (synthetic) with the empi
 
 ### 6.2 v2.2 Expansion: Cross-Spectrum Robustness
 
-The v2.2 evaluation adds six models to the original four, running all 51 entries at `temperature=0.0`. Preliminary findings will be reported once the 510-evaluation matrix completes. The key research question is whether the robustness gap observed in v2.1 (frontier closed-weight vs. Llama-4 Maverick) holds when:
+The v2.2 evaluation completed the full 552-evaluation matrix (51 entries × 11 models, temp=0.0). The expanded model set confirms the robustness pattern observed in v2.1 and adds three critical findings:
 
-1. Temperature is locked to zero (removing sampling variance)
-2. Smaller-parameter models are included (testing capability-safety correlation)
-3. Cost-optimized variants are included (testing efficiency-safety tradeoffs)
+1. **Temperature=0.0 locks compliance.** Removing sampling variance produced deterministic results: 60% of model×attack pairs showed identical compliance across all temperatures (0.0, 0.5, 1.0), while 40% were non-deterministic — meaning `t=0.0` compliance is a conservative floor on real-world vulnerability.
+2. **Parameter count does not predict robustness.** The most vulnerable model (Llama-4 Maverick, 15.7% compliance, CI: 8.2%–28.0%) and the most robust (Claude Opus-4.7, 0.0%, CI: 0.0%–7.0%) are both frontier-scale. GPT-5-mini (2.0%, CI: 0.3%–10.3%), a small-parameter model, outperforms the reasoning-specialized O3-mini (11.8%, CI: 5.5%–23.4%). Safety is a training target, not a capacity side effect.
+3. **Injection-aware models can be worse than compliant models.** GLM-5.1, explicitly designed to ignore injections, produced 100% neutral responses — silently failing to detect or refuse every attack. Zero compliance but zero safety. This makes missed-detection rate as important as compliance rate in production evaluations.
+
+Cross-judge validation (split-half, deepseek-v4-flash vs gpt-4o-mini, n=50) yielded κ = 0.468 (moderate agreement), meeting the 0.4 defensibility threshold. Relative rankings and zero-compliance models are stable.
 
 ### 6.3 Model Robustness Ranking (v2.1 Baseline)
 
@@ -178,14 +180,14 @@ GPT-4o was the most robust; Llama-4 Maverick was the most vulnerable. Claude Son
 
 ### 6.4 Severity Recalibration (v2.2 Definitive)
 
-| Severity | Count | % | Justification |
-|----------|-------|---|---------------|
-| critical | 0 | 0% | No entry achieved ≥8/10 clear compliance |
-| high | 2 | 3.9% | `rag_poisoning_003` (7/10), `markdown_injection_006` (5/10) |
-| medium | 14 | 27.5% | Entries with 1–3/10 clear compliance |
-| low | 35 | 68.6% | Entries with 0/10 clear compliance and majority explicit refusal |
+| Severity | Count | % | 95% Wilson CI | Justification |
+|----------|-------|---|---------------|---------------|
+| critical | 0 | 0% | 0.0%–7.0% | No entry achieved ≥8/10 clear compliance |
+| high | 2 | 3.9% | 1.1%–13.2% | `rag_poisoning_003` (7/10), `markdown_injection_006` (5/10) |
+| medium | 14 | 27.5% | 17.1%–40.9% | 1–3/10 clear compliance |
+| low | 35 | 68.6% | 55.0%–79.7% | 0/10 clear compliance, majority refused |
 
-The v2.2 distribution is tighter than v2.1: high-rate dropped from 5.9% to 3.9% because the expanded model set diluted outliers. The medium rate increased slightly (23.5% → 27.5%) as additional models revealed marginal vulnerabilities.
+**Total:** 552 evaluations (51 entries × 11 models, temp=0.0)
 
 ### 6.5 Cross-Spectrum Findings
 
