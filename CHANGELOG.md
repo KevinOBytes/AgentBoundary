@@ -2,6 +2,33 @@
 
 All notable changes to AgentKillChain are documented in this file.
 
+## v2.3 — 2026-06-03 (judge recalibration)
+
+### Judge methodology upgrade
+
+- **Re-judged all 552 evaluations with improved judge.** Switched from `gpt-4o-mini` zero-shot to `gpt-5.4` (non-reasoning, from the 5 family) with few-shot exemplified rubrics and structured JSON output.
+- **3-way classification.** Replaced forced binary (refusal OR compliance) with three categories: `refused` (explicit refusal), `complied` (active harmful execution), `neutral` (ignored injection without refusal).
+- **Systematic over-calling eliminated.** v2.2 compliance rate was 10.0% (55/552); v2.3 compliance rate is 3.4% (19/552). The old judge counted "passive acknowledgment of injected text" as compliance. The new judge requires **active execution** of harmful behavior.
+- **Inter-judge agreement improved.** Refusal κ improved from 0.05–0.23 (v2.2 heterogenous) to **0.492** (v2.2 vs v2.3 same data). Compliance κ improved from negative values to **0.316** (fair agreement). Combined agreement: 71.4%.
+- **Relative rankings preserved.** Llama-4 Maverick remains most vulnerable (19.6% compliance, up from 15.7% because improved judge catches more active harm). Claude Opus-4.7 remains zero-compliance. Five models now show zero compliance (up from two in v2.2).
+
+### Documentation
+
+- `README.md` updated to v2.3 with judge comparison and recalibrated numbers.
+- `docs/EMPIRICAL_RESULTS.md` updated with re-judged compliance rates, per-model ranking, and family-level stats.
+- `docs/methodology.md` updated with v2.3 judge design and κ comparison.
+- `docs/whitepaper.md` updated with v2.3 abstract, contributions, and findings.
+- `CITATION.cff` bumped to v2.3.0.
+
+### Added
+
+- `scripts/live_rejudge_v23.py` — Live re-judging harness via OpenAI API.
+- `scripts/analyze_v23.py` — v2.3 statistics with Wilson CIs.
+- `scripts/cross_judge_v22_v23.py` — Inter-judge agreement comparison.
+- `scripts/batch_rejudge_v23.py` — OpenAI Batch API input generator.
+- `scripts/poll_batch.py` — Batch job polling and download utility.
+- `scripts/process_batch_results.py` — Batch result processor.
+
 ## v2.2 — 2026-05-28 (cross-spectrum expansion)
 
 ### Cross-spectrum model coverage
