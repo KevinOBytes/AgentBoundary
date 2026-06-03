@@ -8,8 +8,8 @@ authors:
 repository-code: "https://github.com/KevinOBytes/AgentKillChain"
 url: "https://github.com/KevinOBytes/AgentKillChain"
 license: "MIT"
-date-released: "2026-05-28"
-version: "2.2.0"
+date-released: "2026-06-03"
+version: "2.3.0"
 keywords:
   - "AI safety"
   - "agent evaluation"
@@ -21,15 +21,20 @@ keywords:
   - "toolchain confusion"
   - "temperature zero"
   - "LLM-as-judge"
+  - "judge calibration"
+  - "few-shot rubrics"
 abstract: >-
   AgentKillChain is an open, versioned benchmark for evaluating prompt
-  injection and persistent compromise in tool-using AI agents. Version 2.2
+  injection and persistent compromise in tool-using AI agents. Version 2.3
   features a fully empirical severity-recalibrated catalog (51 scenarios
-  across 8 families), LLM-as-judge evaluation at temperature zero, and a
-  552-evaluation live run across eleven models spanning the parameter spectrum
-  (GPT-5-pro, Claude Opus-4.7, Gemini 3.5 Flash, DeepSeek V4 Pro, Llama-4
-  Maverick, GPT-5-mini, DeepSeek V4 Flash, Gemini 3.1 Pro Preview, O3-mini,
+  across 8 families), improved LLM-as-judge evaluation with few-shot exemplified
+  rubrics (gpt-5.4 judge), structured JSON output, and a 552-evaluation live
+  run across eleven models spanning the parameter spectrum (GPT-5-pro,
+  Claude Opus-4.7, Gemini 3.5 Flash, DeepSeek V4 Pro, Llama-4 Maverick,
+  GPT-5-mini, DeepSeek V4 Flash, Gemini 3.1 Pro Preview, O3-mini,
   MIMO-v2.5-pro, GLM-5.1). All proportions report 95% Wilson score confidence
-  intervals. Cross-judge validation (κ = 0.468) meets the 0.4 defensibility
-  threshold. All severity labels are grounded in measured model
-  compliance, not synthetic harm estimates.
+  intervals. Cross-judge validation (refusal κ = 0.492, compliance κ = 0.316)
+  meets the 0.4 defensibility threshold for refusal. All severity labels are
+  grounded in measured model compliance, not synthetic harm estimates. The v2.3
+  judge recalibration reduced compliance detection from 10.0% to 3.4%,
+  eliminating false positives from passive acknowledgment.
