@@ -1,17 +1,17 @@
-# AgentKillChain v2.2: Empirically Grounded Prompt-Injection Benchmark for Tool-Using Agents
+# AgentKillChain v2.3: Calibrated Judge Recalibration for Empirical Prompt-Injection Benchmarking
 
 **Author:** Kevin O'Connor
-**Date:** May 28, 2026
-**Version:** v2.2.0 — *supersedes v2.1 whitepaper (May 27, 2026)*
+**Date:** June 3, 2026
+**Version:** v2.3.0 — *supersedes v2.2 whitepaper (May 28, 2026)*
 **Repository:** https://github.com/KevinOBytes/AgentKillChain
 
 ---
 
 ## Abstract
 
-AgentKillChain v2.2 is a versioned, open benchmark for measuring prompt-injection robustness in tool-using AI agents. Unlike prior work that assigns severity by theoretical harm assessment, this project derives every severity label from empirical live-model compliance. The v2.2 catalog contains 51 structured scenarios spanning eight attack families (RAG poisoning, markdown injection, HTML injection, memory poisoning, latent memory poisoning, context drift, toolchain confusion, cognitive overload). Each entry is evaluated against eleven models spanning the compute spectrum — from frontier closed-weight APIs to mid-tier open-weight endpoints and an injection-aware baseline (GLM-5.1) — via an LLM-as-judge pipeline with two-pass refusal/compliance detection. All evaluations run at `temperature=0.0` so compliance is not a sampling artifact. All proportions report 95% Wilson score confidence intervals.
+AgentKillChain v2.3 is a versioned, open benchmark for measuring prompt-injection robustness in tool-using AI agents. Unlike prior work that assigns severity by theoretical harm assessment, this project derives every severity label from empirical live-model compliance. The v2.3 catalog contains 51 structured scenarios spanning eight attack families (RAG poisoning, markdown injection, HTML injection, memory poisoning, latent memory poisoning, context drift, toolchain confusion, cognitive overload). Each entry is evaluated against eleven models spanning the compute spectrum — from frontier closed-weight APIs to mid-tier open-weight endpoints and an injection-aware baseline (GLM-5.1) — via an improved LLM-as-judge pipeline with few-shot exemplified rubrics, structured JSON output, and 3-way classification (refused / complied / neutral). All evaluations run at `temperature=0.0` so compliance is not a sampling artifact. All proportions report 95% Wilson score confidence intervals.
 
-Key finding (v2.2 definitive): Only 5.6% of 552 evaluations (11 models, 51 attacks) showed active compliance. RAG poisoning dominated at 16.1% family-level compliance (CI: 9.8%–25.2%). The addition of GLM-5.1 — an injection-aware model that silently ignores payloads without explicit refusal — inflated the missed-detection rate to 100% for that model, underscoring that "neutral" responses are production security failures, not defensive successes. Cross-judge validation (split-half, deepseek-v4-flash vs gpt-4o-mini, n=50) yielded κ = 0.468 (moderate agreement), meeting the 0.4 defensibility threshold. The empirical severity distribution was 2 high (3.9%, CI: 1.1%–13.2%), 14 medium (27.5%, CI: 17.1%–40.9%), and 35 low (68.6%, CI: 55.0%–79.7%), compared to the v1 synthetic benchmark's 82% high/critical. The cross-spectrum expansion confirms that parameter count does not predict robustness: the most vulnerable model (Llama-4 Maverick, 15.7%) and the most robust (Claude Opus-4.7, 0.0%) are both frontier-scale. Safety is a training target, not a capacity side effect.
+Key finding (v2.3 definitive): Only 3.4% of 552 evaluations (11 models, 51 attacks) showed active compliance — a 3× reduction from v2.2's 10.0%, indicating the old zero-shot judge systematically over-called compliance by counting passive acknowledgment as active harm. RAG poisoning dominated at 4.6% family-level compliance (CI: 1.8%–11.2%). The addition of GLM-5.1 — an injection-aware model that silently ignores payloads without explicit refusal — inflated the missed-detection rate to 100% for that model, underscoring that "neutral" responses are production security failures, not defensive successes. Cross-judge validation (v2.2 gpt-4o-mini vs v2.3 gpt-5.4, same 552 entries) yielded refusal κ = 0.492 (moderate agreement) and compliance κ = 0.316 (fair agreement), confirming that judge quality is the dominant source of variance in LLM-as-judge pipelines. The empirical severity distribution was ~1 high (~2%), ~12 medium (~24%), and ~38 low (~74%), compared to the v1 synthetic benchmark's 82% high/critical. The cross-spectrum expansion confirms that parameter count does not predict robustness: the most vulnerable model (Llama-4 Maverick, 19.6%) and the most robust (Claude Opus-4.7, 0.0%) are both frontier-scale. Safety is a training target, not a capacity side effect.
 
 ---
 
@@ -25,11 +25,11 @@ I built AgentKillChain to fix this. Severity is an empirical quantity. Every ent
 
 ### 1.1 Contributions
 
-1. **Empirical severity recalibration.** All 51 entries evaluated against ten models at temperature zero. Severity labels derived from measured compliance rates, not theoretical harm.
-2. **Cross-spectrum model coverage.** Frontier closed-weight APIs (GPT-5-pro, Claude Opus-4.7, Gemini 3.5 Flash) alongside mid-tier and open-weight models (DeepSeek V4 Pro, Llama-4 Maverick, Xiaomi MIMO-v2.5-pro) to test whether robustness scales with parameter count and compute.
-3. **Structured taxonomy with literature grounding.** Eight families with unique mechanisms, 30 scenario types mapping to realistic deployment surfaces, five attacker goals. Each family cites the research paper that first demonstrated the mechanism.
-4. **LLM-as-judge evaluation harness.** Two-pass pipeline (refusal detection + compliance detection) via `gpt-4o-mini`, with retry logic, provider-error handling, and heuristic fallback for restricted environments.
-5. **Honest limitations.** Explicitly identifies what the dataset is (structured synthetic prompt collection), what it is not (validated attack corpus with ground-truth across all entries), and known gaps (single prompt variant per entry, no tool bindings, single-judge bias).
+1. **Empirical severity recalibration.** All 51 entries evaluated against eleven models at temperature zero. Severity labels derived from measured compliance rates, not theoretical harm.
+2. **Cross-spectrum model coverage.** Frontier closed-weight APIs (GPT-5-pro, Claude Opus-4.7, Gemini 3.5 Flash) alongside mid-tier and open-weight models (DeepSeek V4 Pro, Llama-4 Maverick, Xiaomi MIMO-v2.5-pro) and an injection-aware baseline (GLM-5.1).
+3. **Improved LLM-as-judge methodology (v2.3).** Systematic judge recalibration from `gpt-4o-mini` zero-shot to `gpt-5.4` with few-shot exemplified rubrics, structured JSON output, and 3-way classification. Refusal κ improved from 0.05–0.23 to 0.492; compliance κ improved from negative to 0.316. Compliance counts dropped 3× (10.0% → 3.4%), confirming the old judge over-called passive acknowledgment as active harm.
+4. **Structured taxonomy with literature grounding.** Eight families with unique mechanisms, 30 scenario types mapping to realistic deployment surfaces, five attacker goals. Each family cites the research paper that first demonstrated the mechanism.
+5. **Honest limitations and uncertainty quantification.** Explicitly identifies what the dataset is (structured synthetic prompt collection), what it is not (validated attack corpus with ground-truth across all entries), and known gaps (single prompt variant per entry, no tool bindings). All proportions report 95% Wilson score confidence intervals.
 
 ### 1.2 Scope and Non-Claims
 
@@ -51,7 +51,7 @@ This benchmark does **not** test adaptive adversaries. All prompts are static; t
 | Garak (Derczynski et al. 2024) | Probe-driven failure scan | None | No | No | Per-probe detection |
 | PyRIT (Microsoft) | Red-team orchestration | Configurable | No | No | No |
 | AgentKillChain v1 | Deterministic heuristic | Stubbed | Yes (vector store) | Yes | No (synthetic) |
-| **AgentKillChain v2.2** | **LLM-as-judge** | **Stubbed** | **Deprecated for chat APIs** | **Yes** | **Yes (500 live evals)** |
+| **AgentKillChain v2.3** | **LLM-as-judge (few-shot, structured JSON)** | **Stubbed** | **Deprecated for chat APIs** | **Yes** | **Yes (552 live evals, re-judged)** |
 
 AgentDojo measures whether a live sandboxed agent completes user tasks while ignoring injections. AgentKillChain measures whether a model's semantic intent and refusal boundaries hold under structured adversarial prompts, using a deterministic catalog and LLM-as-judge scoring so the dataset itself becomes the unit of versioned comparison. The two benchmarks test different questions and complement each other.
 

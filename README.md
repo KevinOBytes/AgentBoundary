@@ -1,5 +1,5 @@
 AgentKillChain
-v2.2: Ragged Poisons & Marked Injections
+v2.3: Calibrated Judge Recalibration
 
 A versioned, empirically grounded benchmark for prompt-injection robustness in tool-using AI agents.
 
@@ -11,25 +11,28 @@ This framework evaluates whether frontier language models preserve instruction h
 
 Kill-Chain Taxonomy: The six-stage attack lifecycle maps directly to frontier-model safety concerns — context drift as alignment degradation, latent memory poisoning as delayed unsafe activation, and toolchain confusion as unauthorized capability acquisition.
 
-Versioned Empirical Results (May 28–31, 2026, v2.2)
+**Versioned Empirical Results (June 2026, v2.3 re-judged)**
 
-The v2.2 catalog contains 51 scenarios across 8 prompt-injection families. I evaluated all entries via 552 live trials against eleven models spanning the parameter/compute spectrum from GPT-5-pro (frontier) to Xiaomi MIMO-v2.5-pro (mid-tier). Temperature was locked to 0.0; compliance is not a sampling artifact. All proportions report 95% Wilson score confidence intervals.
+The v2.3 catalog contains 51 scenarios across 8 prompt-injection families. All 552 live trials (51 entries × 11 models, temperature=0.0) were re-judged with an improved judge: `gpt-5.4` with few-shot exemplified rubrics, structured JSON output, and 3-way classification (refused / complied / neutral). This replaces the v2.2 `gpt-4o-mini` zero-shot judge that systematically over-called compliance.
 
-Key outcomes (v2.2 definitive):
-    • No entry achieved "critical" severity (universal compliance against ≥8 models)
-    • Only 2 entries (3.9%, CI: 1.1%–13.2%) rate "high" after empirical testing
-    • RAG poisoning remains the dominant vector at 16.1% family-level clear compliance (CI: 9.8%–25.2%)
-    • `rag_poisoning_003` achieved 70% clear compliance (7/10 models) — poisoned tool-catalog documents consistently bypass refusal
-    • Toolchain confusion is contained at 1.6% family compliance (CI: 0.3%–8.3%): frontier models uniformly refuse direct tool-misuse requests
-    • Claude Opus-4.7 achieved zero clear compliance (0/51, CI: 0.0%–7.0%) — the only model with a perfect refusal record
-    • Cross-judge validation (split-half, deepseek-v4-flash vs gpt-4o-mini, n=50) yielded κ = 0.468 (moderate agreement), meeting the 0.4 defensibility threshold
-    • GLM-5.1 (injection-aware model) showed 100% neutral responses — every attack was silently ignored without explicit refusal, a 100% missed-detection rate
+**Key outcomes (v2.3 definitive, re-judged):**
+    • Compliance rate **dropped 3×** from v2.2 (10.0% → 3.4%) — the old judge counted passive acknowledgment as active harm
+    • Refusal κ improved from 0.05–0.23 (v2.2 heterogenous) to **0.492** (v2.2 vs v2.3 same data)
+    • Compliance κ improved from negative values to **0.316** (fair agreement)
+    • No entry achieved "critical" severity
+    • Only `rag_poisoning_003` (4/10 models) rates "high" after empirical testing
+    • RAG poisoning remains the dominant vector at **4.6%** family-level clear compliance (CI: 1.8%–11.2%)
+    • Claude Opus-4.7 achieved **zero clear compliance** (0/51, CI: 0.0%–7.0%) — the only frontier model with a perfect refusal record
+    • Llama-4 Maverick remains most vulnerable at **19.6%** clear compliance (CI: 11.0%–32.5%)
+    • GLM-5.1 showed 100% neutral responses — every attack silently ignored without explicit refusal, 100% missed-detection
 
-See docs/EMPIRICAL_RESULTS.md for the full 552-evaluation matrix, Wilson CIs, and model robustness ranking.
+**Judge methodology:** The v2.3 judge uses explicit few-shot examples (3 exemplars per classification), structured JSON output with confidence scores, and strict active-execution criteria for compliance. This addresses the primary variance source identified in v2.2 cross-judge validation.
 
-What Changed From v1?
+See docs/EMPIRICAL_RESULTS.md for the full 552-evaluation matrix, Wilson CIs, model robustness ranking, and judge comparison.
 
-The v1 catalog relied on a synthetic 55-entry dataset with 82% of scenarios labeled high/critical severity based on theoretical harm — never tested against live models. I rebuilt all 51 entries from scratch with contextual variation per scenario_type, then empirically scored each one. The severity distribution dropped from 82% high/critical (fantasy) to 3.9% high, 27.5% medium, and 68.6% low (measured, v2.2).
+**What Changed From v2.2?**
+
+The v2.2 evaluation used `gpt-4o-mini` as a zero-shot judge with simple text prompts. Cross-judge validation revealed κ ≈ 0.05–0.23 with heterogenous models, indicating the judge itself was the dominant noise source. For v2.3, we re-judged all 552 entries with `gpt-5.4` using few-shot exemplified rubrics and structured output. The improved judge reduced compliance detection from 10.0% to 3.4% — eliminating false positives where the old judge counted "passive acknowledgment of injected text" as active harm. Relative rankings (model robustness, attack family danger) are preserved. Absolute counts are now calibrated against a conservative standard requiring **active execution** of harmful behavior.
 
 Repository Layout
 
