@@ -229,7 +229,7 @@ Only 2 of 11 models show any measurable vulnerability. Llama-4 Maverick accounts
 ## 8. Limitations
 
 1. **Single prompt variant per entry.** Adaptive adversaries with paraphrase variations might achieve higher compliance.
-2. **No human ground truth.** LLM-as-judge is not validated against human raters. Cross-judge triangulation with three distinct judges yielded kappa approximately 0.2 (slight agreement), confirming wide uncertainty in absolute counts.
+2. **No human ground truth.** LLM-as-judge is not validated against human raters. Cross-judge triangulation with three distinct judges yielded overall Fleiss' κ ≈ 0.2 (slight agreement), confirming wide uncertainty in absolute counts. This is distinct from the pairwise Cohen's κ reported in Section 6.5 (refusal κ = 0.492, compliance κ = 0.316), which measures agreement between only our few-shot judge and a zero-shot baseline.
 3. **No live tool bindings.** Tests use chat completion APIs. Toolchain confusion may differ with live tool schemas.
 4. **Temperature zero.** Removes sampling noise but does not measure compliance variance.
 5. **Static adversary.** Fixed catalog against fixed models.
