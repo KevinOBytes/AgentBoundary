@@ -44,7 +44,7 @@ def fmt_ci(k, n):
 
 def main():
     print("=" * 70)
-    print("AGENTKILLCHAIN v2.2 — WILSON SCORE CONFIDENCE INTERVALS (95%)")
+    print("AGENTBOUNDARY v2.2 — WILSON SCORE CONFIDENCE INTERVALS (95%)")
     print("=" * 70)
     
     # Aggregate proportions (552 total = 501 final + 51 glm-5.1)
