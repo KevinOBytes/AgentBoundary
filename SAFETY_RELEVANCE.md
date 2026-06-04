@@ -6,7 +6,7 @@ asks whether an agent can preserve instruction hierarchy, contextual integrity,
 and tool-use boundaries while operating across memory, retrieval, and
 multi-step workflows.
 
-## Kill Chain to Safety Evaluation Map
+## Attack Chain / Safety Evaluation Map
 
 | AgentBoundary stage | Security framing | Frontier lab concern | Evaluation question |
 | --- | --- | --- | --- |
