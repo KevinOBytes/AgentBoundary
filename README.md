@@ -2,6 +2,8 @@
 
 An open benchmark for measuring prompt-injection robustness in LLM-based agents.
 
+**Scope note:** All evaluations use standard chat-completion APIs (`temperature=0.0`). Tests measure the LLM layer's instruction-boundary behavior, not live agentic tool execution.
+
 **License:** MIT  
 **Author:** Kevin O'Connor  
 **Date:** June 2026

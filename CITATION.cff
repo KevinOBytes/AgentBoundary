@@ -32,9 +32,11 @@ abstract: >-
   run across eleven models spanning the parameter spectrum (GPT-5-pro,
   Claude Opus-4.7, Gemini 3.5 Flash, DeepSeek V4 Pro, Llama-4 Maverick,
   GPT-5-mini, DeepSeek V4 Flash, Gemini 3.1 Pro Preview, O3-mini,
-  MIMO-v2.5-pro, GLM-5.1). All proportions report 95% Wilson score confidence
-  intervals. Cross-judge validation (refusal κ = 0.492, compliance κ = 0.316)
-  meets the 0.4 defensibility threshold for refusal. All severity labels are
-  grounded in measured model compliance, not synthetic harm estimates. The v1.0
-  judge recalibration reduced compliance detection from 10.0% to 2.0%,
+  MIMO-v2.5-pro, GLM-5.1). The overall compliance rate is 2.0% (11/552,
+  CI: 1.1%--3.5%). Ten of eleven models achieved zero clear compliance.
+  All proportions report 95% Wilson score confidence intervals. Cross-judge
+  agreement (refusal κ = 0.492, compliance κ = 0.316) meets the 0.4
+  defensibility threshold for refusal. All severity labels are grounded in
+  measured model compliance, not synthetic harm estimates. The v1.0 judge
+  recalibration reduced compliance detection from 10.0% to 2.0%,
   eliminating false positives from passive acknowledgment.

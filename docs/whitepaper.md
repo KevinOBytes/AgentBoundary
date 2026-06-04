@@ -234,6 +234,7 @@ Only 2 of 11 models show any measurable vulnerability. Llama-4 Maverick accounts
 4. **Temperature zero.** Removes sampling noise but does not measure compliance variance.
 5. **Static adversary.** Fixed catalog against fixed models.
 6. **OpenRouter routing layer.** Results characterize the endpoint on the evaluation date.
+7. **Exclusion-rule dependence.** The active-execution compliance standard (mere restatement/echoing scored as not_complied) is enforced by few-shot judge prompt design. Different rubric phrasing produces different counts.
 
 ---
 
