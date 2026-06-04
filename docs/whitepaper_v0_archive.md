@@ -60,7 +60,7 @@ OWASP's LLM Top 10 and Agentic AI threat guidance provide the operational securi
 
 AgentBoundary models an attacker who can place untrusted content where an assistant agent may read or remember it. The attacker does not control the system prompt, harness code, model provider, or scoring code. The attacker goal is to induce the agent to adopt an unsafe instruction, propose a sensitive tool action, disclose a secret, or cross an explicit policy boundary.
 
-The benchmark adapts a kill-chain structure to stateful AI agents:
+The benchmark adapts an attack-chain structure to stateful AI agents:
 
 1. **Initial access:** Untrusted content enters through user input, retrieved documents, notes, web content, or tool outputs.
 2. **Execution:** The model treats adversarial content as task-relevant instruction rather than data.
