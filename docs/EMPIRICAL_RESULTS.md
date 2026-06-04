@@ -1,4 +1,4 @@
-# AgentKillChain v2.3 — Full Empirical Results
+# AgentBoundary v2.3 — Full Empirical Results
 
 **Date:** June 3, 2026
 **Protocol:** 51 entries × 11 models = 552 live evaluations at `temperature=0.0`
@@ -204,11 +204,11 @@ For this reason, all proportions in this paper report 95% Wilson score confidenc
 ## Citation
 
 ```bibtex
-@dataset{agentkillchain2026,
-  title={AgentKillChain v2.2: An Empirically Calibrated Prompt-Injection Attack Benchmark},
+@dataset{agentboundary2026,
+  title={AgentBoundary v2.2: An Empirically Calibrated Prompt-Injection Attack Benchmark},
   author={O'Connor, Kevin},
   year={2026},
-  url={https://github.com/KevinOBytes/AgentKillChain},
+  url={https://github.com/KevinOBytes/AgentBoundary},
   version={2.2.0}
 }
 ```

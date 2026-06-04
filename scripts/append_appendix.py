@@ -13,7 +13,7 @@ def append_appendix():
         content = f.read()
 
     appendix = "\n\n### Appendix A: The 40 Attack Scenarios\n\n"
-    appendix += "Below is the complete dataset of 40 attack vectors used in the AgentKillChain benchmark:\n\n"
+    appendix += "Below is the complete dataset of 40 attack vectors used in the AgentBoundary benchmark:\n\n"
     appendix += "| ID | Category | Trigger Condition | Expected Behavior | Payload |\n"
     appendix += "|---|---|---|---|---|\n"
 

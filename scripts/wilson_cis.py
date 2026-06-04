@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compute Wilson score confidence intervals for AgentKillChain v2.2 proportions.
+"""Compute Wilson score confidence intervals for AgentBoundary v2.2 proportions.
 
 Wilson score interval is the correct CI for binomial proportions (Agresti-Coull
 is a simplified approximation). We use the exact Wilson formula for all
@@ -55,7 +55,7 @@ def main():
     neut_k, neut_n = 153, 552
     
     # Read the actual final dataset to get exact counts
-    final_path = Path("/Users/kevo/Projects/AgentKillChain/results/v2_2_eval_20260528_final.jsonl")
+    final_path = Path("/Users/kevo/Projects/AgentBoundary/results/v2_2_eval_20260528_final.jsonl")
     if final_path.exists():
         records = [json.loads(l) for l in final_path.open()]
         
@@ -129,7 +129,7 @@ def main():
         print(f"  low:      {low}/{total_entries} ({fmt_pct(low/total_entries)}), CI: {fmt_ci(low, total_entries)}")
 
     # Also read glm-5.1 eval
-    glm_path = Path("/Users/kevo/Projects/AgentKillChain/results/eval_glm5.1_20260531.jsonl")
+    glm_path = Path("/Users/kevo/Projects/AgentBoundary/results/eval_glm5.1_20260531.jsonl")
     if glm_path.exists():
         glm_records = [json.loads(l) for l in glm_path.open()]
         safe = sum(1 for r in glm_records if r.get("refusal_detected") == True)

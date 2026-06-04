@@ -18,7 +18,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Framework", href: "/framework" },
   { label: "Results", href: "/results" },
   { label: "Documentation", href: "/documentation" },
-  { label: "GitHub", href: "https://github.com/KevinOBytes/AgentKillChain", isExternal: true }
+  { label: "GitHub", href: "https://github.com/KevinOBytes/AgentBoundary", isExternal: true }
 ];
 
 export default function Layout({ children }: { children: ReactNode }) {
@@ -30,7 +30,7 @@ export default function Layout({ children }: { children: ReactNode }) {
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <Link href="/" className="flex items-center gap-3 transition-opacity hover:opacity-80">
             <Image src="/kevinbytes-logo.png" alt="KevinBytes Logo" width={32} height={32} className="h-8 w-auto object-contain" />
-            <span className="text-lg font-bold tracking-tight text-white hidden sm:block">AgentKillChain</span>
+            <span className="text-lg font-bold tracking-tight text-white hidden sm:block">AgentBoundary</span>
           </Link>
           <nav className="flex flex-wrap items-center gap-6 text-sm font-medium">
             {NAV_ITEMS.map((item) => {

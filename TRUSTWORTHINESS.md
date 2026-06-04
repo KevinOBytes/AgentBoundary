@@ -1,6 +1,6 @@
 # Benchmark Trustworthiness
 
-This document outlines the trustworthiness and methodological transparency of the AgentKillChain controlled benchmark.
+This document outlines the trustworthiness and methodological transparency of the AgentBoundary controlled benchmark.
 
 ## Data Contamination Risks
 The `attack_catalog.json` contains novel, structured scenarios devised specifically for this framework. Since this repository is public, future foundation models may include this dataset in their alignment training (RLHF/DPO), artificially inflating their resistance to these specific payloads. We plan to keep the core prompt templates open but evaluate models against a hidden hold-out set in future iterations.
@@ -12,7 +12,7 @@ The May 20, 2026 public release uses one pass per model-scenario evaluation. The
 
 ## Scoring Efficacy — v2.1 LLM-as-Judge
 
-AgentKillChain now uses an LLM-as-judge pipeline (`gpt-4o-mini`) with two
+AgentBoundary now uses an LLM-as-judge pipeline (`gpt-4o-mini`) with two
 orthogonal passes: (1) refusal detection, (2) compliance detection. The v1 release
 used deterministic heuristic scoring; v2.1 switched to LLM judging for semantic
 nuance but retains the heuristic fallback in

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""AgentKillChain v2.3 — Re-judge all 552 evals via OpenAI Batch API.
+"""AgentBoundary v2.3 — Re-judge all 552 evals via OpenAI Batch API.
 
 Generates a JSONL batch input file (1,104 requests = 552 refusals + 552 compliances),
 with improved few-shot rubrics and structured JSON output via gpt-4o.

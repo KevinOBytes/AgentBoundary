@@ -44,7 +44,7 @@
 
 23) Severity: LOW — Inconsistent denominators in results tables. Some entries use 2/10, others 2/11, without explanation. If some models failed to run, you must report missingness, reasons, and sensitivity analyses. As is, the inconsistency looks like sloppiness that can change severity bins.
 
-24) Severity: LOW — Terminology inflation. Branding as “AgentKillChain” while evaluating static chat completions (no live tools, no temporal persistence) is marketing, not science. The mismatch between name and methodology confuses readers about what is actually tested.
+24) Severity: LOW — Terminology inflation. Branding as “AgentBoundary” while evaluating static chat completions (no live tools, no temporal persistence) is marketing, not science. The mismatch between name and methodology confuses readers about what is actually tested.
 
 25) Severity: NOTE — Ethical/operational implications are asserted without evidence. Claims such as “simple keyword filters miss the attacks that actually work” are plausible but untested here; you did not run any filter baselines. Similarly, the takeaways about “behavioral monitoring” are prescriptions unbacked by measurements.
 

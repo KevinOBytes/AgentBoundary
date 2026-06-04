@@ -1,7 +1,7 @@
 # Benchmark Visualizations
 
 This directory contains public benchmark outputs and static visualizations for
-the current AgentKillChain benchmark release. Public result artifacts keep the
+the current AgentBoundary benchmark release. Public result artifacts keep the
 attack catalog public while redacting full live request/response traces. They
 retain metrics, flags, evaluation counts, character counts, and SHA-256 digests.
 

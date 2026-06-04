@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-AgentKillChain — Third-Judge Triangulation on Fixed Sample.
+AgentBoundary — Third-Judge Triangulation on Fixed Sample.
 
 Re-judges the EXACT same 50 records from Stage 1 (κ=0.19, Claude vs gpt-4o-mini)
 with a third independent judge (qwen3.5 via ollama-cloud). This makes all three

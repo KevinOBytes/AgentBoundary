@@ -1,7 +1,7 @@
 # Model Provenance Appendix
 
 This appendix documents the provenance of every model evaluated in the
-AgentKillChain v0 public release (May 20, 2026). Each model is listed with
+AgentBoundary v0 public release (May 20, 2026). Each model is listed with
 its vendor of record, the API endpoint used to call it, and a public reference
 where reviewers can verify that the model exists and was reachable at the time
 of the run.
@@ -104,14 +104,14 @@ rnj-1:8b
    tag may indicate a quantization level, fine-tune variant, or release
    pointer. The exact weight provenance for each Ollama Cloud library entry
    is the responsibility of the Ollama Cloud catalog at the run timestamp;
-   the AgentKillChain results characterize the behavior of the endpoint
+   the AgentBoundary results characterize the behavior of the endpoint
    reachable at that identifier and time, not necessarily the unmodified
    upstream weights.
 
 3. **The cohort is descriptive of one snapshot.** Ollama Cloud's library is
    not version-locked. A reproduction six months from now may discover a
    different set of identifiers under the same names, or the same identifier
-   may resolve to updated weights. The AgentKillChain artifact records
+   may resolve to updated weights. The AgentBoundary artifact records
    `run_timestamp` and per-row trace SHA-256 digests so any divergence
    between the recorded behavior and a fresh run can be detected.
 

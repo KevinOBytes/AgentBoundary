@@ -1,6 +1,6 @@
-# Contributing to AgentKillChain
+# Contributing to AgentBoundary
 
-Thanks for your interest in improving AgentKillChain.
+Thanks for your interest in improving AgentBoundary.
 
 ## Development workflow
 

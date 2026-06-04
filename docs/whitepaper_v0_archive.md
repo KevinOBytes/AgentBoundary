@@ -1,14 +1,14 @@
-# AgentKillChain: A Versioned Benchmark for Persistent Compromise in Tool-Using AI Agents
+# AgentBoundary: A Versioned Benchmark for Persistent Compromise in Tool-Using AI Agents
 
 **Author:** Kevin O'Connor
 
 **Version:** Versioned benchmark manuscript, May 20, 2026
 
-**Repository:** https://github.com/KevinOBytes/AgentKillChain
+**Repository:** https://github.com/KevinOBytes/AgentBoundary
 
 ## Abstract
 
-Tool-using AI agents combine language-model reasoning with retrieval, memory, and privileged actions. That integration changes the security problem: untrusted content is no longer only text to be summarized, but potential control input that can be preserved in memory and later influence tool selection. AgentKillChain is a versioned, open benchmark for measuring this specific risk under a controlled assistant-agent architecture. The benchmark contains 40 scenarios across eight prompt-injection and memory-poisoning families, including single-turn tool-selection pressure and multi-phase seed, dormancy, and activation workflows. The May 20, 2026 public release evaluates 45 models across authenticated Ollama Cloud and OpenRouter provider cohorts, producing 1,800 attempted and scored model-scenario evaluations with no API errors or timeouts. Under deterministic heuristic scoring, 25 evaluations emitted at least one unsafe signal, for an overall unsafe-signal rate of 1.39% with a 95% Wilson interval of 0.94% to 2.04%. Signals were concentrated in toolchain-confusion and single-phase memory/context-manipulation scenarios; the vector-backed latent-memory rerun, implemented with embedded retrieval and verbatim memory injection, did not produce scored unsafe activation. AgentKillChain is not a universal model-security ranking. It is a reproducible measurement harness for one agent design, with public aggregate artifacts, public attack catalog prompts, and redacted live request/response traces. The release provides a baseline for regression testing and for evaluating defenses such as memory provenance, deterministic tool authorization, and context separation.
+Tool-using AI agents combine language-model reasoning with retrieval, memory, and privileged actions. That integration changes the security problem: untrusted content is no longer only text to be summarized, but potential control input that can be preserved in memory and later influence tool selection. AgentBoundary is a versioned, open benchmark for measuring this specific risk under a controlled assistant-agent architecture. The benchmark contains 40 scenarios across eight prompt-injection and memory-poisoning families, including single-turn tool-selection pressure and multi-phase seed, dormancy, and activation workflows. The May 20, 2026 public release evaluates 45 models across authenticated Ollama Cloud and OpenRouter provider cohorts, producing 1,800 attempted and scored model-scenario evaluations with no API errors or timeouts. Under deterministic heuristic scoring, 25 evaluations emitted at least one unsafe signal, for an overall unsafe-signal rate of 1.39% with a 95% Wilson interval of 0.94% to 2.04%. Signals were concentrated in toolchain-confusion and single-phase memory/context-manipulation scenarios; the vector-backed latent-memory rerun, implemented with embedded retrieval and verbatim memory injection, did not produce scored unsafe activation. AgentBoundary is not a universal model-security ranking. It is a reproducible measurement harness for one agent design, with public aggregate artifacts, public attack catalog prompts, and redacted live request/response traces. The release provides a baseline for regression testing and for evaluating defenses such as memory provenance, deterministic tool authorization, and context separation.
 
 **Keywords:** AI security, autonomous agents, prompt injection, indirect prompt injection, memory poisoning, tool use, red teaming, benchmark, Ollama, OpenRouter
 
@@ -18,7 +18,7 @@ Large language model applications are moving from stateless chat toward agents t
 
 The central security boundary is therefore not only between user and system prompt. It is also between trusted control instructions and untrusted data that may be processed across time. A secure agent should preserve this boundary even when the untrusted data is semantically relevant to the user task.
 
-AgentKillChain evaluates this boundary in a controlled setting. It asks whether a representative assistant loop emits explicit unsafe signals when exposed to poisoned documents, memory stores, context-drift prompts, and tool-selection pressure. The benchmark does not execute real tools. It uses a stubbed tool layer and deterministic scoring so that the same release artifact can be reproduced, inspected, and compared in later runs.
+AgentBoundary evaluates this boundary in a controlled setting. It asks whether a representative assistant loop emits explicit unsafe signals when exposed to poisoned documents, memory stores, context-drift prompts, and tool-selection pressure. The benchmark does not execute real tools. It uses a stubbed tool layer and deterministic scoring so that the same release artifact can be reproduced, inspected, and compared in later runs.
 
 This paper is written as a versioned benchmark report rather than a claim of comprehensive model safety. Its contribution is a reproducible measurement slice: a fixed scenario catalog, a documented harness, a public result artifact, and a release policy that preserves evidence without publishing full live traces.
 
@@ -26,7 +26,7 @@ This paper is written as a versioned benchmark report rather than a claim of com
 
 The release is organized around four research questions.
 
-**RQ1. Frequency:** Under one fixed assistant-agent architecture and deterministic scoring policy, how often do evaluated models emit unsafe signals when exposed to the AgentKillChain scenario catalog?
+**RQ1. Frequency:** Under one fixed assistant-agent architecture and deterministic scoring policy, how often do evaluated models emit unsafe signals when exposed to the AgentBoundary scenario catalog?
 
 **RQ2. Failure-mode concentration:** Which scenario families and phases account for observed unsafe signals?
 
@@ -36,19 +36,19 @@ The release is organized around four research questions.
 
 ## 3. Related Work
 
-AgentKillChain sits at the intersection of indirect prompt injection, agent robustness benchmarks, and generative-AI red-team tooling.
+AgentBoundary sits at the intersection of indirect prompt injection, agent robustness benchmarks, and generative-AI red-team tooling.
 
 Greshake et al. introduced indirect prompt injection as a risk for LLM-integrated applications, emphasizing that retrieved data can blur the line between instructions and data and can influence API use. Microsoft Research's work on benchmarking and defending against indirect prompt injection similarly frames the problem as a systematic evaluation task and studies defenses for applications that process external content.
 
-AgentDojo is the closest benchmark reference point. It evaluates prompt-injection attacks and defenses for LLM agents in dynamic tool-calling environments, with realistic tasks, security test cases, and explicit utility/security criteria. AgentKillChain is narrower. It does not attempt to simulate full application environments or benchmark benign task utility. Instead, it focuses on persistent context compromise, memory carryover, and release hygiene for public artifacts.
+AgentDojo is the closest benchmark reference point. It evaluates prompt-injection attacks and defenses for LLM agents in dynamic tool-calling environments, with realistic tasks, security test cases, and explicit utility/security criteria. AgentBoundary is narrower. It does not attempt to simulate full application environments or benchmark benign task utility. Instead, it focuses on persistent context compromise, memory carryover, and release hygiene for public artifacts.
 
-Instruction-hierarchy work from OpenAI formalizes the same privilege-ordering problem that motivates AgentKillChain: system and developer instructions should dominate user messages, and user intent should dominate untrusted third-party or tool-output content. SPML similarly treats prompt definitions and user inputs as separable objects that can be checked against intended chatbot behavior. Anthropic's prompt-injection mitigation work and Claude system-card discussion reinforce the same operational point: agent environments expose models to untrusted content, so robustness needs both model training and system-layer safeguards.
+Instruction-hierarchy work from OpenAI formalizes the same privilege-ordering problem that motivates AgentBoundary: system and developer instructions should dominate user messages, and user intent should dominate untrusted third-party or tool-output content. SPML similarly treats prompt definitions and user inputs as separable objects that can be checked against intended chatbot behavior. Anthropic's prompt-injection mitigation work and Claude system-card discussion reinforce the same operational point: agent environments expose models to untrusted content, so robustness needs both model training and system-layer safeguards.
 
 General red-team frameworks such as garak and PyRIT address broader generative-AI risk discovery. They are useful for probing many classes of model and application behavior, but they are not specifically scoped to a fixed stateful agent loop with a public model-scenario matrix and release-redaction policy.
 
-OWASP's LLM Top 10 and Agentic AI threat guidance provide the operational security context. Prompt injection, sensitive information disclosure, insecure plugin design, and excessive agency are all relevant to a tool-using assistant. NIST's Generative AI Profile similarly frames generative-AI risk management as a cross-sector practice involving evaluation, monitoring, and trustworthiness controls. AgentKillChain is best read as an empirical artifact that supports those practices for a specific class of agent failure.
+OWASP's LLM Top 10 and Agentic AI threat guidance provide the operational security context. Prompt injection, sensitive information disclosure, insecure plugin design, and excessive agency are all relevant to a tool-using assistant. NIST's Generative AI Profile similarly frames generative-AI risk management as a cross-sector practice involving evaluation, monitoring, and trustworthiness controls. AgentBoundary is best read as an empirical artifact that supports those practices for a specific class of agent failure.
 
-| Reference area | What it contributes | How AgentKillChain differs |
+| Reference area | What it contributes | How AgentBoundary differs |
 |---|---|---|
 | Indirect prompt injection | Shows that external content can steer LLM-integrated applications and API use. | Measures a fixed agent loop across a versioned model-scenario matrix. |
 | Instruction hierarchy / SPML | Frames privileged instruction ordering and structured prompt-definition checks. | Tests whether one concrete assistant loop preserves those boundaries under persistent context pressure. |
@@ -58,7 +58,7 @@ OWASP's LLM Top 10 and Agentic AI threat guidance provide the operational securi
 
 ## 4. Threat Model
 
-AgentKillChain models an attacker who can place untrusted content where an assistant agent may read or remember it. The attacker does not control the system prompt, harness code, model provider, or scoring code. The attacker goal is to induce the agent to adopt an unsafe instruction, propose a sensitive tool action, disclose a secret, or cross an explicit policy boundary.
+AgentBoundary models an attacker who can place untrusted content where an assistant agent may read or remember it. The attacker does not control the system prompt, harness code, model provider, or scoring code. The attacker goal is to induce the agent to adopt an unsafe instruction, propose a sensitive tool action, disclose a secret, or cross an explicit policy boundary.
 
 The benchmark adapts a kill-chain structure to stateful AI agents:
 
@@ -160,7 +160,7 @@ scored_evaluations / expected_model_scenario_evaluations
 
 Confidence intervals in this paper use the Wilson score interval for binomial proportions. Because the release uses one pass per model-scenario pair, these intervals characterize the observed proportion in this fixed matrix only; they do not quantify model stochasticity, provider drift, prompt paraphrase sensitivity, or variance across alternative agent architectures (see Section 11.4).
 
-AgentKillChain also supports LLM-as-judge scoring, but that path was not used for the May 20, 2026 public release. Using deterministic scoring here reduces evaluator drift and avoids the failure mode where a candidate unsafe output also influences an LLM judge.
+AgentBoundary also supports LLM-as-judge scoring, but that path was not used for the May 20, 2026 public release. Using deterministic scoring here reduces evaluator drift and avoids the failure mode where a candidate unsafe output also influences an LLM judge.
 
 ## 7. Public Artifact Policy
 
@@ -260,7 +260,7 @@ This distinction matters for defense. If the main risk were only unsafe text gen
 
 The latent-memory result should be interpreted carefully. The vector rerun stores the seed payload verbatim in an embedded ChromaDB collection and retrieves semantically relevant chunks during activation, so it is a stronger test than the earlier flat-buffer path. It still did not produce scored unsafe activation. That null result is useful for this fixed harness and scenario catalog, but it is not evidence that production memory systems are safe. Production deployments add different embedding models, chunking policies, rerankers, authorization boundaries, update horizons, and user-interaction patterns that can change retrieval and activation behavior.
 
-The redaction policy is also part of the research contribution. Security benchmarks need enough public evidence to be reproducible, but publishing full live traces can create avoidable risks. AgentKillChain keeps the attack catalog public, preserves hash-linked trace metadata, and withholds complete live transcripts from tracked artifacts.
+The redaction policy is also part of the research contribution. Security benchmarks need enough public evidence to be reproducible, but publishing full live traces can create avoidable risks. AgentBoundary keeps the attack catalog public, preserves hash-linked trace metadata, and withholds complete live transcripts from tracked artifacts.
 
 ## 10. Defensive Implications
 
@@ -333,7 +333,7 @@ Raw live-run outputs are written to ignored `results/generated/` paths. The publ
 
 ## 14. Conclusion
 
-AgentKillChain provides a controlled, versioned benchmark for a specific security question: whether untrusted context can persist through an assistant-agent loop and influence later tool-facing behavior. The May 20, 2026 release produced complete matrix coverage across 45 models and 40 scenarios, with a 1.39% observed unsafe-signal rate under deterministic heuristic scoring.
+AgentBoundary provides a controlled, versioned benchmark for a specific security question: whether untrusted context can persist through an assistant-agent loop and influence later tool-facing behavior. The May 20, 2026 release produced complete matrix coverage across 45 models and 40 scenarios, with a 1.39% observed unsafe-signal rate under deterministic heuristic scoring.
 
 The most important result is not the absolute percentage. It is the shape of the failure mode. Unsafe signals clustered around tool-selection pressure, while secret-disclosure signals were not observed and the vector-retrieval latent-memory implementation did not trigger unsafe activation under this harness. That pattern supports a defense posture focused on tool authorization, memory provenance, and context separation rather than reliance on model refusals alone.
 

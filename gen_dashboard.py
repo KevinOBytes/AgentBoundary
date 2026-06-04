@@ -15,7 +15,7 @@ from pathlib import Path
 from collections import defaultdict
 
 # Use FINAL dataset (500 entries, 10 errors excluded)
-path = '/Users/kevo/Projects/AgentKillChain/results/v2_2_eval_20260528_final.jsonl'
+path = '/Users/kevo/Projects/AgentBoundary/results/v2_2_eval_20260528_final.jsonl'
 with open(path) as f:
     rows = [json.loads(l) for l in f if l.strip()]
 
@@ -147,7 +147,7 @@ dashboard = {
     }
 }
 
-with open('/Users/kevo/Projects/AgentKillChain/results/model_results.json', 'w') as f:
+with open('/Users/kevo/Projects/AgentBoundary/results/model_results.json', 'w') as f:
     json.dump(dashboard, f, indent=2)
 print("Wrote results/model_results.json")
 
@@ -191,8 +191,8 @@ for i, v in enumerate(sev_values):
     axes[2].text(i, v + 0.5, str(v), ha='center', fontsize=11, fontweight='bold')
 
 plt.tight_layout()
-plt.savefig('/Users/kevo/Projects/AgentKillChain/results/v2_2_visuals.png', dpi=150, bbox_inches='tight')
-plt.savefig('/Users/kevo/Projects/AgentKillChain/results/v2_2_visuals.svg', format='svg', bbox_inches='tight')
+plt.savefig('/Users/kevo/Projects/AgentBoundary/results/v2_2_visuals.png', dpi=150, bbox_inches='tight')
+plt.savefig('/Users/kevo/Projects/AgentBoundary/results/v2_2_visuals.svg', format='svg', bbox_inches='tight')
 print("Wrote results/v2_2_visuals.png and .svg")
 
 print("\n--- FINAL SUMMARY (500 evals) ---")

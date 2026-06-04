@@ -1,6 +1,6 @@
 """System prompt variants for defense ablation studies.
 
-Reviewers asked: how much of AgentKillChain's low unsafe-signal rate is the
+Reviewers asked: how much of AgentBoundary's low unsafe-signal rate is the
 model's intrinsic safety vs. the hardened defensive system prompt?
 
 This module ships three named system prompt variants. The runner accepts a

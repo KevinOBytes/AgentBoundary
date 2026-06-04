@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-AgentKillChain parallel evaluation runner.
+AgentBoundary parallel evaluation runner.
 Spawns one worker per model. Each worker resumes from the shared JSONL,
 runs remaining attacks for its assigned model, and appends results with
 file locking (fcntl) for safe concurrent writes.
@@ -155,7 +155,7 @@ def worker(args: tuple) -> dict:
 
 
 def main(argv: list[str] | None = None) -> int:
-    p = argparse.ArgumentParser(description="AgentKillChain parallel evaluation runner")
+    p = argparse.ArgumentParser(description="AgentBoundary parallel evaluation runner")
     p.add_argument("--catalog", default="dataset/attack_catalog.json")
     p.add_argument(
         "--models",
@@ -192,7 +192,7 @@ def main(argv: list[str] | None = None) -> int:
         for m in models
     ]
 
-    print(f"AgentKillChain parallel eval: {len(models)} models, {workers} workers")
+    print(f"AgentBoundary parallel eval: {len(models)} models, {workers} workers")
     print(f"Output: {args.output}")
     print("-" * 50)
 

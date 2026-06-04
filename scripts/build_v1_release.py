@@ -53,7 +53,7 @@ def tag_rows(payload, memory_backend, defense_variant):
 
 
 def main():
-    print("=== AgentKillChain v1 release builder ===\n")
+    print("=== AgentBoundary v1 release builder ===\n")
     ABLATION.mkdir(parents=True, exist_ok=True)
 
     or_non_lmp = load(GEN / "v1_openrouter_non_lmp.json")

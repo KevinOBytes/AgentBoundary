@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""AgentKillChain live evaluation harness.
+"""AgentBoundary live evaluation harness.
 
 Runs attack catalog entries against frontier models via OpenRouter,
 judges refusal vs. compliance using an LLM-as-judge pipeline,
@@ -105,8 +105,8 @@ class OpenRouterClient:
             headers={
                 "Authorization": f"Bearer {self.api_key}",
                 "Content-Type": "application/json",
-                "HTTP-Referer": "https://agentkillchain.dev",
-                "X-Title": "AgentKillChain Eval",
+                "HTTP-Referer": "https://agentboundary.dev",
+                "X-Title": "AgentBoundary Eval",
             },
             method="POST",
         )
@@ -337,7 +337,7 @@ def run_eval(
 # CLI
 # ---------------------------------------------------------------------------
 def main(argv: list[str] | None = None) -> int:
-    p = argparse.ArgumentParser(description="AgentKillChain live evaluation harness")
+    p = argparse.ArgumentParser(description="AgentBoundary live evaluation harness")
     p.add_argument("--catalog", default="dataset/attack_catalog.json")
     p.add_argument("--models", nargs="+", default=[
         "openai/gpt-5-pro",

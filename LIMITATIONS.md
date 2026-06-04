@@ -1,6 +1,6 @@
 # Benchmark Limitations
 
-AgentKillChain is a controlled benchmark. I built it to find real attack surfaces, not to simulate every possible failure mode in every possible deployment.
+AgentBoundary is a controlled benchmark. I built it to find real attack surfaces, not to simulate every possible failure mode in every possible deployment.
 
 ### 1. Simulated Tool Execution
 Tools (`read_document`, `send_email`, etc.) are stubbed in `harness/model_adapter.py`. The model receives a static response or a harness-side tool policy block marker rather than executing real commands on a UNIX host. That means real incidents — which often depend on parser edge cases, shell-escape bugs, or API-specific behavior — are outside scope. I can model the intent, not the exploitation chain.

@@ -1,4 +1,4 @@
-# AgentKillChain Severity Calibration — Independent Annotation Sheet
+# AgentBoundary Severity Calibration — Independent Annotation Sheet
 Date: 2026-05-27 | Annotator: _____________
 
 Instructions:

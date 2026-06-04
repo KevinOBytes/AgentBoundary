@@ -6,8 +6,8 @@ import { fileURLToPath, pathToFileURL } from "url";
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(scriptDir, "..", "..");
 const htmlScript = path.join(scriptDir, "export-paper.mjs");
-const htmlPath = path.join(root, "docs", "agentkillchain-paper.html");
-const pdfPath = path.join(root, "docs", "agentkillchain-paper.pdf");
+const htmlPath = path.join(root, "docs", "agentboundary-paper.html");
+const pdfPath = path.join(root, "docs", "agentboundary-paper.pdf");
 
 function chromePath() {
   const candidates = [
@@ -45,7 +45,7 @@ if (result.status !== 0) {
 }
 
 const pdfBytes = fs.readFileSync(pdfPath);
-const forbidden = [Buffer.from("/Users/"), Buffer.from("file:///"), Buffer.from("AgentKillChain/docs")];
+const forbidden = [Buffer.from("/Users/"), Buffer.from("file:///"), Buffer.from("AgentBoundary/docs")];
 const hit = forbidden.find((needle) => pdfBytes.includes(needle));
 if (hit) {
   throw new Error(`PDF appears to contain a local path or file URL: ${hit.toString("utf8")}`);
