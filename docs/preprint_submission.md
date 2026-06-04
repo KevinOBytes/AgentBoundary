@@ -1,6 +1,6 @@
 # Submission and DOI Plan
 
-AgentKillChain does not need arXiv as the first public venue. The practical route is to upload the versioned benchmark manuscript to SSRN and archive the code/results bundle with a DOI.
+AgentBoundary does not need arXiv as the first public venue. The practical route is to upload the versioned benchmark manuscript to SSRN and archive the code/results bundle with a DOI.
 
 ## Recommended Route
 
@@ -20,8 +20,8 @@ AgentKillChain does not need arXiv as the first public venue. The practical rout
 ## Submission Package
 
 - Manuscript source: `docs/whitepaper.md`
-- Upload-ready PDF: `docs/agentkillchain-paper.pdf`
-- Print HTML: `docs/agentkillchain-paper.html`
+- Upload-ready PDF: `docs/agentboundary-paper.pdf`
+- Print HTML: `docs/agentboundary-paper.html`
 - Public result artifacts: `results/model_results.json`, `results/model_results.csv`
 - Visualizations: `results/benchmark_current_*.svg`
 - Reproducibility notes: `docs/methodology.md`, `TRUSTWORTHINESS.md`, `LIMITATIONS.md`

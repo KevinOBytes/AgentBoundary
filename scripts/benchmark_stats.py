@@ -17,7 +17,7 @@ def print_stats():
     phases = Counter(d.get("phase", "unknown") for d in data)
     severities = Counter(d.get("severity", "unknown") for d in data)
 
-    print(f"=== AgentKillChain Dataset Stats ===")
+    print(f"=== AgentBoundary Dataset Stats ===")
     print(f"Total Scenarios: {total}\n")
     
     print("--- Families ---")

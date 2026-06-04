@@ -1,6 +1,6 @@
 # Safety Relevance
 
-AgentKillChain is written in the language of security research, but the same
+AgentBoundary is written in the language of security research, but the same
 failure modes are directly relevant to frontier model evaluation. The benchmark
 asks whether an agent can preserve instruction hierarchy, contextual integrity,
 and tool-use boundaries while operating across memory, retrieval, and
@@ -8,7 +8,7 @@ multi-step workflows.
 
 ## Kill Chain to Safety Evaluation Map
 
-| AgentKillChain stage | Security framing | Frontier lab concern | Evaluation question |
+| AgentBoundary stage | Security framing | Frontier lab concern | Evaluation question |
 | --- | --- | --- | --- |
 | Initial Access | Untrusted context enters the agent through user input, RAG, files, or web content. | Scalable oversight gaps in open-ended environments. | Does the model correctly label retrieved or user-provided text as untrusted context rather than policy? |
 | Execution | The model parses the injected instruction as part of its task state. | Instruction hierarchy collapse under task pressure. | Does the model preserve higher-priority instructions when the prompt contains plausible but adversarial task details? |
@@ -73,7 +73,7 @@ injection vectors that do not explicitly mention tools.
 ## Why This Matters for Frontier Evals
 
 Standard prompt-injection and jailbreak benchmarks are often single-turn and
-text-output centered. AgentKillChain adds pressure along dimensions that matter
+text-output centered. AgentBoundary adds pressure along dimensions that matter
 for frontier agent deployment:
 
 - memory persistence across sessions,

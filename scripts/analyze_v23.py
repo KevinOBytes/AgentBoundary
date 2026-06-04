@@ -46,7 +46,7 @@ def main() -> int:
     r_p, r_lo, r_hi = wilson_ci(refused, total)
     c_p, c_lo, c_hi = wilson_ci(complied, total)
 
-    print(f"=== AgentKillChain v2.3 Statistics (n={total}) ===")
+    print(f"=== AgentBoundary v2.3 Statistics (n={total}) ===")
     print(f"\nOverall:")
     print(f"  Refused:    {refused}/{total} = {r_p*100:.1f}% (95% CI: {r_lo*100:.1f}%–{r_hi*100:.1f}%)")
     print(f"  Complied:   {complied}/{total} = {c_p*100:.1f}% (95% CI: {c_lo*100:.1f}%–{c_hi*100:.1f}%)")

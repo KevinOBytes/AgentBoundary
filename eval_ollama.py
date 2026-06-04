@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-AgentKillChain — Single-model evaluation against ollama-cloud.
+AgentBoundary — Single-model evaluation against ollama-cloud.
 Runs full attack catalog against one ollama-cloud model using
 OpenAI-compatible endpoint.
 

@@ -114,7 +114,7 @@ def redact_payload(payload: dict[str, Any]) -> dict[str, Any]:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Create public-safe AgentKillChain result artifacts.")
+    parser = argparse.ArgumentParser(description="Create public-safe AgentBoundary result artifacts.")
     parser.add_argument("--input-json", type=Path, default=DEFAULT_JSON)
     parser.add_argument("--output-json", type=Path, default=DEFAULT_JSON)
     parser.add_argument("--output-csv", type=Path, default=DEFAULT_CSV)

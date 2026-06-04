@@ -1,4 +1,4 @@
-# AgentKillChain v1 — Paper Statistics & Results Tables
+# AgentBoundary v1 — Paper Statistics & Results Tables
 
 **Generated:** May 20, 2026
 **Catalog:** v1 diversified (42 unique prompts across 55 scenarios)

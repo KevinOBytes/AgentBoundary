@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-AgentKillChain — Three-Way Cross-Judge Validation (Triangulation).
+AgentBoundary — Three-Way Cross-Judge Validation (Triangulation).
 
 Re-judges the existing 50-entry stratified sample (seed=42) with a third
 independent judge (qwen3.5 via ollama-cloud), then computes:

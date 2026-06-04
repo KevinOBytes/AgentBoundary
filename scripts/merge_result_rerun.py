@@ -76,7 +76,7 @@ def merge_payloads(base_payload: dict[str, Any], rerun_payload: dict[str, Any]) 
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Merge targeted AgentKillChain rerun results into a baseline payload.")
+    parser = argparse.ArgumentParser(description="Merge targeted AgentBoundary rerun results into a baseline payload.")
     parser.add_argument("--base-json", type=Path, required=True)
     parser.add_argument("--rerun-json", type=Path, required=True)
     parser.add_argument("--output-json", type=Path, required=True)

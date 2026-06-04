@@ -9,8 +9,8 @@
 ## Harness (Docker or CI job)
 ### Docker
 ```bash
-docker build --target harness-runner -t agentkillchain-harness .
-docker run --rm --env-file .env agentkillchain-harness
+docker build --target harness-runner -t agentboundary-harness .
+docker run --rm --env-file .env agentboundary-harness
 ```
 
 ### Scheduled GitHub Action (recommended)

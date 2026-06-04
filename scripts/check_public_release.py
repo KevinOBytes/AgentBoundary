@@ -27,7 +27,7 @@ SECRET_PATTERNS = (
 
 ALLOWLISTED_FILES = {
     ".env.example",
-    "docs/agentkillchain-preprint.pdf",
+    "docs/agentboundary-preprint.pdf",
 }
 
 

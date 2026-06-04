@@ -5,7 +5,7 @@
 - Secondary: GitHub Releases for immutable publication bundles
 
 ## Naming convention
-`agentkillchain/{dataset_version}/{run_date}/{git_sha}/model_results.{json,csv}`
+`agentboundary/{dataset_version}/{run_date}/{git_sha}/model_results.{json,csv}`
 
 ## Integrity
 - Generate sha256 checksum for each artifact.

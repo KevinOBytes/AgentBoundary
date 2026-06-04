@@ -332,7 +332,7 @@ def status_counts(rows: List[dict]) -> Dict[str, int]:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Run AgentKillChain benchmark harness")
+    parser = argparse.ArgumentParser(description="Run AgentBoundary benchmark harness")
     parser.add_argument("--dry-run", action="store_true", help="Skip API calls and use deterministic outputs")
     parser.add_argument("--provider", choices=["openrouter", "ollama", "ollama-cloud"], default=os.getenv("AKC_PROVIDER", "openrouter"))
     parser.add_argument("--models", help="Comma-separated model list. Overrides MODELS/OLLAMA_MODELS/defaults.")

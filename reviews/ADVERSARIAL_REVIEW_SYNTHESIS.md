@@ -1,8 +1,8 @@
-# Adversarial Review Synthesis — AgentKillChain v2.3 Whitepaper
+# Adversarial Review Synthesis — AgentBoundary v2.3 Whitepaper
 
 **Date:** June 3, 2026
 **Reviewers:** GPT-5 (Red Team, hostile) + Claude Opus 4 (Blue Team, constructive)
-**Paper:** AgentKillChain v2.3: Calibrated Judge Recalibration for Empirical Prompt-Injection Benchmarking
+**Paper:** AgentBoundary v2.3: Calibrated Judge Recalibration for Empirical Prompt-Injection Benchmarking
 
 ---
 

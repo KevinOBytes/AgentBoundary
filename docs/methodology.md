@@ -1,4 +1,4 @@
-# AgentKillChain Dataset v2.3 — Methodology Document
+# AgentBoundary Dataset v2.3 — Methodology Document
 
 **Date:** June 3, 2026
 **Version:** v2.3.0 (supersedes v2.2)
@@ -8,7 +8,7 @@
 
 ## 1. Overview
 
-AgentKillChain is a prompt-injection attack benchmark designed for evaluating the robustness of autonomous AI agents against indirect and direct prompt-injection attacks across multiple operational contexts. Version 2.1 represents a ground-up rewrite of the v1.0 catalog, driven by empirical failure analysis of the original dataset.
+AgentBoundary is a prompt-injection attack benchmark designed for evaluating the robustness of autonomous AI agents against indirect and direct prompt-injection attacks across multiple operational contexts. Version 2.1 represents a ground-up rewrite of the v1.0 catalog, driven by empirical failure analysis of the original dataset.
 
 ## 2. What Was Wrong With v1.0
 
@@ -266,8 +266,8 @@ print('Diff:', dict(collections.Counter(d['bypass_sophistication'] for d in data
 ## 9. Citation
 
 ```bibtex
-@dataset{agentkillchain2026,
-  title={AgentKillChain v2.2: An Empirically Calibrated Prompt-Injection Attack Benchmark for Autonomous Agents},
+@dataset{agentboundary2026,
+  title={AgentBoundary v2.2: An Empirically Calibrated Prompt-Injection Attack Benchmark for Autonomous Agents},
   author={[Author Name]},
   year={2026},
   url={https://github.com/[repo]},

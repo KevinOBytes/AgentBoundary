@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""AgentKillChain v2.3 — Live re-judging via native OpenAI API.
+"""AgentBoundary v2.3 — Live re-judging via native OpenAI API.
 
 Re-judges all 552 v2.2 eval entries with improved few-shot rubrics.
 Uses the OpenAI API directly (not OpenRouter) for cost + reliability.

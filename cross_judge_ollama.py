@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-AgentKillChain — Ollama-Cloud Cross-Judge Validation.
+AgentBoundary — Ollama-Cloud Cross-Judge Validation.
 Re-judges a random sample of existing evaluations using the best
 ollama-cloud model (kimi-k2:1t or kimi-k2.6) and computes
 Cohen's κ against the original gpt-4o-mini judge.

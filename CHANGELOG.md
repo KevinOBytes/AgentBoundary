@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to AgentKillChain are documented in this file.
+All notable changes to AgentBoundary are documented in this file.
 
 ## v2.3 — 2026-06-03 (judge recalibration)
 

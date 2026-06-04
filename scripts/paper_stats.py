@@ -226,7 +226,7 @@ def markdown_table(headers: list[str], rows: list[list[str]]) -> str:
 def render_markdown(payload: dict[str, Any]) -> str:
     metadata = payload.get("metadata", {})
     lines = [
-        "# AgentKillChain Paper Statistics",
+        "# AgentBoundary Paper Statistics",
         "",
         "## Findings Summary",
         "",
@@ -307,7 +307,7 @@ def render_markdown(payload: dict[str, Any]) -> str:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Generate paper-ready AgentKillChain statistics from public results.")
+    parser = argparse.ArgumentParser(description="Generate paper-ready AgentBoundary statistics from public results.")
     parser.add_argument("--results-json", type=Path, default=ROOT / "results" / "model_results.json")
     parser.add_argument("--format", choices=("markdown", "json"), default="markdown")
     parser.add_argument("--output", type=Path)

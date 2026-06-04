@@ -143,7 +143,7 @@ def infer_cohort_descriptor(path: Path, payload: dict[str, Any]) -> tuple[Path, 
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Combine multiple AgentKillChain result cohorts into one payload.")
+    parser = argparse.ArgumentParser(description="Combine multiple AgentBoundary result cohorts into one payload.")
     parser.add_argument(
         "--cohort",
         action="append",

@@ -5,7 +5,7 @@ import argparse
 from typing import Dict, Any
 
 def main():
-    parser = argparse.ArgumentParser(description="Print statistics for AgentKillChain benchmark.")
+    parser = argparse.ArgumentParser(description="Print statistics for AgentBoundary benchmark.")
     parser.add_argument("--dataset", action="store_true", help="Print dataset stats")
     parser.add_argument("--results", action="store_true", help="Print results stats")
     

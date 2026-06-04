@@ -25,7 +25,7 @@ export default function FrameworkPage() {
           </div>
           <div>
             <h1 className="text-4xl font-bold tracking-tight text-white">Evaluation Framework</h1>
-            <p className="mt-2 max-w-2xl text-gray-400">The AgentKillChain harness is a Python-based execution environment for controlled tests of persistent context compromise in LLM agents.</p>
+            <p className="mt-2 max-w-2xl text-gray-400">The AgentBoundary harness is a Python-based execution environment for controlled tests of persistent context compromise in LLM agents.</p>
           </div>
         </div>
 
@@ -49,7 +49,7 @@ export default function FrameworkPage() {
             <div>
               <h3 className="text-xl font-bold text-white mb-2">Latent State Propagation</h3>
               <p className="text-gray-300 leading-relaxed mb-4">
-                Unlike prompt injections that trigger immediately, AgentKillChain models persistent context-risk patterns. Tests are structured into &apos;campaigns&apos; across multiple controlled sessions. The framework tests whether an agent carries poisoned memory from an initial benign-looking interaction into a future sensitive task.
+                Unlike prompt injections that trigger immediately, AgentBoundary models persistent context-risk patterns. Tests are structured into &apos;campaigns&apos; across multiple controlled sessions. The framework tests whether an agent carries poisoned memory from an initial benign-looking interaction into a future sensitive task.
               </p>
             </div>
           </motion.div>

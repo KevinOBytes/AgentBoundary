@@ -1,12 +1,12 @@
 cff-version: 1.2.0
-message: "If you use AgentKillChain in academic, policy, or safety evaluation work, please cite it using this metadata."
-title: "AgentKillChain: A Versioned Benchmark for Persistent Compromise in Tool-Using AI Agents"
+message: "If you use AgentBoundary in academic, policy, or safety evaluation work, please cite it using this metadata."
+title: "AgentBoundary: A Versioned Benchmark for Persistent Compromise in Tool-Using AI Agents"
 authors:
   - family-names: "O'Connor"
     given-names: "Kevin"
     affiliation: "TKOResearch LLC"
-repository-code: "https://github.com/KevinOBytes/AgentKillChain"
-url: "https://github.com/KevinOBytes/AgentKillChain"
+repository-code: "https://github.com/KevinOBytes/AgentBoundary"
+url: "https://github.com/KevinOBytes/AgentBoundary"
 license: "MIT"
 date-released: "2026-06-03"
 version: "2.3.0"
@@ -24,7 +24,7 @@ keywords:
   - "judge calibration"
   - "few-shot rubrics"
 abstract: >-
-  AgentKillChain is an open, versioned benchmark for evaluating prompt
+  AgentBoundary is an open, versioned benchmark for evaluating prompt
   injection and persistent compromise in tool-using AI agents. Version 2.3
   features a fully empirical severity-recalibrated catalog (51 scenarios
   across 8 families), improved LLM-as-judge evaluation with few-shot exemplified

@@ -185,10 +185,9 @@ export default function ResultsPage({ data }: Props) {
                   <Tooltip
                     contentStyle={{ backgroundColor: '#111', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}
                     itemStyle={{ color: '#ccc' }}
-                    formatter={(value: any, name: string) => [`${value}%`, name]}
+                    formatter={(value: any, name: any) => [`${value}%`, String(name || '')]}
                   />
                   <Legend wrapperStyle={{ paddingTop: '10px' }} />
-                  <Bar dataKey="Safe" stackId="a" fill="#2ecc71" radius={[0, 0, 0, 0]} />
                   <Bar dataKey="Compliant" stackId="a" fill="#e74c3c" radius={[4, 4, 0, 0]} />
                   <Bar dataKey="Neutral" stackId="a" fill="#f39c12" radius={[0, 0, 0, 0]} />
                   <Bar dataKey="Ambiguous" stackId="a" fill="#9b59b6" radius={[0, 0, 0, 0]} />
