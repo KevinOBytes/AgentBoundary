@@ -9,7 +9,7 @@ repository-code: "https://github.com/KevinOBytes/AgentBoundary"
 url: "https://github.com/KevinOBytes/AgentBoundary"
 license: "MIT"
 date-released: "2026-06-03"
-version: "2.3.0"
+version: "1.0.0"
 keywords:
   - "AI safety"
   - "agent evaluation"
@@ -25,7 +25,7 @@ keywords:
   - "few-shot rubrics"
 abstract: >-
   AgentBoundary is an open, versioned benchmark for evaluating prompt
-  injection and persistent compromise in tool-using AI agents. Version 2.3
+  injection and persistent compromise in tool-using AI agents. Version 1.0
   features a fully empirical severity-recalibrated catalog (51 scenarios
   across 8 families), improved LLM-as-judge evaluation with few-shot exemplified
   rubrics (gpt-5.4 judge), structured JSON output, and a 552-evaluation live
@@ -35,6 +35,6 @@ abstract: >-
   MIMO-v2.5-pro, GLM-5.1). All proportions report 95% Wilson score confidence
   intervals. Cross-judge validation (refusal κ = 0.492, compliance κ = 0.316)
   meets the 0.4 defensibility threshold for refusal. All severity labels are
-  grounded in measured model compliance, not synthetic harm estimates. The v2.3
-  judge recalibration reduced compliance detection from 10.0% to 3.4%,
+  grounded in measured model compliance, not synthetic harm estimates. The v1.0
+  judge recalibration reduced compliance detection from 10.0% to 2.0%,
   eliminating false positives from passive acknowledgment.

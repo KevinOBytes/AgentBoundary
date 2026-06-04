@@ -76,11 +76,14 @@ export async function getStaticProps(): Promise<{ props: Props }> {
   try {
     if (fs.existsSync(filePath)) {
       const parsed = JSON.parse(fs.readFileSync(filePath, "utf8"));
-      if (parsed?.metadata?.public_artifact_redacted && Array.isArray(parsed.results)) {
-        parsed.results = parsed.results.map(({ prompt, output, ...row }: AttackResult) => row);
+      // Guard: file must contain per-record results + model metrics
+      if (parsed?.results && parsed?.metrics_by_model && Array.isArray(parsed.results)) {
+        if (parsed?.metadata?.public_artifact_redacted) {
+          parsed.results = parsed.results.map(({ prompt, output, ...row }: AttackResult) => row);
+        }
+        data = parsed;
+        expectedModels = parsed?.metadata?.models_requested ?? [];
       }
-      data = parsed;
-      expectedModels = parsed?.metadata?.models_requested ?? [];
     }
   } catch (e) {
     console.error("Failed to load model results", e);
