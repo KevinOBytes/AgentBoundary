@@ -3,7 +3,7 @@
 Computes Cohen's Kappa for inter-judge agreement.
 
 Usage:
-    python3 scripts/cross_judge_v22_v23.py results/v2_2_eval_20260528_final.jsonl results/v2_3_rejudged.jsonl
+    python3 scripts/cross_judge_compare.py results/v2_2_eval_20260528_final.jsonl results/v2_3_rejudged.jsonl
 """
 from __future__ import annotations
 
@@ -39,7 +39,7 @@ def main() -> int:
     p = argparse.ArgumentParser()
     p.add_argument("v22_file", help="v2.2 results JSONL")
     p.add_argument("v23_file", help="v2.3 re-judged results JSONL")
-    p.add_argument("--output", default="results/cross_judge_v22_v23.json")
+    p.add_argument("--output", default="results/cross_judge_compare.json")
     args = p.parse_args()
 
     v22_entries: dict[str, dict] = {}

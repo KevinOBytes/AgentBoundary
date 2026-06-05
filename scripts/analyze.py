@@ -2,7 +2,7 @@
 """Compute v2.3 statistics from re-judged results.
 
 Usage:
-    python3 scripts/analyze_v23.py results/v2_3_rejudged.jsonl
+    python3 scripts/analyze.py results/v2_3_rejudged.jsonl
 """
 from __future__ import annotations
 

@@ -50,7 +50,7 @@ website/     — Next.js dashboard for browsing metrics
 python -m harness.eval
 
 # Recalculate stats with Wilson CIs
-python scripts/analyze_v23.py
+python scripts/analyze.py
 
 # Regenerate PDF whitepaper
 pandoc docs/whitepaper.md -o docs/agentboundary-paper.pdf \
