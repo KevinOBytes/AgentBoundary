@@ -4,7 +4,12 @@ const path = require("path");
 const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
-  outputFileTracingRoot: path.join(__dirname)
+  outputFileTracingRoot: path.join(__dirname),
+  output: "export",
+  distDir: "dist",
+  images: {
+    unoptimized: true
+  }
 };
 
 module.exports = nextConfig;
