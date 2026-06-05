@@ -2,7 +2,7 @@
 """Combine v1 cohort outputs, redact for public release, recompute paper stats.
 
 Usage:
-    python3 scripts/build_v1_release.py
+    python3 scripts/build_release.py
 
 Inputs (from results/generated/):
     v1_openrouter_non_lmp.json

@@ -22,13 +22,13 @@ All notable changes to AgentBoundary are documented in this file.
 
 ### Added
 
-- `scripts/live_rejudge_v23.py` — Live re-judging harness via OpenAI API.
-- `scripts/analyze_v23.py` — v2.3 statistics with Wilson CIs.
-- `scripts/cross_judge_v22_v23.py` — Inter-judge agreement comparison.
-- `scripts/batch_rejudge_v23.py` — OpenAI Batch API input generator.
+- `scripts/rejudge_compliance.py` — Live re-judging harness via OpenAI API.
+- `scripts/analyze.py` — Statistics with Wilson CIs.
+- `scripts/cross_judge_compare.py` — Inter-judge agreement comparison.
+- `scripts/batch_rejudge.py` — OpenAI Batch API input generator.
 - `scripts/poll_batch.py` — Batch job polling and download utility.
+- `scripts/build_release.py` — Release artifact builder.
 - `scripts/process_batch_results.py` — Batch result processor.
-
 ## v2.2 — 2026-05-28 (cross-spectrum expansion)
 
 ### Cross-spectrum model coverage

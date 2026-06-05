@@ -5,7 +5,7 @@ Generates a JSONL batch input file (1,104 requests = 552 refusals + 552 complian
 with improved few-shot rubrics and structured JSON output via gpt-4o.
 
 Usage:
-    python3 scripts/batch_rejudge_v23.py
+    python3 scripts/batch_rejudge.py
     # Then upload the generated batch file via OpenAI API
 """
 from __future__ import annotations

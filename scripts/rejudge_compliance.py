@@ -6,7 +6,7 @@ Uses the OpenAI API directly (not OpenRouter) for cost + reliability.
 
 Usage:
     export OPENAI_API_KEY=...
-    python3 scripts/live_rejudge_v23.py --judge-model gpt-4o --output results/v2_3_rejudged.jsonl
+    python3 scripts/rejudge_compliance.py --judge-model gpt-4o --output results/v2_3_rejudged.jsonl
 """
 from __future__ import annotations
 
