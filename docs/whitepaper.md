@@ -17,11 +17,7 @@ The active-execution compliance standard excludes mere restatement, translation,
 
 ## 1. Introduction
 
-Language models are not chatbots anymore. They are agents with retrieval, memory, and tool-use capabilities. A poisoned document retrieved via RAG, a malicious memory note recalled in a later session, or a style-guide override embedded in markdown can all become control signals that bypass safety training.
-
-Prior benchmark work proved prompt injection is practical. But most prior benchmarks assign severity by synthetic harm assessment---what *could* go wrong---rather than measuring what actually happens when you send the prompt to a live model. That produces inflated threat ratings with zero predictive validity.
-
-This benchmark evaluates prompt-injection robustness empirically: every threat label is derived from measured compliance, not theoretical harm.
+Prompt-injection benchmarks often assign severity by theoretical harm --- what *could* go wrong --- rather than measured compliance. That produces inflated threat ratings with zero predictive validity. AgentBoundary derives every label from what actually happens when you send the attack to a live model.
 
 ### 1.1 Contributions
 
@@ -52,7 +48,16 @@ This benchmark does **not** test adaptive adversaries. All prompts are static.
 | AgentBoundary v1 (legacy) | Deterministic heuristic | Stubbed | Yes | Yes | No (synthetic) |
 | **AgentBoundary v1.0** | **LLM-as-judge (few-shot, structured JSON)** | **Stubbed** | **No** | **Yes** | **Yes (552 live evals)** |
 
-AgentDojo measures whether a live sandboxed agent completes user tasks while ignoring injections. AgentBoundary measures whether a model's semantic intent and refusal boundaries hold under structured adversarial prompts.
+### 2.1 Benchmark Comparison
+
+| Benchmark | Scope | Live Tools? | Severity Source |
+|-----------|-------|-------------|-----------------|
+| HarmBench (Mazeika et al., 2024) | Adversarial red-teaming strings | No | Synthetic harm categories |
+| AgentDojo (Debenedetti et al., 2024) | Sandboxed agent tasks with tool calls | Yes | Task success rate |
+| PromptBench (Zhu et al., 2024) | Modular adversarial prompt library | Configurable | Detection/probe-driven |
+| **AgentBoundary** | Instruction-boundary compliance via chat-completion | No | Measured compliance rate |
+
+AgentDojo tests agents with live tools; HarmBench tests adversarial string categories. AgentBoundary is closer to HarmBench in infrastructure and closer to AgentDojo in intent, but evaluates semantic instruction-boundary behavior without requiring tool execution.
 
 ---
 
@@ -214,11 +219,11 @@ The reduction confirms that zero-shot judges conflate passive acknowledgment (e.
 
 ### 7.1 RAG Poisoning Is the Dominant Vector
 
-At 4.6% family-level compliance, RAG poisoning is the empirically most dangerous family. Context drift follows at 3.9%. Only three of eight families show any measurable compliance.
+At 4.6% family-level compliance, RAG poisoning is the empirically most dangerous family. Only three of eight families show any measurable compliance.
 
 ### 7.2 Neutral Responses Are the Hidden Failure Mode
 
-Five models (Gemini 3.5 Flash at 49.0%, Llama-4 Maverick at 45.1%, O3-mini at 35.3%, MIMO-v2.5-pro at 33.3%, GPT-5-pro at 33.3%) produced neutral rates above 30%. A "neutral" response means the model neither refused the injection nor complied with it. In production, this is indistinguishable from a successful defense. GLM-5.1 achieved 23.5% neutral with 76.5% explicit refusals and zero compliance.
+Five models (Gemini 3.5 Flash at 49.0%, Llama-4 Maverick at 45.1%, O3-mini at 35.3%, MIMO-v2.5-pro at 33.3%, GPT-5-pro at 33.3%) produced neutral rates above 30%. In production, this is indistinguishable from a successful defense. GLM-5.1 achieved 23.5% neutral with 76.5% explicit refusals and zero compliance.
 
 ### 7.3 Concentration of Vulnerability
 
@@ -229,7 +234,7 @@ Only 2 of 11 models show any measurable vulnerability. Llama-4 Maverick accounts
 ## 8. Limitations
 
 1. **Single prompt variant per entry.** Adaptive adversaries with paraphrase variations might achieve higher compliance.
-2. **No human ground truth.** LLM-as-judge is not validated against human raters. Cross-judge triangulation with three distinct judges yielded overall Fleiss' κ ≈ 0.2 (slight agreement), confirming wide uncertainty in absolute counts. This is distinct from the pairwise Cohen's κ reported in Section 6.5 (refusal κ = 0.492, compliance κ = 0.316), which measures agreement between only our few-shot judge and a zero-shot baseline.
+2. **No human ground truth.** LLM-as-judge is not validated against human raters. Cross-judge triangulation with three distinct judges yielded overall Fleiss' kappa ~ 0.2 (slight agreement), confirming wide uncertainty in absolute counts. This is distinct from the pairwise Cohen's kappa reported in Section 6.5 (refusal kappa = 0.492, compliance kappa = 0.316), which measures agreement between only our few-shot judge and a zero-shot baseline.
 3. **No live tool bindings.** Tests use chat completion APIs. Toolchain confusion may differ with live tool schemas.
 4. **Temperature zero.** Removes sampling noise but does not measure compliance variance.
 5. **Static adversary.** Fixed catalog against fixed models.
@@ -238,13 +243,21 @@ Only 2 of 11 models show any measurable vulnerability. Llama-4 Maverick accounts
 
 ---
 
-## 9. Conclusion
+## 9. Future Work
 
-AgentBoundary demonstrates that empirically grounded severity labels produce a very different threat picture than synthetic harm assessment. The clear compliance rate is 2.0% (CI: 1.1%--3.5%). Most entries are low severity. RAG poisoning (4.6%) and context drift (3.9%) are the only families with measurable compliance.
+**v1.1 -- Paraphrase Sensitivity.** Generate 3-5 prompt variants per attack; re-run on the most vulnerable families to measure compliance variance across formulation.
 
-The key practical takeaways: frontier models are robust against direct tool-misuse requests; RAG poisoning and context drift are the empirically most dangerous vectors; judge prompt design matters as much as attack design; silent non-refusal remains a systemic production risk.
+**v1.2 -- Multi-Turn Conversation.** Extend the harness to dialog state with priming phase, adversarial injection, and probe. Tests whether refusal boundaries degrade across conversation turns.
 
-The dataset, harness, and raw evaluation records are available under MIT license.
+**v2.0 -- Live Agent.** Evaluate real agent implementations (LangChain, AutoGen) with actual tool schemas and persistent memory. This tests the LLM-as-agent layer, not the LLM chat-completion layer.
+
+A human-judge baseline on a stratified 200-entry sample is a priority for improving kappa agreement.
+
+---
+
+## 10. Conclusion
+
+Empirically grounded severity labels produce a different threat picture than synthetic harm assessment. Most models show zero measurable vulnerability to direct prompt injection. RAG poisoning and context drift are the outliers. The benchmark, dataset, and raw records are available for community validation under MIT license.
 
 ---
 
@@ -255,3 +268,5 @@ The dataset, harness, and raw evaluation records are available under MIT license
 3. Perez, F., & Ribeiro, G. (2022). "Ignore This Title and HackAPrompt: Exposing Systemic Vulnerabilities of LLMs." arXiv:2311.16119.
 4. Yi Liu, et al. (2023). "Prompt Injection attack against LLM-integrated Applications." arXiv:2306.05499.
 5. Debenedetti et al. (2024). "AgentDojo: A Dynamic Environment to Evaluate Attacks and Defenses for LLM Agents." arXiv:2402.15627.
+6. Mazeika, M., et al. (2024). "HarmBench: A Standardized Evaluation Framework for Automated Red Teaming." arXiv:2402.04249.
+7. Zhu, K., et al. (2024). "PromptBench: A Unified Library for Evaluation of Large Language Models." JMLR.
