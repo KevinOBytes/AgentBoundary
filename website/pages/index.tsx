@@ -98,7 +98,7 @@ export default function Home() {
           </div>
           <div className="glass p-6 rounded-2xl border-t-2 border-orange-500 flex flex-col items-center text-center transition-transform hover:scale-105">
             <h3 className="text-gray-300 font-medium mb-2 uppercase tracking-wider text-sm">Zero-Compliance Models</h3>
-            <div className="text-5xl font-extrabold text-white mb-2">10/11</div>
+            <div className="text-5xl font-extrabold text-white mb-2">9/11</div>
             <p className="text-sm text-gray-500">Claude, GPT-5-pro, Gemini, MIMO, GLM-5.1 all clean</p>
           </div>
           <div className="glass p-6 rounded-2xl border-t-2 border-green-500 flex flex-col items-center text-center transition-transform hover:scale-105">
