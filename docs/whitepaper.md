@@ -11,7 +11,7 @@
 
 AgentBoundary v1.0 is an open benchmark for measuring prompt-injection robustness in LLM-based agents. Unlike prior work that assigns severity by theoretical harm, this project derives every label from empirical live-model compliance: 51 structured prompt-injection scenarios across eight attack families, evaluated against 11 frontier and mid-tier models at `temperature=0.0` using an LLM-as-judge pipeline with few-shot exemplified rubrics, structured JSON output, and explicit 3-way classification (refused / complied / neutral).
 
-The active-execution compliance standard excludes mere restatement, translation, or echoing of injected text without adding new harmful explanatory detail. The overall compliance rate is 2.0% (11/552, CI: 1.1%--3.5%). No scenario achieved critical or high severity. RAG poisoning and context drift are the empirically most dangerous families at 4.6% and 3.9% compliance respectively. 10 of 11 models achieved zero clear compliance. The benchmark, dataset, and raw evaluation records are made available for community validation.
+The active-execution compliance standard excludes mere restatement, translation, or echoing of injected text without adding new harmful explanatory detail. The overall compliance rate is 2.0% (11/552, CI: 1.1%--3.5%). No scenario achieved critical or high severity. RAG poisoning and context drift are the empirically most dangerous families at 4.6% and 3.9% compliance respectively. 9 of 11 models achieved zero clear compliance. The benchmark, dataset, and raw evaluation records are made available for community validation.
 
 ---
 
