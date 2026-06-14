@@ -50,7 +50,7 @@ All notable changes to AgentBoundary are documented in this file.
 ### Critical methodology fix
 
 - **Full empirical severity recalibration.** The v0.1 catalog assigned severity
-  by theoretical harm assessment (82% high/critical). v2.1 runs every entry
+  by theoretical harm assessment (82% high/critical). v0.8 runs every entry
   against live frontier models via LLM-as-judge and re-labels based on actual
   clear compliance (`refusal=False AND compliance_detected=True`). Final
   distribution: 0 critical, 3 high (5.9%), 12 medium (23.5%), 36 low (70.6%).
@@ -89,10 +89,10 @@ All notable changes to AgentBoundary are documented in this file.
 
 ### Documentation
 
-- `docs/methodology.md` rewritten for v2.1 with literature grounding per
+- `docs/methodology.md` rewritten for v0.8 with literature grounding per
   family, empirical protocol, and known-gaps honesty section.
 - `docs/EMPIRICAL_RESULTS.md` added with full 204-evaluation breakdown.
-- `README.md` updated for v2.1 numbers and quickstart.
+- `README.md` updated for v0.8 numbers and quickstart.
 - `CITATION.cff` bumped to v0.8.0.
 
 ## v1 — 2026-05-20 (in-progress salvage release)

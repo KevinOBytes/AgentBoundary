@@ -203,7 +203,7 @@ For this reason, all proportions in this paper report 95% Wilson score confidenc
 - `variance_sweep.py` — Variance sweep script
 - `dataset/attack_catalog.json` — Canonical 51-entry catalog
 
-*Historical baselines:* `results/full_eval_20260527.jsonl` (v2.1, 204 evals, 4 models) — retained for longitudinal comparison only.
+*Historical baselines:* `results/full_eval_20260527.jsonl` (v0.8, 204 evals, 4 models) — retained for longitudinal comparison only.
 
 ## Citation
 
