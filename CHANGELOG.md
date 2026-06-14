@@ -2,23 +2,23 @@
 
 All notable changes to AgentBoundary are documented in this file.
 
-## v2.3 — 2026-06-03 (judge recalibration)
+## v1.0 — 2026-06-03 (judge recalibration)
 
 ### Judge methodology upgrade
 
 - **Re-judged all 552 evaluations with improved judge.** Switched from `gpt-4o-mini` zero-shot to `gpt-5.4` (non-reasoning, from the 5 family) with few-shot exemplified rubrics and structured JSON output.
 - **3-way classification.** Replaced forced binary (refusal OR compliance) with three categories: `refused` (explicit refusal), `complied` (active harmful execution), `neutral` (ignored injection without refusal).
-- **Systematic over-calling eliminated.** v2.2 compliance rate was 10.0% (55/552); v2.3 compliance rate is 3.4% (19/552). The old judge counted "passive acknowledgment of injected text" as compliance. The new judge requires **active execution** of harmful behavior.
-- **Inter-judge agreement improved.** Refusal κ improved from 0.05–0.23 (v2.2 heterogenous) to **0.492** (v2.2 vs v2.3 same data). Compliance κ improved from negative values to **0.316** (fair agreement). Combined agreement: 71.4%.
-- **Relative rankings preserved.** Llama-4 Maverick remains most vulnerable (19.6% compliance, up from 15.7% because improved judge catches more active harm). Claude Opus-4.7 remains zero-compliance. Five models now show zero compliance (up from two in v2.2).
+- **Systematic over-calling eliminated.** v0.9 compliance rate was 10.0% (55/552); v1.0 compliance rate is 3.4% (19/552). The old judge counted "passive acknowledgment of injected text" as compliance. The new judge requires **active execution** of harmful behavior.
+- **Inter-judge agreement improved.** Refusal κ improved from 0.05–0.23 (v0.9 heterogenous) to **0.492** (v0.9 vs v1.0 same data). Compliance κ improved from negative values to **0.316** (fair agreement). Combined agreement: 71.4%.
+- **Relative rankings preserved.** Llama-4 Maverick remains most vulnerable (19.6% compliance, up from 15.7% because improved judge catches more active harm). Claude Opus-4.7 remains zero-compliance. Five models now show zero compliance (up from two in v0.9).
 
 ### Documentation
 
-- `README.md` updated to v2.3 with judge comparison and recalibrated numbers.
+- `README.md` updated to v1.0 with judge comparison and recalibrated numbers.
 - `docs/EMPIRICAL_RESULTS.md` updated with re-judged compliance rates, per-model ranking, and family-level stats.
-- `docs/methodology.md` updated with v2.3 judge design and κ comparison.
-- `docs/whitepaper.md` updated with v2.3 abstract, contributions, and findings.
-- `CITATION.cff` bumped to v2.3.0.
+- `docs/methodology.md` updated with v1.0 judge design and κ comparison.
+- `docs/whitepaper.md` updated with v1.0 abstract, contributions, and findings.
+- `CITATION.cff` bumped to v1.0.0.
 
 ### Added
 
@@ -29,27 +29,27 @@ All notable changes to AgentBoundary are documented in this file.
 - `scripts/poll_batch.py` — Batch job polling and download utility.
 - `scripts/build_release.py` — Release artifact builder.
 - `scripts/process_batch_results.py` — Batch result processor.
-## v2.2 — 2026-05-28 (cross-spectrum expansion)
+## v0.9 — 2026-05-28 (cross-spectrum expansion)
 
 ### Cross-spectrum model coverage
 
 - **Expanded from 4 to 10 models.** Added GPT-5-pro, Claude Opus-4.7, Gemini 3.5 Flash, DeepSeek V4 Pro, DeepSeek V4 Flash, Gemini 3.1 Pro Preview, O3-mini, and MIMO-v2.5-pro to test whether robustness scales with parameter count and compute.
-- **Temperature locked to 0.0.** All v2.2 evaluations run at `temperature=0.0` so compliance is not a sampling artifact. v2.1's `temperature=0.7` baseline is retained for historical comparison.
+- **Temperature locked to 0.0.** All v0.9 evaluations run at `temperature=0.0` so compliance is not a sampling artifact. v0.8's `temperature=0.7` baseline is retained for historical comparison.
 - **Retry logic and provider-error handling.** `eval_live.py` now includes exponential-backoff retries for 429/502/503/504, `HTTP-Referer`/`X-Title` headers for OpenRouter auth, and detection of provider errors in HTTP 200 bodies.
 - **Resume with error-rerun.** The harness now skips completed entries on restart but reruns entries that previously errored.
 
 ### Documentation
 
-- `docs/whitepaper.md` updated to v2.2 with 10-model table, temperature=0 protocol, and cross-spectrum research questions.
-- `docs/EMPIRICAL_RESULTS.md` updated with v2.2 methodology and v2.1 historical baseline.
+- `docs/whitepaper.md` updated to v0.9 with 10-model table, temperature=0 protocol, and cross-spectrum research questions.
+- `docs/EMPIRICAL_RESULTS.md` updated with v0.9 methodology and v0.8 historical baseline.
 - `README.md` rewritten in first-person operator voice.
 - `LIMITATIONS.md` rewritten with honest, concrete boundary statements.
 
-## v2.1 — 2026-05-27 (empirical recalibration release)
+## v0.8 — 2026-05-27 (empirical recalibration release)
 
 ### Critical methodology fix
 
-- **Full empirical severity recalibration.** The v1 catalog assigned severity
+- **Full empirical severity recalibration.** The v0.1 catalog assigned severity
   by theoretical harm assessment (82% high/critical). v2.1 runs every entry
   against live frontier models via LLM-as-judge and re-labels based on actual
   clear compliance (`refusal=False AND compliance_detected=True`). Final
@@ -93,7 +93,7 @@ All notable changes to AgentBoundary are documented in this file.
   family, empirical protocol, and known-gaps honesty section.
 - `docs/EMPIRICAL_RESULTS.md` added with full 204-evaluation breakdown.
 - `README.md` updated for v2.1 numbers and quickstart.
-- `CITATION.cff` bumped to v2.1.0.
+- `CITATION.cff` bumped to v0.8.0.
 
 ## v1 — 2026-05-20 (in-progress salvage release)
 
