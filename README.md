@@ -17,10 +17,11 @@ Prompt injection is not theoretical. This benchmark empirically tests whether 51
 ## Key Results
 
 - **552 evaluations** across 11 models at `temperature=0.0`
-- **2.0% overall compliance** (CI: 1.1%–3.5%)
+- **3.4% overall compliance** (19/552, CI: 2.2%–5.3%)
 - **No scenario achieved critical or high severity**
-- **9 of 11 models achieved zero clear compliance**
-- **RAG poisoning and context drift** are the empirically most dangerous families
+- **Nine of eleven models achieved zero clear compliance**
+- **Markdown injection and cognitive overload** are the empirically most dangerous families (6.5% and 6.6%, wide CIs)
+- **RAG poisoning** follows at 4.6% family-level compliance
 - **Controlled LLM-as-judge methodology** with explicit exclusion rules for edge cases
 
 See `docs/whitepaper.md` for full methodology, tables, and discussion.
