@@ -25,7 +25,7 @@ export default function FrameworkPage() {
           </div>
           <div>
             <h1 className="text-4xl font-bold tracking-tight text-white">Evaluation Framework</h1>
-            <p className="mt-2 max-w-2xl text-gray-400">The AgentBoundary harness is a Python-based execution environment for controlled tests of persistent context compromise in LLM agents.</p>
+            <p className="mt-2 max-w-2xl text-gray-400">The AgentBoundary harness is a Python-based execution environment for measuring prompt-injection robustness via standard chat-completion APIs. It does not execute live tool calls or test persistent cross-session memory.</p>
           </div>
         </div>
 
@@ -47,9 +47,9 @@ export default function FrameworkPage() {
               <GitBranch className="text-blue-400" size={28} />
             </div>
             <div>
-              <h3 className="text-xl font-bold text-white mb-2">Latent State Propagation</h3>
+              <h3 className="text-xl font-bold text-white mb-2">Static Prompt Evaluation</h3>
               <p className="text-gray-300 leading-relaxed mb-4">
-                Unlike prompt injections that trigger immediately, AgentBoundary models persistent context-risk patterns. Tests are structured into &apos;campaigns&apos; across multiple controlled sessions. The framework tests whether an agent carries poisoned memory from an initial benign-looking interaction into a future sensitive task.
+                Each scenario is a single-turn chat-completion prompt. The harness sends the attack text to the model and records the response. There is no multi-session state, no persistent memory, and no live tool execution. This design isolates the LLM&apos;s instruction-boundary behavior.
               </p>
             </div>
           </motion.div>
@@ -61,7 +61,7 @@ export default function FrameworkPage() {
             <div>
               <h3 className="text-xl font-bold text-white mb-2">Automated Grading & Heuristics</h3>
               <p className="text-gray-300 leading-relaxed">
-                After an agent responds or proposes a tool call, the framework scores unsafe behavior signals. Starting with v2.1, all evaluations use the LLM-as-judge pipeline — deterministic heuristics remain available in `harness/evaluation.py` as a fallback.
+                After an agent responds, the framework scores unsafe behavior signals. All evaluations use the LLM-as-judge pipeline (gpt-5.4 with few-shot rubrics). Deterministic heuristics remain available in `harness/evaluation.py` as a fallback.
               </p>
             </div>
           </motion.div>

@@ -1,39 +1,7 @@
 import Layout from "../components/Layout";
-import DiagramCard, { DiagramItem } from "../components/DiagramCard";
 import Image from "next/image";
 import { motion, Variants } from "framer-motion";
 import { ShieldAlert, Cpu, User } from "lucide-react";
-
-const lifecycleItems: DiagramItem[] = [
-  { label: "Initial Access", tooltip: "Gaining the first foothold in the AI agent's environment or context." },
-  { label: "Execution", tooltip: "Running unauthorized commands or code via the agent's capabilities." },
-  { label: "Persistence", tooltip: "Maintaining access or influence over the agent across sessions or turns." },
-  { label: "Latent Activation", tooltip: "A dormant payload is triggered by specific context or time." },
-  { label: "Escalation", tooltip: "Gaining higher privileges or access to more sensitive tools." },
-  { label: "Exfiltration", tooltip: "Stealing or leaking sensitive data out of the agent's environment." }
-];
-
-const architectureItems: DiagramItem[] = [
-  { label: "User Input", tooltip: "Direct prompts or files provided by the user." },
-  { label: "Memory", tooltip: "Long-term or short-term storage where the agent saves context." },
-  { label: "Planner", tooltip: "The reasoning component that decides which steps to take next." },
-  { label: "Tool Router", tooltip: "The mechanism that selects and formats tool calls." },
-  { label: "External Tools", tooltip: "Third-party APIs or local commands the agent can execute." },
-  { label: "Data Stores", tooltip: "Databases or document stores the agent queries for retrieval." }
-];
-
-const latentTimelineItems: DiagramItem[] = [
-  { label: "Session 1: Seed", tooltip: "The attacker injects a dormant payload into the agent's memory or data." },
-  { label: "Session 2..N: Dormancy", tooltip: "The payload remains hidden while the agent performs normal tasks." },
-  { label: "Session N+1: Trigger Activation", tooltip: "A specific condition is met, causing the payload to execute." }
-];
-
-const toolFlowItems: DiagramItem[] = [
-  { label: "Malicious prompt", tooltip: "An input designed to manipulate the agent's parsing or tool selection." },
-  { label: "Tool selection confusion", tooltip: "Adversarial context steers the agent toward a higher-risk tool." },
-  { label: "Unsafe tool proposal", tooltip: "The agent proposes a tool call outside the user's authority." },
-  { label: "Disclosure signal", tooltip: "The scored output includes a secret-disclosure marker." }
-];
 
 const container: Variants = {
   hidden: { opacity: 0 },
@@ -109,24 +77,23 @@ export default function Home() {
         </div>
       </motion.section>
 
+      {/* Scope note: diagrams removed because the benchmark evaluates chat-completion instruction-boundary behavior, not live agent lifecycles or persistent memory. */}
       <motion.section
-        variants={container}
-        initial="hidden"
-        animate="show"
-        className="grid gap-6 md:grid-cols-2 relative z-10 mb-16"
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.6 }}
+        className="mb-16 relative z-10"
       >
-        <motion.div variants={item}>
-          <DiagramCard title="Attacker Lifecycle" items={lifecycleItems} separator="->" />
-        </motion.div>
-        <motion.div variants={item}>
-          <DiagramCard title="Attack Surface" items={architectureItems} separator="/" />
-        </motion.div>
-        <motion.div variants={item}>
-          <DiagramCard title="Latent Timeline Profile" items={latentTimelineItems} separator="->" />
-        </motion.div>
-        <motion.div variants={item}>
-          <DiagramCard title="Toolchain Confusion Strategy" items={toolFlowItems} separator="->" />
-        </motion.div>
+        <div className="glass p-6 rounded-2xl border-l-4 border-accent">
+          <h3 className="text-lg font-bold text-white mb-2">Scope Note</h3>
+          <p className="text-gray-300 text-sm leading-relaxed">
+            AgentBoundary evaluates prompt-injection robustness via standard chat-completion APIs at temperature=0.0.
+            It does not simulate live tool execution, persistent cross-session memory, or multi-turn agent frameworks.
+            The 51 scenarios test the LLM layer&apos;s instruction-boundary behavior — what the model does when it
+            receives an injected prompt. This is a narrower but more controlled scope than full agent evaluation.
+          </p>
+        </div>
       </motion.section>
 
       <motion.section
