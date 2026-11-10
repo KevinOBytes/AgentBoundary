@@ -2,6 +2,20 @@
 
 All notable changes to AgentBoundary are documented in this file.
 
+
+## 2026-11-10: research-artifact reconciliation
+
+- Reconstruct the 19-row targeted correction overlay against all 552 retained records. Eight compliance labels changed, leaving 11 recorded positive labels. Raw historical records remain unchanged.
+- Exclude one empty Claude response from textual behavior rates. Report 561 planned cells, 552 retained records, 551 scorable responses, and nine absent GPT-5-pro pairs separately.
+- Generate current model, family, and scenario statistics, descriptive Wilson intervals, source hashes, and manuscript result tables through `scripts/analyze.py`. Correct endpoint-specific intervals, including GPT-5-pro's 0/42 interval.
+- Bind website views to `results/reconciled_stats.json`, removing the inconsistent dashboard schema and hard-coded denominators. Synchronize the downloadable paper with its manuscript.
+- Flag the disputed DeepSeek Flash negative label whose response exactly reproduces its system message. Preserve the historical verdict; the report does not claim human-validated ground truth.
+- Correct future targeted reviews with original context, complete responses, an explicit protected-disclosure rule, strict judge-output validation, and separate excluded/error statuses. Rubric v2.3.2 writes a new generated artifact and protects historical files. No new model or judge evaluations were run for this reconciliation.
+- Add offline regression tests and CI checks for correction lineage, coverage, missing/empty responses, independent flags, report drift, and future-review failure handling.
+- Distinguish the initial 1,800-evaluation aggregate and other historical artifacts from the current study. Remove unsupported safety rankings, determinism, and production-risk claims from current documentation.
+
+Earlier entries below record historical descriptions and claims as written at those stages. Their evaluation counts, rubrics, and interpretations are superseded for current reporting by the reconciled report and its limitations; they should not be read as validated safety findings.
+
 ## v1.0 — 2026-06-03 (judge recalibration)
 
 ### Judge methodology upgrade

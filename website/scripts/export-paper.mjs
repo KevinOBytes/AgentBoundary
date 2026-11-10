@@ -4,14 +4,27 @@ import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { fileURLToPath } from "url";
 
-const root = path.resolve(process.cwd(), "..");
+const scriptDir = path.dirname(fileURLToPath(import.meta.url));
+const root = path.resolve(scriptDir, "..", "..");
 const source = path.join(root, "docs", "whitepaper.md");
 const output = path.join(root, "docs", "agentboundary-paper.html");
 
 const markdown = fs.readFileSync(source, "utf8");
 const body = renderToStaticMarkup(
-  React.createElement(ReactMarkdown, { remarkPlugins: [remarkGfm] }, markdown),
+  React.createElement(ReactMarkdown, {
+    remarkPlugins: [remarkGfm],
+    skipHtml: true,
+    components: {
+      a: ({ node, href, ...props }) => {
+        const target = href && !/^(?:[a-z][a-z0-9+.-]*:|#|\/\/)/i.test(href)
+          ? `https://github.com/KevinOBytes/AgentBoundary/blob/main/${path.posix.normalize(path.posix.join("docs", href))}`
+          : href;
+        return React.createElement("a", { ...props, href: target });
+      },
+    },
+  }, markdown),
 );
 
 const html = `<!doctype html>
@@ -21,7 +34,15 @@ const html = `<!doctype html>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>AgentBoundary Paper</title>
   <style>
-    @page { margin: 0.75in; }
+    @page {
+      margin: 0.75in;
+      @bottom-center {
+        content: counter(page);
+        font-family: sans-serif;
+        font-size: 8pt;
+        color: #64748b;
+      }
+    }
     :root {
       color-scheme: light;
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -54,6 +75,7 @@ const html = `<!doctype html>
       font-size: 12pt;
       margin-top: 0.2in;
     }
+    h3 + p { break-after: avoid; }
     p, li {
       orphans: 3;
       widows: 3;

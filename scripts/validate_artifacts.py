@@ -1,18 +1,20 @@
 from __future__ import annotations
 
+import argparse
 import json
 import csv
 from collections import Counter, defaultdict
 from pathlib import Path
+import subprocess
+import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 DATASET_PATH = ROOT / "dataset" / "attack_catalog.json"
-RESULTS_PATH = ROOT / "results" / "model_results.json"
-CSV_PATH = ROOT / "results" / "model_results.csv"
 
 
-def validate_dataset() -> None:
-    data = json.loads(DATASET_PATH.read_text(encoding="utf-8"))
+def validate_dataset(dataset_path: Path = DATASET_PATH) -> None:
+    """Validate a scenario catalog; its source order is not an execution schedule."""
+    data = json.loads(dataset_path.read_text(encoding="utf-8"))
     if len(data) < 40:
         raise ValueError("Dataset must include at least 40 attacks")
     required = {
@@ -28,31 +30,31 @@ def validate_dataset() -> None:
         "realism_level",
         "phase",
     }
+    seen_ids: set[str] = set()
+    valid_phases = {"seed", "dormancy", "activation", "single"}
     for row in data:
         missing = required.difference(row.keys())
         if missing:
             raise ValueError(f"Dataset row missing fields: {sorted(missing)}")
-    phase_order = {"seed": 0, "dormancy": 1, "activation": 2, "single": 3}
-    campaigns: dict[str, list[str]] = defaultdict(list)
-    for row in data:
-        campaigns[row["campaign_id"]].append(row["phase"])
-    for campaign_id, phases in campaigns.items():
-        non_single = [phase for phase in phases if phase != "single"]
-        if not non_single:
-            continue
-        ordered = sorted(non_single, key=lambda phase: phase_order.get(phase, 99))
-        if non_single != ordered:
-            raise ValueError(f"Campaign {campaign_id} phases are not ordered: {non_single}")
+        for field in ("attack_id", "campaign_id"):
+            if not isinstance(row[field], str) or not row[field].strip():
+                raise ValueError(f"Dataset row has invalid {field}")
+        if row["attack_id"] in seen_ids:
+            raise ValueError(f"Duplicate dataset attack_id: {row['attack_id']}")
+        seen_ids.add(row["attack_id"])
+        if not isinstance(row["phase"], str) or row["phase"] not in valid_phases:
+            raise ValueError(f"Unknown phase for {row['attack_id']}")
 
 
-def validate_results_json() -> None:
-    if not RESULTS_PATH.exists():
-        raise FileNotFoundError(f"Missing results file: {RESULTS_PATH}")
-    payload = json.loads(RESULTS_PATH.read_text(encoding="utf-8"))
+def validate_results_json(results_path: Path, dataset_path: Path = DATASET_PATH) -> None:
+    """Validate the older harness schema only when an explicit path is supplied."""
+    if not results_path.exists():
+        raise FileNotFoundError(f"Missing results file: {results_path}")
+    payload = json.loads(results_path.read_text(encoding="utf-8"))
     for key in ("metadata", "metrics", "metrics_by_model", "results"):
         if key not in payload:
             raise ValueError(f"Missing results key: {key}")
-    dataset = json.loads(DATASET_PATH.read_text(encoding="utf-8"))
+    dataset = json.loads(dataset_path.read_text(encoding="utf-8"))
     attacks = {row["attack_id"]: row for row in dataset}
     metadata = payload["metadata"]
     rows = payload["results"]
@@ -161,20 +163,35 @@ def validate_results_json() -> None:
         raise ValueError("policy_violation_rate alias does not match tool_policy_block_rate")
 
 
-def validate_results_csv() -> None:
-    if not CSV_PATH.exists():
-        raise FileNotFoundError(f"Missing csv file: {CSV_PATH}")
-    with CSV_PATH.open(newline="", encoding="utf-8") as handle:
+def validate_results_csv(csv_path: Path, results_path: Path) -> None:
+    if not csv_path.exists():
+        raise FileNotFoundError(f"Missing csv file: {csv_path}")
+    with csv_path.open(newline="", encoding="utf-8") as handle:
         row_count = sum(1 for _ in csv.DictReader(handle))
-    payload = json.loads(RESULTS_PATH.read_text(encoding="utf-8"))
+    payload = json.loads(results_path.read_text(encoding="utf-8"))
     if row_count != len(payload["results"]):
         raise ValueError(f"CSV row count {row_count} does not match JSON results {len(payload['results'])}")
 
 
-def main() -> None:
+def validate_current_reports() -> None:
+    """Check reproducible current-study artifacts without rewriting any files."""
+    subprocess.run([sys.executable, str(ROOT / "scripts/analyze.py"), "--check"],
+                   cwd=ROOT, check=True)
+
+
+def main(argv: list[str] | None = None) -> None:
+    parser = argparse.ArgumentParser(description="Validate current reconciled reports or explicit legacy harness artifacts")
+    parser.add_argument("--legacy-results-json", type=Path)
+    parser.add_argument("--legacy-results-csv", type=Path)
+    args = parser.parse_args(argv)
+    if (args.legacy_results_json is None) != (args.legacy_results_csv is None):
+        parser.error("--legacy-results-json and --legacy-results-csv must be supplied together")
     validate_dataset()
-    validate_results_json()
-    validate_results_csv()
+    if args.legacy_results_json is not None:
+        validate_results_json(args.legacy_results_json)
+        validate_results_csv(args.legacy_results_csv, args.legacy_results_json)
+    else:
+        validate_current_reports()
     print("Artifacts validation passed")
 
 

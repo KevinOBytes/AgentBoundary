@@ -1,50 +1,33 @@
-# Model Provenance Appendix
+# Historical Model Provenance Appendix
 
-This appendix documents the provenance of every model evaluated in the
-AgentBoundary v0 public release (May 20, 2026). Each model is listed with
-its vendor of record, the API endpoint used to call it, and a public reference
-where reviewers can verify that the model exists and was reachable at the time
-of the run.
+This appendix concerns the **initial May 20, 2026 study only**: 45 endpoint identifiers × 40 scenarios = 1,800 scored evaluations. It is separate from the later 11-endpoint chat-completion study. Current endpoint coverage is documented in [PROVENANCE.md](PROVENANCE.md).
 
-The release contains two cohorts:
+## Immutable Historical Source
 
-- **Ollama Cloud baseline** (39 models): All models reachable through the
-  authenticated Ollama Cloud `/api/tags` endpoint at run time, using model
-  identifiers exactly as returned by that endpoint. These identifiers are not
-  guaranteed to be the upstream vendor's canonical model name. Ollama may
-  repackage, quantize, or fine-tune upstream weights; the Ollama identifier is
-  authoritative for reproduction against Ollama Cloud but should not be read as
-  an unmodified weight identity from the upstream vendor.
-- **OpenRouter frontier/lite cohort** (6 models): Proprietary/closed models
-  reachable through OpenRouter's `/api/v1/chat/completions` endpoint using the
-  exact slug shown in the table below.
+The [initial release summary](https://github.com/KevinOBytes/AgentBoundary/blob/4ed11b07824e7ba195bed6d3b964ce648c6ceffb/results/benchmark_current_summary.json) is pinned to commit `4ed11b07824e7ba195bed6d3b964ce648c6ceffb`. It records 45 model identifiers, 40 scenarios, 1,800 scored evaluations, and no API errors or timeouts in that released snapshot.
 
-## Cohort: OpenRouter frontier/lite (6 models)
+The corresponding [historical model-results artifact](https://github.com/KevinOBytes/AgentBoundary/blob/4ed11b07824e7ba195bed6d3b964ce648c6ceffb/results/model_results.json) belongs to that same commit. The current branch's similarly named JSON and CSV are different artifacts and must not be substituted for it.
 
-| Model slug | Vendor | Provenance reference |
-|---|---|---|
-| `openai/gpt-5.3-chat` | OpenAI | OpenRouter model registry; OpenAI 2026 model line |
-| `openai/gpt-5.4-mini` | OpenAI | OpenRouter model registry; OpenAI 2026 model line |
-| `anthropic/claude-opus-4.7` | Anthropic | OpenRouter model registry; Anthropic Claude 4 model line |
-| `anthropic/claude-haiku-4.5` | Anthropic | OpenRouter model registry; Anthropic Claude 4 model line |
-| `google/gemini-3.1-pro-preview` | Google | OpenRouter model registry; Google Gemini 3 preview line |
-| `google/gemini-3.1-flash-lite` | Google | OpenRouter model registry; Google Gemini 3 lite line |
+The initial cohort consists of 39 Ollama Cloud identifiers and six OpenRouter identifiers. It used the controlled harness with simulated tools, heuristic signals, and an in-process vector-memory experiment. Those execution and scoring conditions differ from the later chat-completion study.
 
-These are reached via the OpenRouter HTTP API using the slugs exactly as shown.
-OpenRouter performs its own routing to provider endpoints; the upstream weight
-identity is the provider's responsibility. Reproduction requires an OpenRouter
-API key and the same slugs.
+## OpenRouter Cohort
 
-## Cohort: Ollama Cloud baseline (39 models)
+The following requested identifiers are preserved from the initial cohort. Their namespaces are not independent verification of a particular weight revision.
 
-The Ollama Cloud cohort was discovered programmatically. The runner calls
-`GET https://ollama.com/api/tags` with the user's `OLLAMA_API_KEY`, takes the
-returned `models[].name` list verbatim, and runs every scenario against every
-returned model. The exact discovery query, model list, and call timestamp are
-recorded in `metadata.models_requested` and `metadata.run_timestamp` of the
-public artifact.
+| Requested identifier | Routing provider |
+|---|---|
+| `openai/gpt-5.3-chat` | OpenRouter |
+| `openai/gpt-5.4-mini` | OpenRouter |
+| `anthropic/claude-opus-4.7` | OpenRouter |
+| `anthropic/claude-haiku-4.5` | OpenRouter |
+| `google/gemini-3.1-pro-preview` | OpenRouter |
+| `google/gemini-3.1-flash-lite` | OpenRouter |
 
-The full list of 39 model identifiers used in this release:
+OpenRouter identifiers specify a routed API endpoint. Reproducing an identifier does not establish that the provider serves identical weights or infrastructure at a later date.
+
+## Ollama Cloud Cohort
+
+The initial record lists these 39 identifiers:
 
 ```
 cogito-2.1:671b
@@ -88,64 +71,18 @@ qwen3.5:397b
 rnj-1:8b
 ```
 
-### Important caveats for the Ollama Cloud cohort
+These are Ollama library identifiers, not cryptographic identities for upstream checkpoints. A name or size tag alone does not establish packaging, quantization, training history, or equivalence to a similarly named endpoint on another provider. The historical results characterize the endpoint reached under that identifier and run conditions.
 
-1. **Identifiers are Ollama's library names, not upstream canonical names.**
-   For example, `gpt-oss:120b` refers to the Ollama-library packaging of
-   OpenAI's open-weight model release; it is not the same weight artifact as
-   any closed OpenAI API model. `gemini-3-flash-preview` in the Ollama Cloud
-   namespace is **not** the same endpoint as Google's
-   `google/gemini-3.1-flash-lite` on OpenRouter, and the two should not be
-   confused.
+The runner's Ollama Cloud discovery path calls the authenticated `/api/tags` endpoint and uses returned names when no explicit model list is supplied. A fresh discovery may produce a different cohort; it must not be reported as a reproduction of the original list without checking membership.
 
-2. **Some identifiers may refer to community repackagings or fine-tunes.**
-   Models like `rnj-1:8b` and family-named tags such as
-   `mistral-large-3:675b` follow Ollama's `<library>:<tag>` convention. The
-   tag may indicate a quantization level, fine-tune variant, or release
-   pointer. The exact weight provenance for each Ollama Cloud library entry
-   is the responsibility of the Ollama Cloud catalog at the run timestamp;
-   the AgentBoundary results characterize the behavior of the endpoint
-   reachable at that identifier and time, not necessarily the unmodified
-   upstream weights.
+## Reproduction Scope
 
-3. **The cohort is descriptive of one snapshot.** Ollama Cloud's library is
-   not version-locked. A reproduction six months from now may discover a
-   different set of identifiers under the same names, or the same identifier
-   may resolve to updated weights. The AgentBoundary artifact records
-   `run_timestamp` and per-row trace SHA-256 digests so any divergence
-   between the recorded behavior and a fresh run can be detected.
+Reproducing the initial study requires its original catalog, harness revision, provider identifiers, and heuristic scoring definitions. The current 51-entry catalog will not yield the historical 45 × 40 matrix. Inspect the pinned commit's artifacts and commands before acquiring new observations.
 
-4. **This is not a closed-vendor model ranking.** The frontier/lite cohort
-   (six models on OpenRouter) and the Ollama Cloud cohort are reported
-   separately because they are not directly comparable. Any cross-cohort
-   comparison should treat the Ollama Cloud entries as packaging-specific
-   endpoints rather than as upstream vendor flagships.
+The actual controlled-harness entry point is `python3 harness/runner.py`; `--help` shows its supported provider, model-list, memory-backend, scoring, and output arguments. Live execution requires the appropriate provider credentials and may incur charges. A `--dry-run` uses simulated outputs and cannot reproduce an empirical result.
 
-### Reproduction notes for the Ollama Cloud cohort
+The initial release's redacted trace digests identify the corresponding stored records. They do not independently authenticate the endpoint provider, recover redacted text, establish complete collection, or guarantee identical future behavior.
 
-```bash
-# Discover the current Ollama Cloud model list
-curl -s -H "Authorization: Bearer $OLLAMA_API_KEY" https://ollama.com/api/tags \
-  | jq -r '.models[].name' | sort
+## Comparison Limits
 
-# Run the benchmark against the discovered cohort
-python3 harness/runner.py \
-  --provider ollama-cloud \
-  --judge-mode heuristic \
-  --run-label ollama-cloud-baseline
-```
-
-If a model from the original run is not present in a future discovery, the
-divergence is recorded in `metadata.cohorts[].models_requested`; the missing
-model's rows simply will not be produced in the reproduction.
-
-## What this appendix does NOT claim
-
-- It does not claim that every Ollama Cloud identifier corresponds to an
-  officially released model from the named vendor.
-- It does not claim weight-level identity with upstream vendor checkpoints.
-- It does not claim that the same identifier will resolve to the same weights
-  in any future Ollama Cloud snapshot.
-
-These are intentional limitations of evaluating against a managed model
-catalog that does not publish per-tag checksums.
+The initial 1,800-evaluation summary, the historical 2,475-row CSV, and the later 551-scorable-response report have different coverage and scoring. Keep their denominators, catalogs, and code paths separate. The current report is [`results/reconciled_stats.md`](../results/reconciled_stats.md).

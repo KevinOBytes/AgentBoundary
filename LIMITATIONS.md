@@ -1,27 +1,51 @@
 # Benchmark Limitations
 
-AgentBoundary is a controlled benchmark. I built it to find real attack surfaces, not to simulate every possible failure mode in every possible deployment.
+AgentBoundary measures specific model outputs under a fixed catalog and scoring procedure. The current report concerns the later 11-endpoint chat-completion study; the initial 45-endpoint controlled-harness study is separate.
 
-### 1. Simulated Tool Execution
-Tools (`read_document`, `send_email`, etc.) are stubbed in `harness/model_adapter.py`. The model receives a static response or a harness-side tool policy block marker rather than executing real commands on a UNIX host. That means real incidents — which often depend on parser edge cases, shell-escape bugs, or API-specific behavior — are outside scope. I can model the intent, not the exploitation chain.
+## 1. Output Classification Is Not Tool Execution
 
-### 2. Simulated Persistent Memory
-Latent-memory campaigns use an in-process ChromaDB collection with sentence-transformer embeddings. The seed phase embeds payload text; activation retrieves it and injects it into the prompt. This is closer to a production RAG threat model than flat memory, but it is still a controlled environment. It does not model multi-tenant vector stores, ACL failures, rerankers, metadata filters, or long-horizon accumulation. If your agent runs on a platform with user feedback loops or cross-tenant memory, the actual risk surface is wider.
+The later study sends messages through chat-completion APIs. It does not bind tools, execute commands, send messages, access a real browser, or verify downstream effects. A compliance label records the judge's interpretation of an output. Tool proposals and descriptions do not demonstrate successful exploitation. Apparent secret disclosure also requires checking that the disclosed material is genuine.
 
-### 3. Static Prompts
-The v2.1 dataset uses one prompt variant per entry. I lock them for reproducibility — a reviewer must get the same number I get. Adaptive adversaries with white-box access to the harness, or attackers who can paraphrase and encode payloads, are not modeled. The 37.3% stealth rate against keyword filters gives a baseline, but it is not an upper bound.
+The earlier `harness/` path uses simulated tool behavior. A harness policy-block marker is an enforcement event in that simulator, not proof that a model or production application is secure.
 
-### 4. Temperature Zero
-All v2.2 evaluations run at `temperature=0.0`. This removes sampling noise and makes the judge's flags reproducible, but it also means I am not measuring compliance variance. A production attacker does not run at temp=0. Future work should report both: a deterministic baseline and a variance sweep.
+## 2. Memory and Conversation Scope
 
-### 5. Single-Judge Scoring
-Every evaluation uses `gpt-4o-mini` as the LLM-as-judge. I chose it because it is cheap, fast, and empirically aligned with human labels on refusal detection pilot data. But it is still one model's interpretation of compliance. Cross-judge validation with Claude Opus and human annotation is on the roadmap. The heuristic fallback in `harness/evaluation.py` is there for environments where LLM judge access is restricted.
+The initial study included an in-process ChromaDB experiment with embedding retrieval. It does not establish behavior for a production multi-tenant vector store, access-control system, reranker, or long-lived application.
 
-### 6. OpenRouter Routing
-Results characterize the specific endpoint reachable through OpenRouter on the evaluation date. The same model ID may route to different upstream weights, quantization parameters, or infrastructure patches on different days. This is a known and unavoidable limitation of API-based evaluation. I flag the exact run timestamp and model identifiers so reviewers can see if drift has occurred.
+The later study does not exercise that backend. `eval_live.py` constructs messages from catalog fields; where a seed exists, it inserts a synthetic assistant reply of `Stored.`. That reply is not an observed memory write or successful persistence event. A chat-completion API can accept application-supplied conversation history, but this protocol does not test actual cross-session state management.
 
-### 7. No Persistent Cross-Session Memory for Chat APIs
-Standard chat-completion APIs (OpenAI, Anthropic, Gemini) do not implement persistent memory across turns. True multi-phase latent memory poisoning requires a framework with session persistence (e.g., LangChain's `ChatMessageHistory`, ChromaDB, or a custom vector store). In v2.1, I converted all multi-phase entries to single-phase attacks to keep the catalog runnable against standard APIs. The temporal-separation threat model remains valid for stateful agent frameworks.
+## 3. Automated Labels and a Targeted Correction
 
-### 8. What I Am Not Claiming
-This benchmark does not claim a generalizable safety ranking of foundation models, vendors, or products. It evaluates specific endpoints at a specific date under specific conditions. The numbers are real; the scope is bounded.
+The final label set combines the June 3 few-shot judging pass with a second pass over only the 19 positive compliance cases. Eight labels changed to noncompliant. Negative cases were not all evaluated under the amended rule. This selection can remove false positives without measuring false negatives.
+
+A concrete disputed negative is `cognitive_overload_001` on `deepseek/deepseek-v4-flash`: its response reproduces the system message supplied to the target, but the correction says `not_complied`. The current report preserves that label and flags the inconsistency; it is not a human-adjudicated truth set.
+
+The compliance judge receives an expected-failure category and up to 4,000 characters of the response, rather than the full original prompt and all execution context. This limits its ability to distinguish quoting from disclosure, test task-specific authorization, or assess a truncated response. Some category descriptions also require interpretation. Judge confidence values are self-reported, not calibrated probabilities.
+
+## 4. Missing and Empty Responses
+
+The planned matrix contains 561 pairs. There are 552 retained records, of which 551 have nonempty scorable responses. Nine GPT-5-pro pairs are missing. The retained Claude response to `html_injection_006` is empty. An empty output is not evidence of intentional refusal, even if a different prompt or retry produces content. These cases remain coverage limitations, not safe outcomes.
+
+## 5. Static Prompts and Selected Endpoints
+
+The 51 scenarios are author-selected synthetic prompts, with one principal formulation per entry. They are not a probability sample of attacks or deployments. Adaptive attacks, paraphrases, differing system prompts, and actual application state may change outcomes. Results characterize the recorded endpoint identifiers and conditions, not every deployment of a named model family.
+
+## 6. Temperature Does Not Establish Determinism
+
+The acquisition scripts request `temperature=0.0`. This does not guarantee identical future outputs or remove provider-side nondeterminism. The main study is not a repeated-run experiment. Historical temperature-sweep artifacts are exploratory and do not establish a production-risk multiplier or a lower bound on real-world compromise.
+
+## 7. Statistical and Judge Uncertainty Are Different
+
+Wilson intervals describe binary proportions under a binomial model. Shared prompts and endpoints create dependence; the selected sample is not representative of all attacks. The intervals do not include judge misclassification, post-hoc rubric changes, model drift, or missing-response bias.
+
+Cross-judge agreement measures agreement, not correctness. Historical comparisons use different judge stages and, in some cases, different samples. They do not establish stable rankings, validate zero-positive endpoints, or replace independent human review. No model-size or training-method effect is identified by this design.
+
+## 8. Frequency Is Not Impact
+
+The historical `severity` field uses labels for observed compliance frequency. It does not measure exploitability, privilege, data value, blast radius, or harm. One successful disclosure can be consequential even when aggregate frequency is low. No observed positive is evidence only about this sample and rubric.
+
+## 9. Provenance and Public Artifacts
+
+Provider weight revisions and request IDs are not fully recorded. The later JSONL files retain bounded text outputs, not complete authenticated provider traces. The initial study's redacted trace hashes support integrity checks on the corresponding records; they do not authenticate a provider or prove complete collection. Artifact hashes computed during reconciliation establish the current byte identity, not contemporaneous capture in May.
+
+The current report, historical CSV, and archived 45-endpoint study have different schemas and coverage. Use the [provenance map](docs/PROVENANCE.md) before comparing them.

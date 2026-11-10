@@ -1,55 +1,42 @@
-# Benchmark Visualizations
+# Result artifact guide
 
-This directory contains public benchmark outputs and static visualizations for
-the current AgentBoundary benchmark release. Public result artifacts keep the
-attack catalog public while redacting full live request/response traces. They
-retain metrics, flags, evaluation counts, character counts, and SHA-256 digests.
+## Current reconciled chat-completion study
 
-The current artifact is the May 20, 2026 multi-provider release: 40 attack
-scenarios across 45 models from authenticated Ollama Cloud and OpenRouter
-cohorts, for 1,800 scored model-scenario evaluations. The final artifact has
-0 API errors and 0 timeouts. Rates are computed over scored evaluations unless
-explicitly labeled as attempted-rate metrics.
-
-The latent-memory poisoning scenarios in this artifact use the vector-memory
-rerun path: seed payloads are stored in an in-process ChromaDB collection and
-activation retrieves top-k chunks into `[RETRIEVED_MEMORY]` prompt blocks before
-the target model is called.
-
-The legacy JSON flag `policy_violation` is reported in aggregate as
-`tool_policy_block_rate`. It marks a harness-side mock tool policy block, not a
-semantic finding that the model text independently violated provider policy.
-
-## Coverage
-
-![Current benchmark coverage](benchmark_current_coverage.svg)
-
-## Safety-Relevant Failure Modes
-
-![Safety-relevant failure modes](benchmark_current_failure_modes.svg)
-
-## Model-Level Risk
-
-![Model-level unsafe-signal and refusal rates](benchmark_current_model_risk.svg)
-
-## Attack Family Risk
-
-![Unsafe outcomes by attack family](benchmark_current_attack_family_risk.svg)
-
-## Reproduce
+Use [reconciled_stats.json](reconciled_stats.json) for machine-readable statistics and [reconciled_stats.md](reconciled_stats.md) for tables, coverage, source hashes, limitations, and review flags. Generate them and the manuscript's marked result tables with:
 
 ```bash
-python3 scripts/generate_results_visualizations.py
+python3 scripts/analyze.py
+python3 scripts/analyze.py --check
 ```
 
-The generator writes:
+The planned grid is 51 scenarios by 11 endpoints: 561 pairs. The retained data contain 552 records. Nine GPT-5-pro pairs are absent; one retained Claude response is empty and excluded from textual behavior rates. The current automated tally is **11 compliance labels among 551 nonempty scorable responses**. A full-system-text disclosure has a disputed negative label; it remains flagged without silently changing historical judgments.
 
-- `results/benchmark_current_summary.json`
-- `results/benchmark_current_coverage.svg`
-- `results/benchmark_current_failure_modes.svg`
-- `results/benchmark_current_model_risk.svg`
-- `results/benchmark_current_attack_family_risk.svg`
+The report reconstructs these input stages exactly:
 
-Raw live-run and dry-run traces should stay outside the public repository,
-preferably under the ignored `results/generated/` directory or in private
-archival storage.
+| Input | Role |
+|---|---|
+| `v2_3_rejudged.jsonl` | Full few-shot rejudge: 552 records, 19 positive compliance labels |
+| `v2_3_1_compliance_rejudge.jsonl` | Review of those 19 positives, changing eight to negative |
+| `v1_evaluated.jsonl` | Retained merged records, with 11 positive labels; reasoning/confidence/timestamps remain from before the overlay |
+| `../dataset/attack_catalog.json` | Current 51-scenario catalog; old embedded empirical fields are historical metadata, not current statistics |
+
+The overlay supplies correction reasoning and confidence. The report preserves both stages' provenance. No new judgments or model responses were generated during reconciliation.
+
+## Historical artifacts
+
+These files represent different stages or schemas and must not be joined as a single current release:
+
+| Artifact | Interpretation |
+|---|---|
+| `v2_3_stats.json` | Intermediate 19-positive judge stage; retained for history |
+| `v2_3_1_stats.json` | Earlier 11-positive summary; includes an empty response and an incorrect GPT-5-pro confidence interval; superseded by the reconciled report |
+| `v2_2_eval_20260528*.jsonl` | Acquisition/cleaning stages; repeated attempts and earlier labels are not the final response denominator |
+| `model_results.json` | Superseded dashboard schema with inconsistent metadata; not consumed by the current website |
+| `model_results.csv` | Separate 2,475-pair cohort (45 endpoints by 55 scenarios); not a CSV counterpart of the current report |
+| `benchmark_current_summary.json`, `benchmark_current*.svg`, `paper_stats_v1.md` | Historical artifacts; filenames do not establish correspondence with the current study |
+
+The initial 45-endpoint, 40-scenario, 1,800-evaluation aggregate is anchored to the [immutable May 20 summary](https://github.com/KevinOBytes/AgentBoundary/blob/4ed11b07824e7ba195bed6d3b964ce648c6ceffb/results/benchmark_current_summary.json). Its harness, scoring and coverage differ from the later study.
+
+The legacy `scripts/paper_stats.py`, `scripts/build_release.py`, and `scripts/generate_results_visualizations.py` operate on the older harness schema. They do not generate the current reconciled report. `gen_dashboard.py` now delegates to the current offline analysis instead of overwriting the historical dashboard.
+
+Future targeted judging through `scripts/rejudge_compliance_edge_cases.py` uses rubric v2.3.2 and writes a separate artifact under `results/generated/`. It does not replace the historical overlay or establish new published results automatically.

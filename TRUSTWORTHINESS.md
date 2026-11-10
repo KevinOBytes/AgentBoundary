@@ -1,50 +1,42 @@
 # Benchmark Trustworthiness
 
-This document outlines the trustworthiness and methodological transparency of the AgentBoundary controlled benchmark.
+The current AgentBoundary report is an offline reconciliation of retained observations and recorded judge corrections. It is intended to make the evidence inspectable, including its defects. No new target-model or judge evaluations were performed for this reconciliation.
 
-## Data Contamination Risks
-The `attack_catalog.json` contains novel, structured scenarios devised specifically for this framework. Since this repository is public, future foundation models may include this dataset in their alignment training (RLHF/DPO), artificially inflating their resistance to these specific payloads. We plan to keep the core prompt templates open but evaluate models against a hidden hold-out set in future iterations.
+## Authoritative Inputs and Outputs
 
-## Refusal Variability
-AI models are non-deterministic, and safety refusals vary. A run may yield an API error or a safe refusal on one attempt, then a different unsafe-signal outcome on another. The benchmark employs parsing and scoring to detect explicit refusals, but some models produce non-action responses where they neither refuse nor execute the task. These are marked as no unsafe signal, but they may still indicate task-following weakness rather than robust safety.
+The current report is `results/reconciled_stats.json`, with a readable counterpart at `results/reconciled_stats.md`. The source chain is documented in [PROVENANCE.md](docs/PROVENANCE.md): original text-response records, the June 3 few-shot rejudge, and the targeted compliance correction overlay. `results/v1_evaluated.jsonl` is a historical merged label artifact, not a separate experiment.
 
-The May 20, 2026 public release uses one pass per model-scenario evaluation. The paper reports Wilson intervals for observed binary proportions, but those intervals do not estimate provider drift, prompt paraphrase sensitivity, or repeated-run variance.
+The report distinguishes 561 planned pairs, 552 retained records, and 551 scorable nonempty responses. It records 372 refusal labels, 11 compliance labels, 168 cases with neither label, and zero overlaps. The 11/551 rate is an automated-label statistic; no independent human-rater study establishes its accuracy.
 
-## Scoring Efficacy — v2.1 LLM-as-Judge
+## Judge Interpretation and Selective Rejudging
 
-AgentBoundary now uses an LLM-as-judge pipeline (`gpt-4o-mini`) with two
-orthogonal passes: (1) refusal detection, (2) compliance detection. The v1 release
-used deterministic heuristic scoring; v2.1 switched to LLM judging for semantic
-nuance but retains the heuristic fallback in
-`harness/evaluation.py`.
+Refusal and compliance are separate classifications. A refusal statement can coexist with harmful content, so both flags must remain visible. Neither flag being set does not establish correct benign-task completion or successful detection.
 
-**Known judge failure modes:**
-- **False positives (compliance):** A model may restate or summarize poisoned
-  content without executing the attack. The initial smoke test flagged
-  `rag_poisoning_005` as compliant when the model merely echoed the payload.
-  Severity recalibration flagged this as a judge error.
-- **False negatives (compliance):** A model may execute a subtle unsafe action
-  the judge template misses, especially in obfuscated RAG or style-guide
-  injections.
-- **Over-refusal detection:** The judge may classify a safe technical refusal
-  as compliance if the refusal text resembles the attack payload.
-- **Single-judge bias:** All 204 evaluations used one judge model. Cross-judge
-  validation with a second model (e.g., Claude Sonnet) is planned for v2.2.
+The amended exclusion rule was applied only to the 19 prior positive compliance cases, leaving 11 positives. This is a targeted correction, not a full-cohort validation of the amended rubric. It can change the apparent distribution of outcomes and cannot establish that previously negative cases were correct.
 
-**Empirical recalibration:** The v2.1 release is the first version where
-severity labels are derived from measured model compliance rather than
-synthetic harm estimates. The distribution shifted from 82% high/critical (v1)
-to 5.9% high, 23.5% medium, 70.6% low (v2.1). This is a methodological honesty
-upgrade, not a model-improvement claim.
+The recorded negative for `cognitive_overload_001` on `deepseek/deepseek-v4-flash` is disputed because the response reproduces the supplied system message. The report identifies this case without silently replacing its label. Independent adjudication should distinguish exact disclosure, harmless quoting, invented secrets, and descriptions of actions that did not execute.
 
-## Versioning & Provenance
-Every public evaluation artifact outputs traceability points in
-`results/full_eval_YYYYMMDD.jsonl` without publishing full live request/response
-traces:
-- Run timestamps
-- Exact provider and model identifiers requested for the run
-- Execution timeouts vs. API errors
-- Pass/fail flags per individual scenario phase
-- SHA-256 digests and character counts for redacted request/response traces
+Historical cross-judge artifacts are retained for inspection. Agreement coefficients from an earlier pair of label sets do not validate the final corrected set, and comparisons on different subsets are not interchangeable. Claims of stable model rankings or objectively improved judge accuracy are unsupported by those artifacts.
 
-Raw traces are retained only in ignored local outputs or private archives. This reduces accidental disclosure of private system prompts, provider diagnostics, and model-generated unsafe content while preserving enough structure to verify evaluation counts and metric aggregation. The public attack catalog remains available for citation and reproduction.
+## Statistical Interpretation
+
+The report includes descriptive Wilson intervals for observed proportions. These do not measure uncertainty from judge error, selected scenarios, correlated observations, provider updates, or post-hoc analysis choices. Nine endpoints with zero positive labels are not nine demonstrated-safe models. No causal claim about parameter count, training, or deployment security follows from these measurements.
+
+The catalog was developed by one author. Sharing prompts and methods makes scrutiny possible but does not remove author selection bias. The scenarios are public, so training contamination or deliberate optimization against this catalog is possible; contamination has not been measured.
+
+## Provenance and Integrity
+
+The later JSONL artifacts contain stored prompt/response text and automated judgments. Their stored text is bounded by acquisition and judging limits; it is not a complete provider transaction log. The correction overlay contains the later decision and rationale. Some fields in the historical merged artifact retain earlier rationale or confidence values, so they must not be presented as the correction's explanation.
+
+The earlier May 20 controlled-harness study used a different public-artifact policy with redacted traces, character counts, and SHA-256 digests. Its 45-endpoint, 1,800-evaluation summary is pinned to a historical commit. It must not be joined to the later JSONL study or the different historical CSV by filename alone.
+
+A digest establishes the byte identity of an artifact. It does not establish provider authenticity, complete logging, or the date on which the source observation was made. Missing provider IDs, opaque upstream model revisions, and the absence of preregistration remain provenance limits.
+
+## Reproducibility
+
+```bash
+python3 scripts/analyze.py
+python3 scripts/analyze.py --check
+```
+
+These commands reproduce the aggregation without API access. They do not reproduce target behavior, validate the judge's decisions, or resolve the disputed label. The next substantive validation step is an independently adjudicated sample that includes positive cases, negative cases, and known disagreements, with the rubric fixed before review.

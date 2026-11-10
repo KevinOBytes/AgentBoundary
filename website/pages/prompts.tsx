@@ -4,6 +4,8 @@ import Layout from "../components/Layout";
 import { motion, AnimatePresence } from "framer-motion";
 import { Terminal, Activity, Bug, Zap, Cpu, ChevronDown, ChevronRight, Hash } from "lucide-react";
 import React, { useState } from "react";
+import { loadReconciledStats } from "../lib/load-results";
+import type { FrequencyBand } from "../types/results";
 
 interface AttackDefinition {
   attack_id: string;
@@ -13,7 +15,7 @@ interface AttackDefinition {
   seed_input: string;
   trigger_input: string;
   expected_failure_mode: string;
-  severity: string;
+  frequency_band: FrequencyBand;
   phase: string;
 }
 
@@ -28,17 +30,17 @@ interface PromptVariant {
   phases: string[];
   scenarioTypes: string[];
   expectedFailureModes: string[];
-  severities: string[];
+  frequencyBands: FrequencyBand[];
 }
 
 const normalizePrompt = (value: string) => value.trim().replace(/\s+/g, " ");
 
 const getPromptPayload = (attack: AttackDefinition) => {
   const seed = attack.seed_input?.trim();
-  if (seed) {
-    return seed;
-  }
   const trigger = attack.trigger_input?.trim();
+  if (seed) {
+    return `User (scripted seed):\n${seed}\n\nAssistant (scripted):\nStored.\n\nUser (trigger):\n${trigger || seed}`;
+  }
   return trigger || "";
 };
 
@@ -61,7 +63,7 @@ const buildPromptVariants = (familyAttacks: AttackDefinition[]): PromptVariant[]
         phases: [attack.phase],
         scenarioTypes: [attack.scenario_type],
         expectedFailureModes: [attack.expected_failure_mode],
-        severities: [attack.severity],
+        frequencyBands: [attack.frequency_band],
       });
       return;
     }
@@ -70,62 +72,62 @@ const buildPromptVariants = (familyAttacks: AttackDefinition[]): PromptVariant[]
     existing.phases = Array.from(new Set([...existing.phases, attack.phase]));
     existing.scenarioTypes = Array.from(new Set([...existing.scenarioTypes, attack.scenario_type]));
     existing.expectedFailureModes = Array.from(new Set([...existing.expectedFailureModes, attack.expected_failure_mode]));
-    existing.severities = Array.from(new Set([...existing.severities, attack.severity]));
+    existing.frequencyBands = Array.from(new Set([...existing.frequencyBands, attack.frequency_band]));
   });
 
   return Array.from(variants.values()).sort((a, b) => b.attackIds.length - a.attackIds.length);
 };
 
-const severityRank: Record<string, number> = {
+const frequencyRank: Record<string, number> = {
   critical: 4,
   high: 3,
   medium: 2,
   low: 1,
 };
 
-const getVariantSeverity = (variant: PromptVariant) => {
-  if (variant.severities.length === 0) {
+const getVariantFrequency = (variant: PromptVariant) => {
+  if (variant.frequencyBands.length === 0) {
     return "unknown";
   }
 
-  return variant.severities.reduce((currentMax, severity) => {
-    const normalized = severity.toLowerCase();
+  return variant.frequencyBands.reduce((currentMax, frequency) => {
+    const normalized = frequency.toLowerCase();
     const maxNormalized = currentMax.toLowerCase();
-    return (severityRank[normalized] || 0) > (severityRank[maxNormalized] || 0) ? severity : currentMax;
-  }, variant.severities[0]);
+    return (frequencyRank[normalized] || 0) > (frequencyRank[maxNormalized] || 0) ? frequency : currentMax;
+  }, variant.frequencyBands[0]);
 };
 
 export async function getStaticProps(): Promise<{ props: Props }> {
   const filePath = path.join(process.cwd(), "..", "dataset", "attack_catalog.json");
-  let attacks: AttackDefinition[] = [];
-  try {
-    if (fs.existsSync(filePath)) {
-      attacks = JSON.parse(fs.readFileSync(filePath, "utf8"));
-    }
-  } catch (e) {
-    console.error("Failed to load attack catalog", e);
-  }
+  const catalog: Omit<AttackDefinition, "frequency_band">[] = JSON.parse(fs.readFileSync(filePath, "utf8"));
+  const stats = loadReconciledStats();
+  const bands = new Map(stats.by_scenario.map(row => [row.attack_id, row.frequency_band]));
+  const attacks = catalog.map(attack => {
+    const frequency_band = bands.get(attack.attack_id);
+    if (!frequency_band) throw new Error(`Missing reconciled frequency band for ${attack.attack_id}`);
+    return { ...attack, frequency_band };
+  });
   return { props: { attacks } };
 }
 
-const AttackSection = ({ 
-  type, 
-  familyAttacks, 
-  index, 
-  getSeverityColor, 
-  getPhaseIcon 
-}: { 
-  type: string; 
+const AttackSection = ({
+  type,
+  familyAttacks,
+  index,
+  getFrequencyColor,
+  getPhaseIcon
+}: {
+  type: string;
   familyAttacks: AttackDefinition[];
   index: number;
-  getSeverityColor: (val: string) => string;
+  getFrequencyColor: (val: string) => string;
   getPhaseIcon: (val: string) => React.ReactNode;
 }) => {
   const [isExpanded, setIsExpanded] = useState(true);
   const promptVariants = buildPromptVariants(familyAttacks);
 
   return (
-    <motion.div 
+    <motion.div
       id={`section-${type}`}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -134,7 +136,7 @@ const AttackSection = ({
     >
       <div className="absolute top-0 left-0 w-1 h-full bg-accent/20 rounded-full" />
       <div className="pl-6 md:pl-8">
-        <button 
+        <button
           onClick={() => setIsExpanded(!isExpanded)}
           className="w-full text-left group flex items-start sm:items-center justify-between hover:bg-white/5 p-4 -ml-4 rounded-xl transition-colors"
         >
@@ -143,17 +145,17 @@ const AttackSection = ({
               <span className="text-accent opacity-50">/</span> {type.replace(/_/g, ' ')}
             </h2>
             <p className="text-gray-400 text-sm">
-              Targeting `{type}` primitive bypass logic across {promptVariants.length} unique prompts ({familyAttacks.length} total attacks).
+              {promptVariants.length} displayed prompt configurations across {familyAttacks.length} catalog scenarios.
             </p>
           </div>
           <div className="text-gray-500 group-hover:text-accent transition-colors ml-4 mt-1 sm:mt-0 shrink-0">
             {isExpanded ? <ChevronDown size={24} /> : <ChevronRight size={24} />}
           </div>
         </button>
-        
+
         <AnimatePresence initial={false}>
           {isExpanded && (
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
@@ -169,8 +171,8 @@ const AttackSection = ({
                            <span className="font-mono text-accent font-bold bg-accent/10 px-3 py-1 rounded-md text-sm border border-accent/20 shadow-inner">
                              {variant.attackIds.length} Attack{variant.attackIds.length > 1 ? "s" : ""}
                            </span>
-                           <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded border flex items-center ${getSeverityColor(getVariantSeverity(variant))}`}>
-                             {getVariantSeverity(variant)} Priority
+                           <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded border flex items-center ${getFrequencyColor(getVariantFrequency(variant))}`}>
+                             {getVariantFrequency(variant)} frequency
                            </span>
                            <span className="flex items-center text-xs text-gray-400 bg-white/5 border border-white/10 px-2 py-1 rounded capitalize">
                              {getPhaseIcon(variant.phases[0])} {variant.phases.join(", ")} Phase
@@ -194,7 +196,7 @@ const AttackSection = ({
                       </div>
                       <div>
                         <h4 className="flex items-center gap-2 text-[10px] uppercase text-gray-500 mb-2 font-bold tracking-widest">
-                          Expected Arbitrary Execution
+                          Targeted Failure Mode
                         </h4>
                         <div className="bg-[#0a0a0a] border border-white/5 rounded-lg p-3 font-mono text-xs text-purple-300 flex items-start gap-2">
                           <span className="w-2 h-2 mt-1 shrink-0 rounded-full bg-purple-500/50" />
@@ -204,7 +206,7 @@ const AttackSection = ({
                     </div>
 
                     <div>
-                      <h4 className="text-[10px] uppercase text-gray-500 mb-2 font-bold tracking-widest">Base Payload Structure</h4>
+                      <h4 className="text-[10px] uppercase text-gray-500 mb-2 font-bold tracking-widest">Catalog Prompt Configuration</h4>
                       <div className="bg-[#0f0f0f] p-4 sm:p-5 rounded-xl border border-white/5 font-mono text-[10px] sm:text-xs text-gray-300 whitespace-pre-wrap shadow-inner leading-relaxed overflow-x-auto">
                         {variant.prompt}
                       </div>
@@ -230,8 +232,8 @@ export default function PromptsPage({ attacks }: Props) {
     return acc;
   }, {} as Record<string, AttackDefinition[]>);
 
-  const getSeverityColor = (severity: string) => {
-    switch(severity.toLowerCase()) {
+  const getFrequencyColor = (frequency: string) => {
+    switch(frequency.toLowerCase()) {
       case 'critical': return 'text-red-500 bg-red-500/10 border-red-500/20';
       case 'high': return 'text-orange-500 bg-orange-500/10 border-orange-500/20';
       case 'medium': return 'text-yellow-500 bg-yellow-500/10 border-yellow-500/20';
@@ -252,7 +254,7 @@ export default function PromptsPage({ attacks }: Props) {
 
   return (
     <Layout>
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
@@ -263,7 +265,7 @@ export default function PromptsPage({ attacks }: Props) {
           </div>
           <div>
             <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-white mb-2">Adversarial Catalog</h1>
-            <p className="text-gray-400 text-sm md:text-lg max-w-3xl">The public taxonomy of prompt configurations and boundary-stress scenarios used in the controlled benchmark.</p>
+            <p className="text-gray-400 text-sm md:text-lg max-w-3xl">The fixed prompt configurations used in the current cohort. Frequency labels come from reconciled automated judgments and do not measure impact severity. Seed entries display supplied conversation history; this is not evidence of actual memory storage.</p>
           </div>
         </div>
 
@@ -276,9 +278,9 @@ export default function PromptsPage({ attacks }: Props) {
               </h3>
               <div className="flex flex-col gap-1">
                 {sections.map(type => (
-                  <a 
-                    key={type} 
-                    href={`#section-${type}`} 
+                  <a
+                    key={type}
+                    href={`#section-${type}`}
                     className="text-gray-400 hover:text-accent hover:bg-white/5 px-3 py-2 rounded-lg transition-all text-sm font-mono capitalize truncate"
                   >
                     {type.replace(/_/g, ' ')}
@@ -291,12 +293,12 @@ export default function PromptsPage({ attacks }: Props) {
           {/* Main Content */}
           <div className="flex-1 w-full min-w-0">
             {Object.entries(groupedAttacks).map(([type, familyAttacks], i) => (
-              <AttackSection 
+              <AttackSection
                 key={type}
                 type={type}
                 familyAttacks={familyAttacks}
                 index={i}
-                getSeverityColor={getSeverityColor}
+                getFrequencyColor={getFrequencyColor}
                 getPhaseIcon={getPhaseIcon}
               />
             ))}
