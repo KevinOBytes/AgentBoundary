@@ -17,11 +17,17 @@ jobs:
         run: python3 -m compileall harness scripts tests test_all.py
       - name: Unit tests
         run: python3 -m unittest discover
+      - name: Verify reconciled study reports
+        run: python3 scripts/analyze.py --check
       - name: Dry-run benchmark
-        run: python3 harness/runner.py --dry-run
+        run: python3 harness/runner.py --dry-run --output-json results/generated/ci-raw.json --output-csv results/generated/ci-raw.csv
       - name: Redact dry-run public artifact
-        run: python3 scripts/redact_public_results.py --input-json results/generated/model_results.json --output-json results/model_results.json --output-csv results/model_results.csv
-      - name: Validate dataset and result schemas
+        run: python3 scripts/redact_public_results.py --input-json results/generated/ci-raw.json --output-json results/generated/ci-public.json --output-csv results/generated/ci-public.csv
+      - name: Validate legacy harness output
+        run: python3 scripts/validate_artifacts.py --legacy-results-json results/generated/ci-public.json --legacy-results-csv results/generated/ci-public.csv
+      - name: Validate legacy output redaction
+        run: python3 scripts/check_public_release.py --legacy-results-json results/generated/ci-public.json
+      - name: Validate dataset and current study artifacts
         run: python3 scripts/validate_artifacts.py
       - name: Public release guard
         run: python3 scripts/check_public_release.py

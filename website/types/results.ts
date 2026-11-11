@@ -1,74 +1,69 @@
-export type MetricSet = {
+export type FrequencyBand = "low" | "medium" | "high" | "critical" | "unknown";
+
+export interface EvaluationCounts {
+  n: number;
+  expected: number;
+  recorded: number;
+  excluded: number;
+  missing: number;
+  refused: number;
+  complied: number;
+  neutral: number;
+  overlap: number;
+  compliance_rate: number;
+  compliance_ci_low: number;
+  compliance_ci_high: number;
   refusal_rate: number;
-  unsafe_instruction_adoption_rate: number;
-  unsafe_tool_proposal_rate: number;
-  secret_disclosure_rate: number;
-  tool_policy_block_rate?: number;
-  policy_violation_rate: number;
-  overall_vulnerability_score: number;
-  attempted_count?: number;
-  expected_count?: number;
-  scored_count?: number;
-  coverage_rate?: number;
-};
+  refusal_ci_low: number;
+  refusal_ci_high: number;
+}
 
-export type ResultEntry = {
+export interface ModelResult extends EvaluationCounts { model: string }
+export interface FamilyResult extends EvaluationCounts { family: string }
+export interface ScenarioResult extends EvaluationCounts {
   attack_id: string;
-  campaign_id: string;
-  model: string;
-  provider?: string;
-  cohort_label?: string;
-  status?: string;
-  prompt?: string;
-  output?: string;
-  trace_redacted?: boolean;
-  prompt_sha256?: string;
-  output_sha256?: string;
-  prompt_chars?: number;
-  output_chars?: number;
-  flags: {
-    refusal_detected: boolean;
-    unsafe_instruction_adopted: boolean;
-    unsafe_tool_call_proposed: boolean;
-    secret_disclosure_claimed: boolean;
-    policy_violation: boolean;
-  };
-};
+  family: string;
+  attacker_goal: string;
+  expected_failure_mode: string;
+  frequency_band: FrequencyBand;
+}
 
-export type ResultsFile = {
+export interface ReconciledStats {
+  schema_version: number;
   metadata: {
-    benchmark_version: string;
-    run_timestamp: string;
-    dry_run: boolean;
-    models_requested: string[];
-    provider?: string;
-    providers?: string[];
-    cohorts?: Array<{
-      label: string;
-      provider: string;
-      run_label: string;
-      models_requested: string[];
-      expected_count?: number;
-      attempted_count: number;
-      scored_count: number;
-      timeout_count: number;
-      error_count: number;
-      metrics: MetricSet;
-    }>;
-    model_providers?: Record<string, string>;
-    model_cohorts?: Record<string, string>;
-    result_grain?: string;
-    public_artifact_redacted?: boolean;
-    redacted_fields?: string[];
-    redaction_policy?: string;
-    attacks_total: number;
-    expected_count?: number;
-    attempted_count?: number;
-    scored_count: number;
-    timeout_count: number;
-    error_count: number;
+    model_count: number;
+    catalog_scenarios: number;
+    attack_families: number;
+    models: string[];
+    scope: string;
+    judge: string;
+    correction_rows: number;
+    changed_compliance_labels: number;
+    source_files: Array<{ path: string; sha256: string; role: string }>;
   };
-  metrics: MetricSet;
-  metrics_by_model: Record<string, MetricSet>;
-  results: ResultEntry[];
-};
+  coverage: {
+    expected_evaluations: number;
+    recorded_evaluations: number;
+    scorable_evaluations: number;
+    excluded_evaluations: number;
+    missing_evaluations: number;
+    coverage_rate: number;
+    excluded: Array<{ attack_id: string; model: string; reason: string }>;
+    missing: Array<{ attack_id: string; model: string }>;
+  };
+  overall: Omit<EvaluationCounts, "expected" | "recorded" | "excluded" | "missing"> & {
+    zero_compliance_models: number;
+  };
+  by_model: ModelResult[];
+  by_family: FamilyResult[];
+  by_scenario: ScenarioResult[];
+  frequency_bands: Record<FrequencyBand, number>;
+  review_flags: Array<{
+    attack_id: string;
+    model: string;
+    kind: string;
+    exact_match: boolean;
+    stored_verdict: unknown;
+    disputed: boolean;
+  }>;
+}
