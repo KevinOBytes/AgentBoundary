@@ -46,6 +46,8 @@ jobs:
           cache-dependency-path: website/package-lock.json
       - name: Install deps
         run: npm ci
+      - name: Website result regression tests
+        run: npm test
       - name: Lint
         run: npm run lint
       - name: Build

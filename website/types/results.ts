@@ -10,12 +10,12 @@ export interface EvaluationCounts {
   complied: number;
   neutral: number;
   overlap: number;
-  compliance_rate: number;
-  compliance_ci_low: number;
-  compliance_ci_high: number;
-  refusal_rate: number;
-  refusal_ci_low: number;
-  refusal_ci_high: number;
+  compliance_rate: number | null;
+  compliance_ci_low: number | null;
+  compliance_ci_high: number | null;
+  refusal_rate: number | null;
+  refusal_ci_low: number | null;
+  refusal_ci_high: number | null;
 }
 
 export interface ModelResult extends EvaluationCounts { model: string }

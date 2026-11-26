@@ -357,12 +357,14 @@ def update_paper_block(paper: str, report: Row) -> str:
 def protected_study_paths() -> set[Path]:
     """Historical evidence stays protected even when CLI input paths change."""
     paths = {REPO / "dataset/attack_catalog.json"}
-    for pattern in ("*.jsonl", "*.csv"):
+    for pattern in ("*.jsonl", "*.csv", "*.json"):
         paths.update((REPO / "results").glob(pattern))
     paths.update(REPO / "results" / name for name in (
         "model_results.json", "v2_3_stats.json", "v2_3_1_stats.json",
         "benchmark_current_summary.json", "paper_stats_v1.md",
     ))
+    paths.update((REPO / "results/ablation").rglob("*.json"))
+    paths.discard(REPO / "results/reconciled_stats.json")
     return {path.resolve() for path in paths}
 
 

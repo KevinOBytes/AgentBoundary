@@ -35,8 +35,9 @@ HISTORICAL_ARTIFACTS = {
 }
 # Protect all retained acquisition/judging stages, not only the four named
 # inputs. New review runs belong under results/generated or another new path.
-for pattern in ("*.jsonl", "*.csv", "*stats.json"):
+for pattern in ("*.jsonl", "*.csv", "*.json"):
     HISTORICAL_ARTIFACTS.update((ROOT / "results").glob(pattern))
+HISTORICAL_ARTIFACTS.update((ROOT / "results/ablation").rglob("*.json"))
 HISTORICAL_ARTIFACTS.update({
     ROOT / "dataset/attack_catalog.json", ROOT / "results/model_results.json",
     ROOT / "results/benchmark_current_summary.json",

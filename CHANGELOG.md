@@ -3,6 +3,12 @@
 All notable changes to AgentBoundary are documented in this file.
 
 
+## 2026-11-26: publication review fixes
+
+- Protect retained cross-judge JSON and ablation artifacts from report-generation and review-output overwrites, including symlink aliases and explicit `--overwrite` requests.
+- Allow zero-scorable groups with null rates and intervals in website reports; display missing observations as unscored rather than as zero compliance.
+- Add regression checks for evidence preservation and empty-group rendering. No model calls, judge calls, or changes to historical labels were made.
+
 ## 2026-11-10: research-artifact reconciliation
 
 - Reconstruct the 19-row targeted correction overlay against all 552 retained records. Eight compliance labels changed, leaving 11 recorded positive labels. Raw historical records remain unchanged.

@@ -4,7 +4,7 @@ import Layout from "../components/Layout";
 import { motion } from "framer-motion";
 import { Activity, Shield, ShieldAlert, Target, BarChart3, AlertTriangle } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
-import { interval, percent, sourceUrl } from "../lib/results";
+import { interval, modelChartRows, percent, rate, sourceUrl } from "../lib/results";
 import { loadReconciledStats } from "../lib/load-results";
 import type { FrequencyBand, ReconciledStats } from "../types/results";
 
@@ -19,14 +19,9 @@ export default function ResultsPage({ data }: Props) {
   useEffect(() => { setChartReady(true); }, []);
   const { metadata, coverage, overall, by_model, by_family, by_scenario, frequency_bands } = data;
   const models = [...by_model].sort((a, b) => a.model.localeCompare(b.model));
-  const chartData = models.map(model => ({
-    name: model.model.split("/").pop() || model.model,
-    Compliance: ((model.complied - model.overlap) / model.n) * 100,
-    Refusal: ((model.refused - model.overlap) / model.n) * 100,
-    Neither: (model.neutral / model.n) * 100,
-    Both: (model.overlap / model.n) * 100,
-  }));
-  const compliantScenarios = by_scenario.filter(row => row.complied > 0).sort((a, b) => b.compliance_rate - a.compliance_rate || a.attack_id.localeCompare(b.attack_id));
+  const chartData = modelChartRows(models);
+  const unmeasuredModels = models.filter(model => model.n === 0);
+  const compliantScenarios = by_scenario.filter(row => row.complied > 0).sort((a, b) => (b.compliance_rate ?? -1) - (a.compliance_rate ?? -1) || a.attack_id.localeCompare(b.attack_id));
   const bands: FrequencyBand[] = ["low", "medium", "high", "critical", "unknown"];
 
   return (
@@ -64,7 +59,7 @@ export default function ResultsPage({ data }: Props) {
           </div>
           <div className="glass p-6 rounded-2xl border-t-2 border-t-orange-500">
             <h2 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4">Neither flag</h2>
-            <div className="text-5xl font-bold text-orange-400">{percent(overall.neutral / overall.n)}</div>
+            <div className="text-5xl font-bold text-orange-400">{percent(rate(overall.neutral, overall.n))}</div>
             <p className="text-xs text-gray-400 mt-2">{overall.neutral} / {overall.n} responses</p>
             <p className="text-xs text-gray-400 mt-2">Neither refusal nor compliance was flagged.</p>
           </div>
@@ -80,8 +75,10 @@ export default function ResultsPage({ data }: Props) {
         <section className="mb-16">
           <h2 className="text-2xl font-bold text-white flex items-center gap-3 mb-3"><BarChart3 className="text-accent" /> Model Output Labels</h2>
           <p className="text-sm text-gray-400 mb-6">Alphabetical endpoint order. These are automated classifications of this fixed prompt collection, not a safety ranking.</p>
+          {unmeasuredModels.length > 0 && <p className="text-sm text-gray-400 mb-6">No scorable responses for {unmeasuredModels.map(model => model.model).join(", ")}. These endpoints are omitted from the chart; their missing coverage remains in the table below.</p>}
           <div className="glass p-6 rounded-2xl h-[400px] border border-white/5">
-            {chartReady && <ResponsiveContainer width="100%" height="100%">
+            {chartData.length === 0 && <p className="text-gray-400">No scorable responses are available to chart.</p>}
+            {chartReady && chartData.length > 0 && <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData} margin={{ top: 20, right: 30, left: 0, bottom: 60 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#333" vertical={false} />
                 <XAxis dataKey="name" stroke="#888" tick={{ fill: "#888", fontSize: 11 }} angle={-45} textAnchor="end" height={80} />
@@ -105,7 +102,7 @@ export default function ResultsPage({ data }: Props) {
               <div className="text-3xl font-bold text-white mb-1">{percent(family.compliance_rate)}</div>
               <div className="text-xs text-gray-400">{family.complied} / {family.n} scorable responses</div>
               <div className="text-xs text-gray-400 mt-2">95% CI: {interval(family.compliance_ci_low, family.compliance_ci_high)}</div>
-              <div className="mt-3 h-2 bg-white/10 rounded-full overflow-hidden"><div className="h-full rounded-full bg-accent" style={{ width: percent(family.compliance_rate) }} /></div>
+              {family.compliance_rate !== null && <div className="mt-3 h-2 bg-white/10 rounded-full overflow-hidden"><div className="h-full rounded-full bg-accent" style={{ width: percent(family.compliance_rate) }} /></div>}
             </div>)}
           </div>
         </section>

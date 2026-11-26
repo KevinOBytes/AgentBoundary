@@ -215,6 +215,19 @@ class ReconciledAnalysisTests(unittest.TestCase):
         self.assertIn("cannot overwrite", check.stderr)
         self.assertEqual(source.read_bytes(), before)
 
+    def test_cli_protects_cross_judge_json_and_symlink_aliases(self):
+        historical = next((REPO / "results").glob("cross_judge_*.json"))
+        before = historical.read_bytes()
+        with tempfile.TemporaryDirectory() as directory:
+            alias = Path(directory) / "report.json"
+            alias.symlink_to(historical)
+            for target in (historical, alias):
+                check = subprocess.run([sys.executable, str(REPO / "scripts/analyze.py"),
+                                        "--output", str(target)], capture_output=True, text=True)
+                self.assertNotEqual(check.returncode, 0)
+                self.assertIn("cannot overwrite", check.stderr)
+                self.assertEqual(historical.read_bytes(), before)
+
     def test_cli_protects_historical_artifacts_outside_selected_inputs(self):
         historical = REPO / "results/v2_2_eval_20260528_final.jsonl"
         before = historical.read_bytes()

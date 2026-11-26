@@ -164,6 +164,18 @@ class OutputSafetyTests(unittest.TestCase):
             with self.subTest(target=target), self.assertRaises(ValueError):
                 review.validate_output_path(source, target, overwrite=True)
 
+    def test_overwrite_cannot_replace_cross_judge_json_even_via_alias(self) -> None:
+        historical = next((review.ROOT / "results").glob("cross_judge_*.json"))
+        before = historical.read_bytes()
+        with tempfile.TemporaryDirectory() as directory:
+            alias = Path(directory) / "review.jsonl"
+            alias.symlink_to(historical)
+            for target in (historical, alias):
+                with self.subTest(target=target), patch.object(review, "openai_chat") as client, contextlib.redirect_stdout(io.StringIO()):
+                    self.assertEqual(review.main(["--output", str(target), "--overwrite"]), 2)
+                    client.assert_not_called()
+                self.assertEqual(historical.read_bytes(), before)
+
     def test_existing_output_requires_explicit_overwrite(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             source = Path(directory) / "source.jsonl"
