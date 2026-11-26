@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import argparse
 import json
 import re
 import subprocess
 from pathlib import Path
+import sys
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -47,12 +49,11 @@ def assert_no_forbidden_tracked_paths(files: list[str]) -> None:
         raise SystemExit("Forbidden private/raw files are tracked:\n" + "\n".join(sorted(violations)))
 
 
-def assert_public_results_redacted() -> None:
-    path = ROOT / "results" / "model_results.json"
+def assert_public_results_redacted(path: Path) -> None:
     payload = json.loads(path.read_text(encoding="utf-8"))
     metadata = payload.get("metadata", {})
     if metadata.get("public_artifact_redacted") is not True:
-        raise SystemExit("results/model_results.json is not marked as a redacted public artifact")
+        raise SystemExit(f"{path} is not marked as a redacted public artifact")
     for index, row in enumerate(payload.get("results", [])):
         if row.get("trace_redacted") is not True:
             raise SystemExit(f"Result row {index} is not marked trace_redacted")
@@ -80,10 +81,23 @@ def assert_no_secret_patterns(files: list[str]) -> None:
         raise SystemExit("Potential secret patterns found in tracked files:\n" + "\n".join(sorted(set(hits))))
 
 
-def main() -> None:
+def validate_current_reports() -> None:
+    """Verify the current study without substituting synthetic legacy results."""
+    subprocess.run([sys.executable, str(ROOT / "scripts/analyze.py"), "--check"],
+                   cwd=ROOT, check=True)
+
+
+def main(argv: list[str] | None = None) -> None:
+    parser = argparse.ArgumentParser(description="Check tracked release content and current study artifacts")
+    parser.add_argument("--legacy-results-json", type=Path,
+                        help="Check redaction of an explicit legacy harness artifact instead of current reports")
+    args = parser.parse_args(argv)
     files = tracked_files()
     assert_no_forbidden_tracked_paths(files)
-    assert_public_results_redacted()
+    if args.legacy_results_json is not None:
+        assert_public_results_redacted(args.legacy_results_json)
+    else:
+        validate_current_reports()
     assert_no_secret_patterns(files)
     print("Public release guard passed")
 

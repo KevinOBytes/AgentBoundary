@@ -25,7 +25,7 @@ export default function FrameworkPage() {
           </div>
           <div>
             <h1 className="text-4xl font-bold tracking-tight text-white">Evaluation Framework</h1>
-            <p className="mt-2 max-w-2xl text-gray-400">The AgentBoundary harness is a Python-based execution environment for measuring prompt-injection robustness via standard chat-completion APIs. It does not execute live tool calls or test persistent cross-session memory.</p>
+            <p className="mt-2 max-w-2xl text-gray-400">The current AgentBoundary cohort measures responses to fixed chat-completion requests. It does not execute live tool calls or establish persistent cross-session memory behavior.</p>
           </div>
         </div>
 
@@ -35,9 +35,9 @@ export default function FrameworkPage() {
               <Cpu className="text-accent" size={28} />
             </div>
             <div>
-              <h3 className="text-xl font-bold text-white mb-2">Agent Testing Environment</h3>
+              <h3 className="text-xl font-bold text-white mb-2">Current Evaluation Cohort</h3>
               <p className="text-gray-300 leading-relaxed mb-4">
-                The current framework evaluates one representative assistant loop while keeping the provider interface flexible. It manages LLM interactions through OpenRouter, local Ollama, or authenticated Ollama Cloud to run tests across model catalogs.
+                The current study records one measured model response per catalog scenario and endpoint. Results retain endpoint identifiers and missing-record coverage. The older 45-model harness cohort uses different execution and scoring methods and remains a separately labeled artifact.
               </p>
             </div>
           </motion.div>
@@ -49,7 +49,7 @@ export default function FrameworkPage() {
             <div>
               <h3 className="text-xl font-bold text-white mb-2">Static Prompt Evaluation</h3>
               <p className="text-gray-300 leading-relaxed mb-4">
-                Each scenario is a single-turn chat-completion prompt. The harness sends the attack text to the model and records the response. There is no multi-session state, no persistent memory, and no live tool execution. This design isolates the LLM&apos;s instruction-boundary behavior.
+                Scenarios are fixed chat-completion requests. For catalog entries with a seed, the runner inserts a scripted prior exchange, including the assistant text “Stored.”, before the trigger. This is supplied history, not observed storage or recall. The current cohort does not run a live agent framework or execute tool proposals.
               </p>
             </div>
           </motion.div>
@@ -59,9 +59,9 @@ export default function FrameworkPage() {
               <Code className="text-purple-400" size={28} />
             </div>
             <div>
-              <h3 className="text-xl font-bold text-white mb-2">Automated Grading & Heuristics</h3>
+              <h3 className="text-xl font-bold text-white mb-2">Automated Labels and Corrections</h3>
               <p className="text-gray-300 leading-relaxed">
-                After an agent responds, the framework scores unsafe behavior signals. All evaluations use the LLM-as-judge pipeline (gpt-5.4 with few-shot rubrics). Deterministic heuristics remain available in `harness/evaluation.py` as a fallback.
+                The current results combine the retained GPT-5.4 few-shot judge labels with a targeted correction pass over the originally positive compliance labels. Earlier negative labels did not receive that correction pass. Refusal and compliance are separate flags; neither flag does not establish safety or successful task completion. Historical compliance grading received a failure category and truncated response text, without the original prompt context. No human ground-truth validation has been completed.
               </p>
             </div>
           </motion.div>
@@ -73,7 +73,7 @@ export default function FrameworkPage() {
             <div>
               <h3 className="text-xl font-bold text-white mb-2">Reproducible Reporting</h3>
               <p className="text-gray-300 leading-relaxed">
-                The harness emits structured JSON and CSV artifacts at the end of every run. Public artifacts keep attack prompts public while redacting full live request and response traces, retaining metrics, flags, counts, character lengths, and SHA-256 digests for traceability.
+                Current pages use one reconciled summary derived from retained source records and correction labels. Source-file SHA-256 hashes, per-model denominators, excluded empty responses, missing evaluations, and disputed records make the result auditable. The legacy harness&apos;s JSON/CSV metrics and redaction conventions belong to the earlier cohort and are not interchangeable with these current labels.
               </p>
             </div>
           </motion.div>

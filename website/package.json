@@ -8,7 +8,8 @@
     "start": "next start",
     "export:paper": "node scripts/export-paper.mjs",
     "export:paper:pdf": "node scripts/export-paper-pdf.mjs",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "node --experimental-strip-types --test tests/*.test.mjs"
   },
   "dependencies": {
     "@tailwindcss/typography": "^0.5.19",

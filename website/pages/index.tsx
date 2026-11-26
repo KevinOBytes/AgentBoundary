@@ -1,22 +1,19 @@
 import Layout from "../components/Layout";
 import Image from "next/image";
-import { motion, Variants } from "framer-motion";
+import { motion } from "framer-motion";
 import { ShieldAlert, Cpu, User } from "lucide-react";
+import { loadReconciledStats } from "../lib/load-results";
+import { interval, percent } from "../lib/results";
+import type { ReconciledStats } from "../types/results";
 
-const container: Variants = {
-  hidden: { opacity: 0 },
-  show: {
-    opacity: 1,
-    transition: { staggerChildren: 0.1 }
-  }
-};
+interface Props { data: ReconciledStats }
 
-const item: Variants = {
-  hidden: { opacity: 0, y: 20 },
-  show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
-};
+export async function getStaticProps(): Promise<{ props: Props }> {
+  return { props: { data: loadReconciledStats() } };
+}
 
-export default function Home() {
+export default function Home({ data }: Props) {
+  const { metadata, coverage, overall } = data;
   return (
     <Layout>
       <motion.section
@@ -28,13 +25,13 @@ export default function Home() {
         <div className="absolute -inset-x-20 -top-20 z-0 h-[300px] w-full bg-accent/10 blur-[100px] pointer-events-none rounded-full" />
         <div className="relative z-10 flex items-center mb-4 gap-3">
           <ShieldAlert className="text-accent" size={32} />
-          <span className="text-accent font-mono text-sm tracking-widest uppercase font-semibold">AgentBoundary v1.0</span>
+          <span className="text-accent font-mono text-sm tracking-widest uppercase font-semibold">AgentBoundary</span>
         </div>
         <h1 className="relative z-10 max-w-4xl text-5xl md:text-6xl font-extrabold tracking-tight mb-6 bg-gradient-to-br from-white via-white to-gray-500 bg-clip-text text-transparent pb-1">
-          Empirical Prompt-Injection Robustness for LLM Agents
+          Measuring Instruction-Boundary Behavior
         </h1>
         <p className="relative z-10 mt-4 max-w-2xl text-xl leading-relaxed text-gray-400">
-          I built AgentBoundary because I was tired of benchmarks that label attacks as critical without ever testing them against a live model. This is a 51-scenario, empirically scored evaluation suite. Every severity label comes from measured compliance, not synthetic guesswork.
+          AgentBoundary evaluates {metadata.catalog_scenarios} fixed prompt-injection scenarios across {metadata.attack_families} attack families. The current cohort measures model responses through chat-completion APIs and retains automated judgments, coverage gaps, and evidence for review.
         </p>
         <div className="mt-8 flex gap-4 relative z-10">
           <a href="/paper" className="inline-flex items-center gap-2 rounded-lg bg-accent px-6 py-3 font-semibold text-black transition-transform hover:scale-105 hover:bg-green-400">
@@ -54,25 +51,27 @@ export default function Home() {
         transition={{ duration: 0.6 }}
         className="mb-16 relative z-10"
       >
-        <h2 className="text-3xl font-bold text-white mb-6 text-center">What We Actually Found</h2>
+        <h2 className="text-3xl font-bold text-white mb-6 text-center">Reconciled Findings</h2>
         <p className="text-gray-400 text-center max-w-3xl mx-auto mb-8">
-          552 live evaluations across 11 models at temperature zero.
+          {coverage.scorable_evaluations} nonempty responses from {metadata.model_count} model endpoints.
+          {" "}{coverage.recorded_evaluations} records are retained from {coverage.expected_evaluations} planned evaluations;
+          {" "}{coverage.excluded_evaluations} empty response is excluded and {coverage.missing_evaluations} evaluations are absent.
         </p>
         <div className="grid gap-6 md:grid-cols-3">
           <div className="glass p-6 rounded-2xl border-t-2 border-red-500 flex flex-col items-center text-center transition-transform hover:scale-105">
-            <h3 className="text-gray-300 font-medium mb-2 uppercase tracking-wider text-sm">Overall Compliance</h3>
-            <div className="text-5xl font-extrabold text-white mb-2">2.0%</div>
-            <p className="text-sm text-gray-500">11/552, down from 10.0% with zero-shot judge</p>
+            <h3 className="text-gray-300 font-medium mb-2 uppercase tracking-wider text-sm">Compliance Flag Rate</h3>
+            <div className="text-5xl font-extrabold text-white mb-2">{percent(overall.compliance_rate)}</div>
+            <p className="text-sm text-gray-400">{overall.complied}/{overall.n}; 95% Wilson CI {interval(overall.compliance_ci_low, overall.compliance_ci_high)}</p>
           </div>
           <div className="glass p-6 rounded-2xl border-t-2 border-orange-500 flex flex-col items-center text-center transition-transform hover:scale-105">
-            <h3 className="text-gray-300 font-medium mb-2 uppercase tracking-wider text-sm">Zero-Compliance Models</h3>
-            <div className="text-5xl font-extrabold text-white mb-2">9/11</div>
-            <p className="text-sm text-gray-500">Claude, GPT-5-pro, Gemini, MIMO, GLM-5.1 all clean</p>
+            <h3 className="text-gray-300 font-medium mb-2 uppercase tracking-wider text-sm">No Compliance Flag</h3>
+            <div className="text-5xl font-extrabold text-white mb-2">{overall.zero_compliance_models}/{metadata.model_count}</div>
+            <p className="text-sm text-gray-400">Endpoints with zero recorded compliance flags in their scorable responses. Coverage differs by endpoint.</p>
           </div>
           <div className="glass p-6 rounded-2xl border-t-2 border-green-500 flex flex-col items-center text-center transition-transform hover:scale-105">
-            <h3 className="text-gray-300 font-medium mb-2 uppercase tracking-wider text-sm">Claude Opus-4.7</h3>
-            <div className="text-5xl font-extrabold text-white mb-2">0.0%</div>
-            <p className="text-sm text-gray-500">Zero clear compliance across 51 entries</p>
+            <h3 className="text-gray-300 font-medium mb-2 uppercase tracking-wider text-sm">Scorable Coverage</h3>
+            <div className="text-5xl font-extrabold text-white mb-2">{percent(coverage.scorable_evaluations / coverage.expected_evaluations)}</div>
+            <p className="text-sm text-gray-400">{coverage.scorable_evaluations}/{coverage.expected_evaluations} planned model-scenario evaluations</p>
           </div>
         </div>
       </motion.section>
@@ -88,10 +87,10 @@ export default function Home() {
         <div className="glass p-6 rounded-2xl border-l-4 border-accent">
           <h3 className="text-lg font-bold text-white mb-2">Scope Note</h3>
           <p className="text-gray-300 text-sm leading-relaxed">
-            AgentBoundary evaluates prompt-injection robustness via standard chat-completion APIs at temperature=0.0.
-            It does not simulate live tool execution, persistent cross-session memory, or multi-turn agent frameworks.
-            The 51 scenarios test the LLM layer&apos;s instruction-boundary behavior — what the model does when it
-            receives an injected prompt. This is a narrower but more controlled scope than full agent evaluation.
+            This cohort tests instruction-boundary behavior through fixed chat-completion requests, with scripted history for seed entries and one measured response per evaluation.
+            It does not execute live tools or test persistent cross-session memory and multi-turn agent frameworks.
+            Automated labels have not been validated against human ground truth; zero observed compliance does not establish safety.
+            The earlier 45-model, 40-scenario harness cohort is a separate artifact with different methods.
           </p>
         </div>
       </motion.section>
@@ -110,9 +109,9 @@ export default function Home() {
           <Image src="/kevinbytes-logo.png" alt="Kevin O'Connor" width={96} height={96} className="w-24 h-24 rounded-full bg-white/5 p-2 object-contain" />
           <div>
             <h3 className="text-2xl font-bold text-white mb-2">Kevin O&apos;Connor</h3>
-            <p className="text-accent font-mono text-sm mb-4">NSA Veteran | Sr Security Architect | TKOResearch LLC</p>
+            <p className="text-accent font-mono text-sm mb-4">Security Researcher | Former NSA TAO Technical Director</p>
             <p className="text-gray-300 leading-relaxed max-w-3xl">
-              Security researcher focused on adversarial robustness and empirical evaluation. Previously: National Security Agency (Operations Research, Deckert Foster Award, NMU Citation), CrowdStrike. AgentBoundary started as an honest attempt to separate real AI-agent attack surfaces from synthetic hype. My day job is adversarial robustness; my night job is making sure the numbers match the claims.
+              Security researcher focused on adversarial evaluation, systems security, and evidence integrity, with experience at NSA, CrowdStrike, and Adlumin. AgentBoundary publishes experimental methods and retained results so that its claims and limitations can be inspected.
             </p>
           </div>
         </div>

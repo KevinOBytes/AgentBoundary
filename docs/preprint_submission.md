@@ -1,47 +1,54 @@
-# Submission and DOI Plan
+# Manuscript and Artifact Submission Plan
 
-AgentBoundary does not need arXiv as the first public venue. The practical route is to upload the versioned benchmark manuscript to SSRN and archive the code/results bundle with a DOI.
+The manuscript and result files in this repository form a reproducible research package. Their presence does not establish peer review, an external submission, or a DOI. Citation metadata currently points to the repository. Any future submission should identify the exact commit and disclose the current label limitations.
 
-## Recommended Route
+## Current Package
 
-1. **Zenodo for code and artifact DOI**
-   - Use a GitHub release and archive that release on Zenodo.
-   - Zenodo supports versioned records and GitHub release archiving.
-   - Sources:
-     - https://help.zenodo.org/docs/github/
-     - https://zenodo.org/help/versioning
+| File | Role |
+|---|---|
+| `docs/whitepaper.md` | Current manuscript source with a generated results block |
+| `docs/agentboundary-paper.html` | Exported manuscript; regenerate after source changes |
+| `docs/agentboundary-paper.pdf` | Exported manuscript PDF; regenerate after source changes |
+| `results/reconciled_stats.json` | Current machine-readable report |
+| `results/reconciled_stats.md` | Current readable report |
+| `results/v2_3_rejudged.jsonl` | Retained few-shot judge records |
+| `results/v2_3_1_compliance_rejudge.jsonl` | Targeted correction overlay |
+| `results/v1_evaluated.jsonl` | Historical merged labels checked by reconciliation |
+| `dataset/attack_catalog.json` | Current scenario catalog |
+| `docs/PROVENANCE.md` | Source lineage and exclusions |
+| `docs/methodology.md` | Acquisition, judging, inclusion, and analysis methods |
+| `LIMITATIONS.md`, `TRUSTWORTHINESS.md` | Scope and evidence limitations |
+| `CITATION.cff` | Repository citation metadata |
 
-2. **SSRN Computer Science Research Network for the manuscript**
-   - SSRN accepts direct author submissions through its submission portal and has a Computer Science Research Network.
-   - Sources:
-     - https://www.ssrn.com/ssrn/
-     - https://www.elsevier.support/ssrn/answer/how-do-papers-get-on-ssrn
+The current report contains 551 scorable responses from 552 retained records and a 561-pair planned grid. Its labels are automated and include a disclosed disputed negative. A submission must not describe them as human-validated, omit the targeted nature of the correction, or equate zero positive labels with safety.
 
-## Submission Package
+Historical `model_results.json`, `model_results.csv`, older figures, and the initial 45-endpoint manuscript are separate artifacts. Do not use them as the current report's table, CSV, or figure counterpart. If included as supplementary history, label their source cohort and scoring version explicitly.
 
-- Manuscript source: `docs/whitepaper.md`
-- Upload-ready PDF: `docs/agentboundary-paper.pdf`
-- Print HTML: `docs/agentboundary-paper.html`
-- Public result artifacts: `results/model_results.json`, `results/model_results.csv`
-- Visualizations: `results/benchmark_current_*.svg`
-- Reproducibility notes: `docs/methodology.md`, `TRUSTWORTHINESS.md`, `LIMITATIONS.md`
-- Code release: GitHub release from `main`
+## Regenerate and Check
 
-## Exclude From Public Uploads
+From the repository root:
 
-- `.env` and any `.env.*` files except `.env.example`
-- `results/generated/`
-- `results/raw/`, `results/private/`, and `results/archive/`
-- any `*.raw.*`, `*.trace.*`, `*.log`, SQLite, or local database files
-- `website/node_modules/`, `website/.next/`, Python caches, and local release bundles
+```bash
+python3 scripts/analyze.py
+python3 scripts/analyze.py --check
+npm --prefix website run export:paper
+npm --prefix website run export:paper:pdf
+```
 
-Use `git archive` or a GitHub release archive for the software bundle so only tracked, public-safe files are included.
+The statistics commands are offline. The export commands require the website's installed dependencies and the browser/PDF environment expected by its scripts. Inspect the resulting HTML/PDF and confirm that any website-served copy matches the regenerated manuscript before publishing. Do not call an older rendered PDF current merely because its filename matches.
 
-## Before Upload
+## Release and Submission Steps
 
-1. Create a GitHub release tag, for example `v0`.
-2. Archive the release on Zenodo and capture the DOI.
-3. Replace or supplement the repository line in `docs/whitepaper.md` with both the GitHub release URL and Zenodo DOI.
-4. Recompute manuscript tables with `python3 scripts/paper_stats.py`.
-5. Regenerate the manuscript PDF with `cd website && npm run export:paper:pdf`. This script disables Chrome's PDF headers and footers so local directories do not appear in the rendered PDF.
-6. Include the redaction policy in the submission notes so reviewers understand why raw traces are not public.
+1. Fix the commit and source inputs used for the manuscript; record the report's source hashes.
+2. Confirm that the generated tables, scope, exclusions, and disclosed label dispute agree across formats.
+3. Review the files included in an archive. Only add publication or DOI metadata after an actual external record exists.
+4. Create a versioned release and, if desired, submit the reviewed package to the selected archive or manuscript venue.
+5. Keep any later adjudication or new evaluation versioned separately so readers can distinguish corrected labels from new model observations.
+
+Zenodo and SSRN were previously considered as possible destinations. This document is a package and provenance plan, not a completed submission or a commitment to a particular venue. Check the destination's current rules before uploading.
+
+## Exclude Private and Generated Working Data
+
+Exclude credentials, `.env` files other than a public example, private run directories, local logs, databases, dependency directories, caches, and unreviewed working outputs. The repository ignores several such paths, but tracking status alone is not a content-safety review.
+
+The later public JSONL artifacts contain bounded prompt and response text; the earlier study used a different redacted-trace policy. Submission notes must describe the actual artifacts being supplied rather than claiming all live text is absent. Preserve necessary evidence and review it before public distribution.

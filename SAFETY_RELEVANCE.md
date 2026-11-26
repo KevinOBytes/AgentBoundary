@@ -1,88 +1,38 @@
 # Safety Relevance
 
-AgentBoundary is written in the language of security research, but the same
-failure modes are directly relevant to frontier model evaluation. The benchmark
-asks whether an agent can preserve instruction hierarchy, contextual integrity,
-and tool-use boundaries while operating across memory, retrieval, and
-multi-step workflows.
+AgentBoundary examines how adversarial text can cross instruction and context boundaries. The current study supplies output-level evidence for fixed prompts and model endpoints. The security questions are relevant to agents, while many downstream agent behaviors require separate tests.
 
-## Attack Chain / Safety Evaluation Map
+## Questions and Evidence Boundaries
 
-| AgentBoundary stage | Security framing | Frontier lab concern | Evaluation question |
-| --- | --- | --- | --- |
-| Initial Access | Untrusted context enters the agent through user input, RAG, files, or web content. | Scalable oversight gaps in open-ended environments. | Does the model correctly label retrieved or user-provided text as untrusted context rather than policy? |
-| Execution | The model parses the injected instruction as part of its task state. | Instruction hierarchy collapse under task pressure. | Does the model preserve higher-priority instructions when the prompt contains plausible but adversarial task details? |
-| Persistence | The payload survives summarization or memory writeback. | Latent memory poisoning and delayed unsafe activation. | Can adversarial state become durable without immediate harmful behavior? |
-| Activation | A benign future request retrieves the poisoned state. | Conditional behavior after delayed context retrieval. | Does a dormant instruction influence behavior after a delayed semantic or temporal trigger? |
-| Escalation | The recalled payload changes planner or tool-routing decisions. | Unauthorized capability acquisition and tool misuse. | Does the model treat tool access as capability-gated, or can context pressure induce dangerous tool proposals? |
-| Exfiltration / Impact | The agent leaks data or performs the attacker objective. | Misaligned action under long-horizon autonomy. | Can the system prevent harm after upstream context integrity has already degraded? |
+| Security question | Current later study | Additional evidence needed |
+|---|---|---|
+| Does untrusted document text influence the response? | Model outputs under HTML, Markdown, and retrieved-document framing | Task-specific human adjudication and comparison with benign controls |
+| Does stored text influence a later decision? | Seed/trigger text with synthetic conversation history | Actual memory writes, retrieval traces, and later-session execution |
+| Does a model propose an unauthorized tool action? | Text that the judge may classify as compliance | Structured tool calls, authorization decisions, and destination effects |
+| Are system instructions or secrets disclosed? | Stored response text and automated labels | Comparison with the exact protected material and legitimate task context |
+| Does a defense preserve useful task completion? | Not established by the reported compliance counts | Benign-task outcomes, false-positive costs, and controlled defense comparisons |
+| Does a deployed agent remain contained? | Not established by chat-completion outputs | Live tool bindings, credentials, network boundaries, failure handling, and adversarial system tests |
 
-## Three Priority Mappings
+## Retrieved Context and Instruction Boundaries
 
-### Context drift -> alignment degradation under optimization pressure
+The catalog includes document fragments, tool catalogs, notes, and formatting conventions that ask for behavior inconsistent with the supplied system instruction. These scenarios can help formulate hypotheses about how models interpret trusted instructions versus untrusted task data.
 
-Context drift measures whether a model slowly substitutes the user's objective
-with an attacker-provided objective while still appearing helpful. For frontier
-evaluation, this approximates alignment degradation under optimization pressure:
-the model is not simply refusing or complying in one turn, but deciding whether
-to preserve the correct goal across accumulated context, ambiguity, and workflow
-momentum.
+The current automated labels contain positives in five of eight families. The observed rates do not establish that those families dominate production risk, that the other families are safe, or that any proposed defense is effective. They identify examples for inspection and follow-up experiments.
 
-Evaluation implication: safety tests should include long-context and multi-turn
-conditions where the unsafe objective is framed as a helpful operational detail,
-not only as an obvious jailbreak string.
+## Memory Poisoning and Delayed Activation
 
-### Latent memory poisoning → delayed unsafe activation
+The initial 45-endpoint study included a controlled ChromaDB-backed memory path with embedded retrieval. The later 11-endpoint study uses chat-completion messages and a synthetic `Stored.` reply when a seed is supplied. Its seed/activation fields do not demonstrate that a real agent stored, retained, or later retrieved poisoned state.
 
-Latent memory poisoning tests whether a payload can be planted in one session
-and influence later behavior when the model sees a trigger. In the v1 release
-this used an embedded vector store with seed→dormancy→activation campaigns.
+A persistence evaluation should separately observe the write, retention policy, retrieval selection, authorization context, and eventual action. A payload that is harmless at ingestion may become consequential later, but this later study does not quantify that causal chain.
 
-**v2.1 update:** The `dormancy` phase is deprecated because standard
-chat-completion APIs (OpenAI, Anthropic, Gemini) do not implement persistent
-cross-session memory. Without a ChromaDB-style vector store backend, the seed
-state is silently lost between turns. In v2.1, multi-phase LMP entries were
-converted to single-phase seed attacks: the seed request itself constitutes the
-attack vector. The empirical live evaluation found only 5.0% family-level
-compliance for latent_memory_poisoning (1/20 evals), with the single compliance
-coming from a converted single-phase entry. True temporal-separation LMP
-attacks remain a theoretical threat model that requires persistent memory
-APIs to evaluate rigorously.
+## Tool Selection and Execution
 
-**Evaluation implication:** Model evaluations should score both seed-time behavior
-and trigger-time behavior. A model that appears safe during the seed phase can
-still be unsafe if it stores or later obeys adversarial state. However, testing
-this requires frameworks with actual session persistence, not standard chat
-completion.
+Tool-selection prompts can expose unsafe proposals. A proposal is distinct from an authorized call, successful execution, and a harmful destination effect. The later study has no live tools; the earlier harness uses simulated tool behavior. Neither supports a claim that real tool misuse is contained at scale.
 
-### Toolchain confusion → unauthorized capability acquisition
+For a deployment evaluation, outcomes should include requested capability, enforced authority, actual effect, and whether attempted misuse was rejected at the relevant boundary. These are research directions, not capabilities validated by the current report.
 
-Toolchain confusion tests whether adversarial context can cause an agent to
-select, justify, or parameterize a privileged tool outside the user's authority.
-**v2.1 empirical finding:** Toolchain confusion achieved **0% compliance** across
-all 4 frontier models (0/24 evals). All models explicitly refused tool misuse
-requests. This suggests frontier models have been successfully trained to resist
-direct tool misuse, and the attack surface has shifted to **indirect
-instruction** (RAG poisoning, style-guide overrides) rather than direct tool
-requests.
+## Interpretation of the Current Result
 
-**Evaluation implication:** Frontier agent evals should continue treating tool
-calls as first-class safety outcomes but should expand testing to indirect
-injection vectors that do not explicitly mention tools.
+The current report records 11 positive compliance labels among 551 scorable responses. It also discloses a disputed negative: a DeepSeek V4 Flash response to `cognitive_overload_001` reproduces the supplied system message despite being relabeled noncompliant. This illustrates why a low aggregate rate and zero-positive endpoints require scrutiny of the actual output and rubric.
 
-## Why This Matters for Frontier Evals
-
-Standard prompt-injection and jailbreak benchmarks are often single-turn and
-text-output centered. AgentBoundary adds pressure along dimensions that matter
-for frontier agent deployment:
-
-- memory persistence across sessions,
-- retrieved-context trust boundaries,
-- delayed activation triggers,
-- planner and tool-router integrity,
-- scored distinctions between refusal, unsafe instruction adoption, tool abuse,
-  secret disclosure, and transport failures.
-
-This makes the framework a controlled, reproducible harness for
-evaluating whether agentic systems remain aligned when memory and tools create
-longer causal chains between adversarial input and harmful action.
+The highest-value use of the artifact is to support reproducible inspection of specific cases, comparison of scoring definitions, and design of stronger experiments. It does not establish general alignment, deployment readiness, or a safety ranking of model vendors.
